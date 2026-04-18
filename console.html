@@ -111,25 +111,19 @@ body::after {
   text-shadow: 0 0 20px rgba(79,195,247,0.5);
 }
 
-#start-btn {
-  background: #111;
-  border: 2px solid #333;
+#setup-hint {
+  font-size: 0.75rem;
+  letter-spacing: 0.15rem;
   color: #555;
-  font-family: inherit;
-  font-size: 1rem;
-  letter-spacing: 0.2rem;
-  padding: 18px 60px;
-  border-radius: 6px;
-  cursor: not-allowed;
-  transition: all 0.2s;
+  text-align: center;
+  max-width: min(80vw, 500px);
+  line-height: 1.8;
 }
-#start-btn.ready {
-  border-color: #4fc3f7;
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 0 20px rgba(79,195,247,0.2);
+#setup-hint.ready {
+  color: #4fc3f7;
+  animation: pulse 1.4s ease-in-out infinite;
 }
-#start-btn.ready:hover { background: #0e1a20; box-shadow: 0 0 30px rgba(79,195,247,0.35); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
 /* ── Hauptmenü ─────────────────────────────────────────── */
 #main-menu {
@@ -243,7 +237,7 @@ body::after {
       <div class="status-dot" id="dot-2">OPTIONAL</div>
     </div>
   </div>
-  <button id="start-btn" disabled>START</button>
+  <div id="setup-hint">SCANNE DEN QR-CODE MIT DEINEM SMARTPHONE<br>UM ES ALS CONTROLLER ZU VERBINDEN</div>
 </div>
 
 <!-- ── Hauptmenü ─────────────────────────────────────── -->
@@ -359,19 +353,20 @@ function setPlayerConnected(player, on) {
   const dot  = document.getElementById(`dot-${player}`);
   if (wrap) wrap.classList.toggle('connected', on);
   if (dot)  { dot.classList.toggle('connected', on); dot.textContent = on ? 'VERBUNDEN' : (player === 2 ? 'OPTIONAL' : 'WARTE…'); }
-  const btn = document.getElementById('start-btn');
-  if (btn) {
-    const ready = conns.size > 0;
-    btn.disabled = !ready;
-    btn.classList.toggle('ready', ready);
+  const hint = document.getElementById('setup-hint');
+  if (hint) {
+    if (conns.size > 0) {
+      hint.classList.add('ready');
+      hint.textContent = 'DRÜCKE A ZUM STARTEN';
+    } else {
+      hint.classList.remove('ready');
+      hint.innerHTML = 'SCANNE DEN QR-CODE MIT DEINEM SMARTPHONE<br>UM ES ALS CONTROLLER ZU VERBINDEN';
+    }
   }
 }
 
 setupPeer();
 
-document.getElementById('start-btn').addEventListener('click', () => {
-  if (conns.size > 0) { showScreen('main-menu'); menuIdx = 0; highlightMenu(); }
-});
 
 // ── Menü-Navigation ──────────────────────────────────────
 const menuItems = () => [...document.querySelectorAll(`#${activeScreen} .menu-item`)];
@@ -386,7 +381,7 @@ function handleMenuInput(player, gp, prev) {
   if (player !== 1) return;
   // Setup-Screen: START per Controller
   if (activeScreen === 'setup') {
-    if ((gp.start && !prev?.start) && conns.size > 0) { showScreen('main-menu'); menuIdx = 0; highlightMenu(); }
+    if ((gp.a && !prev?.a) && conns.size > 0) { showScreen('main-menu'); menuIdx = 0; highlightMenu(); }
     return;
   }
   const items = menuItems();
