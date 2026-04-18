@@ -161,6 +161,48 @@ body {
   background: linear-gradient(90deg, transparent, #1e1e1e, transparent);
 }
 
+/* ── QR-Scan Overlay ────────────────────────────────────── */
+#scan-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 100;
+  background: #000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+#scan-overlay.active { display: flex; }
+#scan-video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  position: absolute; inset: 0;
+}
+#scan-frame {
+  position: relative; z-index: 2;
+  width: min(60vw, 60vh);
+  height: min(60vw, 60vh);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+}
+#scan-hint {
+  position: relative; z-index: 2;
+  font-size: 0.7rem; letter-spacing: 0.1rem;
+  color: rgba(255,255,255,0.5);
+}
+#scan-close {
+  position: absolute; top: 16px; right: 16px; z-index: 3;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid #333;
+  color: #aaa;
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem; letter-spacing: 0.1rem;
+  padding: 6px 14px; border-radius: 20px;
+  cursor: pointer;
+  touch-action: none;
+}
+#scan-canvas { display: none; }
+
 /* ── Aktions-Buttons ────────────────────────────────────── */
 #actions-area {
   grid-area: actions;
@@ -246,6 +288,16 @@ body {
     <button class="sys-btn" id="btn-select">SELECT</button>
     <div class="stripe"></div>
     <button class="sys-btn" id="btn-start">START</button>
+    <div class="stripe"></div>
+    <button class="sys-btn" id="btn-scan">⟳ QR</button>
+  </div>
+
+  <div id="scan-overlay">
+    <video id="scan-video" playsinline muted></video>
+    <canvas id="scan-canvas"></canvas>
+    <div id="scan-frame"></div>
+    <div id="scan-hint">QR-Code auf Spielfeld richten</div>
+    <button id="scan-close">SCHLIESSEN</button>
   </div>
 
   <div id="actions-area">
@@ -256,9 +308,10 @@ body {
   </div>
 </div>
 
-<div id="version">v0.0.7</div>
+<div id="version">v0.0.8</div>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
 const params     = new URLSearchParams(location.search);
 const player     = parseInt(params.get('player')) || 1;
@@ -362,6 +415,63 @@ requestWakeLock();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') requestWakeLock(); });
 
 setInterval(send, 33);
+
+// ── QR-Scanner ───────────────────────────────────────────
+const scanOverlay = document.getElementById('scan-overlay');
+const scanVideo   = document.getElementById('scan-video');
+const scanCanvas  = document.getElementById('scan-canvas');
+const scanCtx     = scanCanvas.getContext('2d');
+let scanStream = null, scanRaf = null;
+
+document.getElementById('btn-scan').addEventListener('touchend', e => {
+  e.preventDefault();
+  startScan();
+}, { passive: false });
+
+document.getElementById('scan-close').addEventListener('touchend', e => {
+  e.preventDefault();
+  stopScan();
+}, { passive: false });
+
+async function startScan() {
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    scanVideo.srcObject = scanStream;
+    await scanVideo.play();
+    scanOverlay.classList.add('active');
+    scanLoop();
+  } catch {
+    alert('Kamera nicht verfügbar');
+  }
+}
+
+function stopScan() {
+  scanOverlay.classList.remove('active');
+  cancelAnimationFrame(scanRaf);
+  scanStream?.getTracks().forEach(t => t.stop());
+  scanStream = null;
+}
+
+function scanLoop() {
+  if (!scanStream) return;
+  if (scanVideo.readyState === scanVideo.HAVE_ENOUGH_DATA) {
+    scanCanvas.width  = scanVideo.videoWidth;
+    scanCanvas.height = scanVideo.videoHeight;
+    scanCtx.drawImage(scanVideo, 0, 0);
+    const img  = scanCtx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+    const code = jsQR(img.data, img.width, img.height);
+    if (code?.data) {
+      try {
+        const url = new URL(code.data);
+        if (url.searchParams.has('peer')) {
+          stopScan();
+          location.href = code.data;
+        }
+      } catch {}
+    }
+  }
+  scanRaf = requestAnimationFrame(scanLoop);
+}
 </script>
 </body>
 </html>
