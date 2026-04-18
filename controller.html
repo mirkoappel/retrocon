@@ -104,7 +104,7 @@
   </div>
 </div>
 
-<div id="version">v0.4</div>
+<div id="version">v0.5</div>
 
 <div id="bottom">
   <div id="signal-bars">
@@ -132,23 +132,30 @@ const sendLabel  = document.getElementById('send-label');
 const bars       = [1,2,3,4].map(i => document.getElementById(`b${i}`));
 const track      = document.getElementById('track');
 
-let gamma = 0;
+let tilt = 0; // normalisiert: -1 (oben) bis +1 (unten)
 let conn  = null;
 
-function tiltToPercent(g) {
-  return (Math.max(-45, Math.min(45, g)) + 45) / 90;
+const PORTRAIT_RANGE  = 60; // Grad für volle Paddle-Bewegung in Hochkant
+const LANDSCAPE_RANGE = 30; // Grad für volle Paddle-Bewegung in Querformat
+
+function getEffectiveTilt(e) {
+  const angle = screen.orientation?.angle ?? window.orientation ?? 0;
+  let raw, range;
+  if (angle === 90)                        { raw = -(e.beta ?? 0); range = LANDSCAPE_RANGE; }
+  else if (angle === 270 || angle === -90) { raw =  (e.beta ?? 0); range = LANDSCAPE_RANGE; }
+  else                                     { raw =   e.gamma ?? 0; range = PORTRAIT_RANGE;  }
+  return Math.max(-1, Math.min(1, raw / range));
 }
 
-function updatePaddlePreview(g) {
-  const pct  = tiltToPercent(g);
-  const topPx = pct * (track.clientHeight - paddleEl.clientHeight);
+function updatePaddlePreview(pct) {
+  const topPx = ((pct + 1) / 2) * (track.clientHeight - paddleEl.clientHeight);
   paddleEl.style.top = `${topPx}px`;
-  const deg = Math.round(g);
+  const deg = Math.round(pct * 45);
   angleEl.textContent = `${deg > 0 ? '+' : ''}${deg}°`;
 }
 
 function flashSignal() {
-  const level = Math.min(4, Math.floor(Math.abs(gamma) / 12) + 1);
+  const level = Math.min(4, Math.floor(Math.abs(tilt) * 3) + 1);
   bars.forEach((b, i) => b.classList.toggle('active', i < level));
   sendLabel.classList.add('sending');
   clearTimeout(flashSignal._t);
@@ -202,21 +209,14 @@ document.addEventListener('visibilitychange', () => {
 
 setInterval(() => {
   if (conn && conn.open) {
-    conn.send({ type: 'tilt', player, gamma });
+    conn.send({ type: 'tilt', player, tilt });
     flashSignal();
   }
 }, 33);
 
-function getEffectiveTilt(e) {
-  const angle = screen.orientation?.angle ?? window.orientation ?? 0;
-  if (angle === 90)              return -(e.beta ?? 0);
-  if (angle === 270 || angle === -90) return  (e.beta ?? 0);
-  return e.gamma ?? 0;
-}
-
 function handleOrientation(e) {
-  gamma = getEffectiveTilt(e);
-  updatePaddlePreview(gamma);
+  tilt = getEffectiveTilt(e);
+  updatePaddlePreview(tilt);
 }
 
 if (typeof DeviceOrientationEvent !== 'undefined' &&

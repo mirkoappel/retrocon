@@ -80,7 +80,7 @@
 <body>
 
 <canvas id="canvas"></canvas>
-<div id="version">v0.4</div>
+<div id="version">v0.5</div>
 
 <div class="screen" id="screen-mode">
   <h1>PONG</h1>
@@ -124,11 +124,10 @@ const W = 900, H = 550;
 canvas.width = W; canvas.height = H;
 
 const PADDLE_W = 12, PADDLE_H = 90, BALL_R = 8;
-const TILT_RANGE = 45, AI_SPEED = 4.2;
+const AI_SPEED = 4.2;
 
-function tiltToY(gamma) {
-  const pct = (Math.max(-TILT_RANGE, Math.min(TILT_RANGE, gamma)) + TILT_RANGE) / (TILT_RANGE * 2);
-  return pct * (H - PADDLE_H);
+function tiltToY(pct) { // pct: -1 (oben) bis +1 (unten)
+  return ((pct + 1) / 2) * (H - PADDLE_H);
 }
 
 let mode = 0;
@@ -162,7 +161,7 @@ function initPeer() {
       checkReady();
     });
     conn.on('data', msg => {
-      if (msg.type === 'tilt') state[`p${msg.player}`].tilt = msg.gamma;
+      if (msg.type === 'tilt') state[`p${msg.player}`].tilt = msg.tilt;
     });
     conn.on('close', () => {
       connected[player] = false;
