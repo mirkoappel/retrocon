@@ -75,12 +75,24 @@
     cursor: pointer;
   }
   #peer-status { font-size: 0.75rem; color: #333; }
+  #screen-win { gap: 24px; }
+  #trophy { font-size: 7rem; animation: bob 0.7s ease-in-out infinite alternate; }
+  @keyframes bob { from { transform: scale(1) translateY(0); } to { transform: scale(1.08) translateY(-8px); } }
+  #win-title { font-size: 2rem; letter-spacing: 0.4rem; }
+  #win-scores { font-size: 1rem; color: #444; letter-spacing: 0.2rem; }
 </style>
 </head>
 <body>
 
 <canvas id="canvas"></canvas>
-<div id="version">v0.1.1</div>
+<div id="version">v0.1.2</div>
+
+<div class="screen" id="screen-win" style="display:none">
+  <div id="trophy">🏆</div>
+  <div id="win-title">SPIELER 1 GEWINNT</div>
+  <div id="win-scores"></div>
+  <button class="mode-btn" onclick="restartGame()">NOCHMAL</button>
+</div>
 
 <div class="screen" id="screen-mode">
   <h1>PONG</h1>
@@ -124,7 +136,28 @@ const W = 900, H = 550;
 canvas.width = W; canvas.height = H;
 
 const PADDLE_W = 12, PADDLE_H = 90, BALL_R = 8;
-const PADDLE_SPEED = 8, AI_SPEED = 4.2;
+const PADDLE_SPEED = 8, AI_SPEED = 4.2, WIN_SCORE = 10;
+
+// ── Audio ─────────────────────────────────────────────────────
+let audioCtx = null;
+function audio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function beep(freq, dur, vol = 0.3) {
+  const ctx = audio();
+  const osc = ctx.createOscillator(), gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = 'square'; osc.frequency.value = freq;
+  gain.gain.setValueAtTime(vol, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+  osc.start(); osc.stop(ctx.currentTime + dur);
+}
+function sndPaddle() { beep(480, 0.05); }
+function sndWall()   { beep(240, 0.04, 0.2); }
+function sndScore()  { beep(110, 0.35, 0.4); }
+function sndWin()    { [523,659,784,1047].forEach((f,i) => setTimeout(() => beep(f, 0.18, 0.45), i * 130)); }
 
 let mode = 0;
 let peer, connections = {};
@@ -266,6 +299,22 @@ function showReconnectScreen(player) {
   document.getElementById('screen-connect').style.display = 'flex';
 }
 
+function showWin(player) {
+  state.running = false;
+  sndWin();
+  const name = mode === 1 && player === 2 ? 'KI' : `SPIELER ${player}`;
+  document.getElementById('win-title').textContent = `${name} GEWINNT`;
+  document.getElementById('win-scores').textContent = `${state.p1.score} : ${state.p2.score}`;
+  document.getElementById('screen-win').style.display = 'flex';
+}
+
+function restartGame() {
+  state.p1.score = 0; state.p2.score = 0;
+  state.p1.y = H/2 - PADDLE_H/2; state.p2.y = H/2 - PADDLE_H/2;
+  document.getElementById('screen-win').style.display = 'none';
+  startCountdown();
+}
+
 // ── Game logic ────────────────────────────────────────────────
 function resetBall() {
   state.ball.x = W / 2; state.ball.y = H / 2;
@@ -299,8 +348,8 @@ function update() {
   state.ball.x += state.ball.vx;
   state.ball.y += state.ball.vy;
 
-  if (state.ball.y - BALL_R <= 0)   { state.ball.y = BALL_R;     state.ball.vy *= -1; }
-  if (state.ball.y + BALL_R >= H)   { state.ball.y = H - BALL_R; state.ball.vy *= -1; }
+  if (state.ball.y - BALL_R <= 0)   { state.ball.y = BALL_R;     state.ball.vy *= -1; sndWall(); }
+  if (state.ball.y + BALL_R >= H)   { state.ball.y = H - BALL_R; state.ball.vy *= -1; sndWall(); }
 
   const p1x = 30 + PADDLE_W;
   if (state.ball.vx < 0 && state.ball.x - BALL_R <= p1x && state.ball.x - BALL_R >= 28 &&
@@ -308,6 +357,7 @@ function update() {
     state.ball.x = p1x + BALL_R;
     state.ball.vx = Math.abs(state.ball.vx) * 1.04;
     state.ball.vy = ((state.ball.y - (state.p1.y + PADDLE_H/2)) / (PADDLE_H/2)) * 7;
+    sndPaddle();
   }
   const p2x = W - 30 - PADDLE_W;
   if (state.ball.vx > 0 && state.ball.x + BALL_R >= p2x && state.ball.x + BALL_R <= W - 28 &&
@@ -315,13 +365,14 @@ function update() {
     state.ball.x = p2x - BALL_R;
     state.ball.vx = -Math.abs(state.ball.vx) * 1.04;
     state.ball.vy = ((state.ball.y - (state.p2.y + PADDLE_H/2)) / (PADDLE_H/2)) * 7;
+    sndPaddle();
   }
 
   const spd = Math.hypot(state.ball.vx, state.ball.vy);
   if (spd > 18) { state.ball.vx = state.ball.vx / spd * 18; state.ball.vy = state.ball.vy / spd * 18; }
 
-  if (state.ball.x < 0)  { state.p2.score++; resetBall(); }
-  if (state.ball.x > W)  { state.p1.score++; resetBall(); }
+  if (state.ball.x < 0)  { state.p2.score++; sndScore(); if (state.p2.score >= WIN_SCORE) { showWin(2); return; } resetBall(); }
+  if (state.ball.x > W)  { state.p1.score++; sndScore(); if (state.p1.score >= WIN_SCORE) { showWin(1); return; } resetBall(); }
 }
 
 function draw() {
