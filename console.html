@@ -237,7 +237,7 @@ body::after {
       <div class="status-dot" id="dot-2">OPTIONAL</div>
     </div>
   </div>
-  <div id="setup-hint">SCANNE DEN QR-CODE MIT DEINEM SMARTPHONE<br>UM ES ALS CONTROLLER ZU VERBINDEN</div>
+  <div id="setup-hint">SCANNE DEN QR-CODE MIT DEINEM HANDY</div>
 </div>
 
 <!-- ── Hauptmenü ─────────────────────────────────────── -->
@@ -360,7 +360,7 @@ function setPlayerConnected(player, on) {
       hint.textContent = 'DRÜCKE A ZUM STARTEN';
     } else {
       hint.classList.remove('ready');
-      hint.innerHTML = 'SCANNE DEN QR-CODE MIT DEINEM SMARTPHONE<br>UM ES ALS CONTROLLER ZU VERBINDEN';
+      hint.textContent = 'SCANNE DEN QR-CODE MIT DEINEM HANDY';
     }
   }
 }
