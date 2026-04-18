@@ -11,10 +11,12 @@ body {
   width: 100dvw;
   height: 100dvh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-family: 'Courier New', monospace;
   overflow: hidden;
+  gap: 60px;
 }
 
 body::after {
@@ -24,50 +26,124 @@ body::after {
   pointer-events: none;
 }
 
+/* ── Logo ───────────────────────────────────────────────── */
 #logo {
   display: flex;
-  gap: 0.05em;
+  opacity: 0;
+  transition: opacity 0.3s;
 }
+#logo.visible { opacity: 1; }
 
 .letter {
   font-size: clamp(2.5rem, 9vw, 6rem);
   letter-spacing: 0.08em;
   color: #4fc3f7;
   opacity: 0;
-  text-shadow:
-    0 0 40px rgba(79,195,247,0.9),
-    0 0 80px rgba(79,195,247,0.4);
-  animation: appear 0.12s forwards;
+  text-shadow: 0 0 40px rgba(79,195,247,0.9), 0 0 80px rgba(79,195,247,0.4);
+  animation: none;
 }
-
+.letter.pop {
+  animation: appear 0.14s forwards;
+}
 @keyframes appear {
   0%   { opacity: 0; filter: brightness(8) blur(4px); }
   60%  { opacity: 1; filter: brightness(2) blur(0px); }
   100% { opacity: 1; filter: brightness(1) blur(0px); }
 }
+
+/* ── Power Switch ───────────────────────────────────────── */
+#switch-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+#power-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.4rem;
+  color: #333;
+}
+
+/* Rocker-Switch Gehäuse */
+#switch-track {
+  width: 90px;
+  height: 44px;
+  background: #111;
+  border-radius: 6px;
+  border: 2px solid #222;
+  box-shadow: inset 0 3px 8px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+#switch-track:hover { border-color: #333; }
+#switch-track.on { border-color: #4caf50; box-shadow: inset 0 3px 8px rgba(0,0,0,0.8), 0 0 12px rgba(76,175,80,0.3); }
+
+/* OFF / ON Labels */
+#switch-track::before {
+  content: 'OFF';
+  position: absolute; left: 8px;
+  font-size: 0.45rem; letter-spacing: 0.1rem; color: #444;
+}
+#switch-track::after {
+  content: 'ON';
+  position: absolute; right: 9px;
+  font-size: 0.45rem; letter-spacing: 0.1rem; color: #555;
+  transition: color 0.2s;
+}
+#switch-track.on::after { color: #4caf50; }
+
+/* Thumb */
+#switch-thumb {
+  width: 32px;
+  height: 30px;
+  background: linear-gradient(180deg, #555 0%, #333 100%);
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08);
+  position: absolute;
+  left: 6px;
+  transition: left 0.15s cubic-bezier(0.4, 0, 0.2, 1), background 0.15s;
+}
+#switch-track.on #switch-thumb {
+  left: calc(100% - 38px);
+  background: linear-gradient(180deg, #5a8a5a 0%, #3a6a3a 100%);
+}
 </style>
 </head>
 <body>
+
 <div id="logo"></div>
+
+<div id="switch-area">
+  <div id="power-label">POWER</div>
+  <div id="switch-track">
+    <div id="switch-thumb"></div>
+  </div>
+</div>
+
 <script>
 const WORD = 'RETROCON';
-const DELAY_PER_LETTER = 120; // ms zwischen Buchstaben
-const REDIRECT_AFTER   = WORD.length * DELAY_PER_LETTER + 1200;
+const DELAY = 110;
+const logo  = document.getElementById('logo');
+const track = document.getElementById('switch-track');
+let booted  = false;
 
-// ── Buchstaben einblenden ────────────────────────────────
-const logo = document.getElementById('logo');
-WORD.split('').forEach((ch, i) => {
-  const span = document.createElement('span');
-  span.className = 'letter';
-  span.textContent = ch;
-  span.style.animationDelay = (i * DELAY_PER_LETTER) + 'ms';
-  logo.appendChild(span);
+// Buchstaben vorbereiten (noch unsichtbar)
+WORD.split('').forEach(ch => {
+  const s = document.createElement('span');
+  s.className = 'letter';
+  s.textContent = ch;
+  logo.appendChild(s);
 });
 
-// ── Sound ────────────────────────────────────────────────
-function playSound() {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  function tone(freq, start, dur, vol = 0.12, type = 'square') {
+// ── Audio ─────────────────────────────────────────────────
+function playBoot(ctx) {
+  function tone(freq, start, dur, vol = 0.1, type = 'square') {
     const osc = ctx.createOscillator();
     const g   = ctx.createGain();
     const t   = ctx.currentTime + start;
@@ -77,19 +153,43 @@ function playSound() {
     osc.connect(g).connect(ctx.destination);
     osc.start(t); osc.stop(t + dur + 0.05);
   }
-  // Aufsteigendes Arpeggio synchron zu den Buchstaben
-  [262, 294, 330, 370, 392, 440, 494, 523].forEach((freq, i) => {
-    tone(freq, i * (DELAY_PER_LETTER / 1000), 0.18, 0.1);
-  });
-  // Abschlusskord
-  const end = WORD.length * (DELAY_PER_LETTER / 1000) + 0.1;
-  [523, 659, 784].forEach((f, i) => tone(f, end + i * 0.03, 0.8, 0.07));
+  // Einschalt-Klick
+  tone(80, 0, 0.06, 0.2, 'sawtooth');
+  // Arpeggio synchron zu Buchstaben
+  [262,294,330,370,392,440,494,523].forEach((f, i) =>
+    tone(f, 0.12 + i * (DELAY / 1000), 0.16, 0.1)
+  );
+  // Abschluss-Akkord
+  const end = 0.12 + WORD.length * (DELAY / 1000);
+  [523,659,784].forEach((f, i) => tone(f, end + i * 0.03, 0.9, 0.07));
 }
 
-try { playSound(); } catch {}
+// ── Boot-Sequenz ─────────────────────────────────────────
+function boot() {
+  if (booted) return;
+  booted = true;
 
-// ── Weiterleitung ────────────────────────────────────────
-setTimeout(() => { location.href = 'console.html'; }, REDIRECT_AFTER);
+  // Switch einrasten
+  track.classList.add('on');
+
+  // Audio
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  playBoot(ctx);
+
+  // Logo einblenden, Buchstaben nacheinander
+  logo.classList.add('visible');
+  const letters = logo.querySelectorAll('.letter');
+  letters.forEach((el, i) => {
+    setTimeout(() => el.classList.add('pop'), 120 + i * DELAY);
+  });
+
+  // Weiterleitung
+  const total = 120 + WORD.length * DELAY + 1300;
+  setTimeout(() => { location.href = 'console.html'; }, total);
+}
+
+track.addEventListener('click', boot);
+track.addEventListener('touchstart', e => { e.preventDefault(); boot(); }, { passive: false });
 </script>
 </body>
 </html>
