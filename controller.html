@@ -179,6 +179,20 @@ function connect() {
 
 connect();
 
+// Bildschirm wach halten (verhindert Ruhemodus während dem Spielen)
+let wakeLock = null;
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch {}
+}
+requestWakeLock();
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') requestWakeLock();
+});
+
 setInterval(() => {
   if (conn && conn.open) {
     conn.send({ type: 'tilt', player, gamma });
