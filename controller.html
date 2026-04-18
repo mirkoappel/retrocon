@@ -78,26 +78,22 @@ body {
 #joystick-base {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255,255,255,0.04);
-  border: 2px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
   transform: translate(-50%, -50%);
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.08s;
 }
-#joystick-base.visible { opacity: 1; }
 
 #joystick-thumb {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255,255,255,0.18);
-  border: 2px solid rgba(255,255,255,0.3);
+  background: #8C1F3E;
+  box-shadow: 0 4px 0 #5a1128, 0 6px 20px rgba(0,0,0,0.6);
   transform: translate(-50%, -50%);
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.08s;
+  transition: left 0.04s, top 0.04s;
 }
-#joystick-thumb.visible { opacity: 1; }
+#joystick-area.dragging #joystick-thumb { transition: none; }
 
 /* ── Mitte ──────────────────────────────────────────────── */
 #mid {
@@ -263,7 +259,7 @@ body {
   <button id="scan-close">SCHLIESSEN</button>
 </div>
 
-<div id="version">v0.0.9</div>
+<div id="version">v0.1.0</div>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -289,40 +285,39 @@ function send() {
     a: gp.a, b: gp.b, select: gp.select, start: gp.start });
 }
 
-// ── Joystick ─────────────────────────────────────────────
+// ── Joystick (fixer Mittelpunkt) ─────────────────────────
 const joystickArea  = document.getElementById('joystick-area');
 const joystickBase  = document.getElementById('joystick-base');
 const joystickThumb = document.getElementById('joystick-thumb');
 
 let joystickTouchId = null;
-let origin = { x: 0, y: 0 };
-let maxR = 0;
+let jCx = 0, jCy = 0, jMaxR = 0;
 
-function joystickStart(touch) {
+function layoutJoystick() {
   const r = joystickArea.getBoundingClientRect();
-  maxR = Math.min(r.width, r.height) * 0.32;
-  origin = { x: touch.clientX - r.left, y: touch.clientY - r.top };
-
-  const size = maxR * 2;
-  joystickBase.style.cssText  = `width:${size}px;height:${size}px;left:${origin.x}px;top:${origin.y}px`;
-  joystickThumb.style.cssText = `width:${maxR * 0.65}px;height:${maxR * 0.65}px;left:${origin.x}px;top:${origin.y}px`;
-  joystickBase.classList.add('visible');
-  joystickThumb.classList.add('visible');
+  jCx   = r.width  / 2;
+  jCy   = r.height / 2;
+  jMaxR = Math.min(r.width, r.height) * 0.42;
+  const baseSize = jMaxR * 2;
+  const thumbSize = Math.min(r.width, r.height) * 0.22;
+  joystickBase.style.cssText  = `width:${baseSize}px;height:${baseSize}px;left:${jCx}px;top:${jCy}px`;
+  joystickThumb.style.cssText = `width:${thumbSize}px;height:${thumbSize}px;left:${jCx}px;top:${jCy}px;box-shadow:0 ${thumbSize*0.1}px 0 #5a1128,0 ${thumbSize*0.15}px ${thumbSize*0.5}px rgba(0,0,0,0.6)`;
 }
+layoutJoystick();
+window.addEventListener('resize', layoutJoystick);
 
 function joystickMove(touch) {
   const r  = joystickArea.getBoundingClientRect();
-  const dx = (touch.clientX - r.left) - origin.x;
-  const dy = (touch.clientY - r.top)  - origin.y;
+  const dx = (touch.clientX - r.left) - jCx;
+  const dy = (touch.clientY - r.top)  - jCy;
   const dist  = Math.sqrt(dx * dx + dy * dy);
-  const ratio = Math.min(dist, maxR) / (dist || 1);
-  const cx = dx * ratio, cy = dy * ratio;
+  const ratio = Math.min(dist, jMaxR) / (dist || 1);
 
-  joystickThumb.style.left = (origin.x + cx) + 'px';
-  joystickThumb.style.top  = (origin.y + cy) + 'px';
+  joystickThumb.style.left = (jCx + dx * ratio) + 'px';
+  joystickThumb.style.top  = (jCy + dy * ratio) + 'px';
 
-  gp.jx = cx / maxR;
-  gp.jy = cy / maxR;
+  gp.jx = (dx * ratio) / jMaxR;
+  gp.jy = (dy * ratio) / jMaxR;
   const t = 0.35;
   gp.up    = gp.jy < -t;
   gp.down  = gp.jy >  t;
@@ -331,10 +326,11 @@ function joystickMove(touch) {
   send();
 }
 
-function joystickEnd() {
+function joystickRelease() {
   joystickTouchId = null;
-  joystickBase.classList.remove('visible');
-  joystickThumb.classList.remove('visible');
+  joystickArea.classList.remove('dragging');
+  joystickThumb.style.left = jCx + 'px';
+  joystickThumb.style.top  = jCy + 'px';
   gp.jx = gp.jy = 0;
   gp.up = gp.down = gp.left = gp.right = false;
   send();
@@ -343,9 +339,9 @@ function joystickEnd() {
 joystickArea.addEventListener('touchstart', e => {
   e.preventDefault();
   if (joystickTouchId !== null) return;
-  const t = e.changedTouches[0];
-  joystickTouchId = t.identifier;
-  joystickStart(t);
+  joystickTouchId = e.changedTouches[0].identifier;
+  joystickArea.classList.add('dragging');
+  joystickMove(e.changedTouches[0]);
 }, { passive: false });
 
 joystickArea.addEventListener('touchmove', e => {
@@ -359,7 +355,7 @@ joystickArea.addEventListener('touchmove', e => {
   joystickArea.addEventListener(ev, e => {
     e.preventDefault();
     for (const t of e.changedTouches) {
-      if (t.identifier === joystickTouchId) joystickEnd();
+      if (t.identifier === joystickTouchId) joystickRelease();
     }
   }, { passive: false })
 );
