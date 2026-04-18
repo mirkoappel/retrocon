@@ -22,12 +22,16 @@ window.RetroGames.pong = {
     };
 
     // ── Audio ────────────────────────────────────────────
+    // AudioContext sofort im User-Gesture-Kontext des Spielstarts erstellen
     let audioCtx = null;
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
     function ensureAudio() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (!audioCtx) return false;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return true;
     }
     function blip(freq, dur, type = 'square', vol = 0.15) {
-      ensureAudio();
+      if (!ensureAudio()) return;
       const t = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
       const g = audioCtx.createGain();
