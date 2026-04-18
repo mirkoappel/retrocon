@@ -5,235 +5,353 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Controller</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  :root { --color: #4fc3f7; }
-  body {
-    background: #0a0a0a;
-    height: 100dvh;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    align-items: center;
-    font-family: 'Courier New', monospace;
-    color: #fff;
-    user-select: none;
-    overflow: hidden;
-    padding: 28px 0 24px;
-  }
-  #top { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-  #player-label { font-size: 0.75rem; letter-spacing: 0.3rem; color: #444; }
-  #player-num   { font-size: 4rem; font-weight: bold; line-height: 1; color: var(--color); }
-  #status {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 0.8rem; letter-spacing: 0.08rem;
-    padding: 6px 16px; border-radius: 20px;
-    background: #111; color: #444;
-    transition: color 0.3s, background 0.3s;
-    margin-top: 4px;
-  }
-  #status.connected { color: #4caf50; background: #0d200d; }
-  #status.error     { color: #f44336; background: #200d0d; }
-  #status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-  #status.connected #status-dot { animation: pulse 1.2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root { --color: #4fc3f7; }
 
-  #track-wrap {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 16px; height: 100%;
-  }
-  #track {
-    width: 56px; height: min(55vh, 340px);
-    background: #111; border: 2px solid #222;
-    border-radius: 30px; position: relative; overflow: hidden;
-  }
-  #track::after {
-    content: ''; position: absolute;
-    left: 50%; top: 50%; transform: translate(-50%, -50%);
-    width: 60%; height: 2px; background: #1e1e1e; border-radius: 1px;
-  }
-  #paddle {
-    position: absolute; left: 50%; transform: translateX(-50%);
-    width: 28px; height: 60px;
-    background: var(--color); border-radius: 6px;
-    transition: top 0.04s linear;
-    box-shadow: 0 0 18px var(--color);
-  }
-  #angle-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  #angle { font-size: 2.2rem; font-weight: bold; color: var(--color); min-width: 5ch; text-align: center; }
-  #angle-label { font-size: 0.65rem; color: #333; letter-spacing: 0.1rem; }
+body {
+  background: #0f0f0f;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: 'Courier New', monospace;
+  touch-action: none;
+}
 
-  #bottom { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  #signal-bars { display: flex; align-items: flex-end; gap: 4px; height: 20px; }
-  .bar { width: 6px; border-radius: 2px; background: #222; transition: background 0.15s; }
-  .bar:nth-child(1){height:6px} .bar:nth-child(2){height:11px}
-  .bar:nth-child(3){height:16px} .bar:nth-child(4){height:20px}
-  .bar.active { background: var(--color); }
-  #send-label { font-size: 0.65rem; color: #2a2a2a; letter-spacing: 0.1rem; }
-  #send-label.sending { color: #333; }
+/* Portrait: Hinweis zum Drehen */
+#rotate-hint {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  color: #333;
+}
+#rotate-hint span { font-size: 0.7rem; letter-spacing: 0.2rem; }
+#rotate-icon {
+  width: 44px; height: 60px;
+  border: 2px solid #2a2a2a;
+  border-radius: 6px;
+  animation: rot 2.5s ease-in-out infinite;
+}
+@keyframes rot { 0%,35%,100%{transform:rotate(0deg)} 60%,85%{transform:rotate(90deg)} }
 
-  #version {
-    position: fixed; bottom: 8px; right: 10px;
-    font-size: 0.55rem; color: #222; letter-spacing: 0.05rem;
-    pointer-events: none;
-  }
-  #btn-permission {
-    display: none; background: var(--color); color: #000;
-    border: none; padding: 16px 40px; font-size: 1rem;
-    font-family: 'Courier New', monospace; letter-spacing: 0.1rem;
-    border-radius: 50px; cursor: pointer; margin-top: 20px;
-  }
+@media (orientation: portrait) {
+  #rotate-hint  { display: flex; }
+  #gamepad-wrap { display: none; }
+}
+
+/* Status */
+#gamepad-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+#status-bar {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.6rem; letter-spacing: 0.1rem;
+}
+#player-label { color: #2a2a2a; }
+#player-num   { color: var(--color); font-size: 0.75rem; font-weight: bold; }
+#conn-status  { display: flex; align-items: center; gap: 5px; color: #2a2a2a; transition: color 0.3s; }
+#conn-status.connected { color: #4caf50; }
+#conn-status.error     { color: #f44336; }
+#status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+#conn-status.connected #status-dot { animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* NES Controller Body */
+#nes {
+  position: relative;
+  background: linear-gradient(175deg, #3d3d3d 0%, #2b2b2b 100%);
+  border-radius: 16px 16px 40% 40% / 16px 16px 22px 22px;
+  width: min(90vw, 560px);
+  height: min(40vw, 220px);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding: 0 30px;
+  box-shadow:
+    0 10px 40px rgba(0,0,0,0.9),
+    inset 0 1px 0 rgba(255,255,255,0.07),
+    inset 0 -4px 8px rgba(0,0,0,0.5);
+}
+
+/* Dekorativer Riegel oben (NES-typisch) */
+#nes::before {
+  content: '';
+  position: absolute;
+  top: 14px; left: 50%;
+  transform: translateX(-50%);
+  width: 72px; height: 7px;
+  background: #222;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+}
+
+/* ── D-Pad ─────────────────────────────────────────────── */
+#dpad {
+  position: relative;
+  width: 114px;
+  height: 114px;
+  flex-shrink: 0;
+  touch-action: none;
+}
+
+/* Kreuz-Segmente */
+.dp {
+  position: absolute;
+  background: #181818;
+  transition: background 0.04s, filter 0.04s;
+}
+.dp.active { background: #101010; filter: brightness(1.8); }
+
+#dp-c { top: 38px; left: 38px; width: 38px; height: 38px; }
+#dp-u { top:  0;   left: 38px; width: 38px; height: 38px; border-radius: 5px 5px 0 0; }
+#dp-d { top: 76px; left: 38px; width: 38px; height: 38px; border-radius: 0 0 5px 5px; }
+#dp-l { top: 38px; left:  0;   width: 38px; height: 38px; border-radius: 5px 0 0 5px; }
+#dp-r { top: 38px; left: 76px; width: 38px; height: 38px; border-radius: 0 5px 5px 0; }
+
+/* Pfeil-Indikatoren */
+.dpa {
+  position: absolute;
+  width: 0; height: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  transition: opacity 0.04s;
+  z-index: 2;
+}
+.dpa.active { opacity: 0.85; }
+#a-u { top: 9px;    left: 50%;  transform: translateX(-50%); border: 6px solid transparent; border-bottom-color: #ccc; }
+#a-d { bottom: 9px; left: 50%;  transform: translateX(-50%); border: 6px solid transparent; border-top-color: #ccc; }
+#a-l { left: 9px;   top: 50%;   transform: translateY(-50%); border: 6px solid transparent; border-right-color: #ccc; }
+#a-r { right: 9px;  top: 50%;   transform: translateY(-50%); border: 6px solid transparent; border-left-color: #ccc; }
+
+/* ── Mitte: SELECT + START ─────────────────────────────── */
+#middle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 0 6px;
+}
+.sys-row { display: flex; gap: 14px; }
+.sys-btn {
+  background: #1e1e1e;
+  border: none;
+  border-radius: 30px;
+  padding: 5px 14px 6px;
+  color: #3a3a3a;
+  font-family: 'Courier New', monospace;
+  font-size: 0.5rem;
+  letter-spacing: 0.07rem;
+  cursor: pointer;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.02);
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.04s, box-shadow 0.04s;
+}
+.sys-btn.active { color: #555; box-shadow: inset 0 1px 2px rgba(0,0,0,0.9); }
+
+.stripe {
+  width: 56px; height: 2px;
+  background: linear-gradient(90deg, transparent, #1e1e1e, transparent);
+}
+
+/* ── Aktions-Buttons A + B ─────────────────────────────── */
+#actions {
+  position: relative;
+  width: 114px;
+  height: 90px;
+  flex-shrink: 0;
+}
+.act-btn {
+  position: absolute;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem; font-weight: bold;
+  color: rgba(0,0,0,0.3);
+  background: #8C1F3E;
+  box-shadow: 0 5px 0 #5a1128, 0 7px 16px rgba(0,0,0,0.5);
+  transition: box-shadow 0.04s, transform 0.04s, filter 0.04s;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.act-btn.active {
+  box-shadow: 0 1px 0 #5a1128, 0 2px 6px rgba(0,0,0,0.4);
+  transform: translateY(4px);
+  filter: brightness(0.8);
+}
+/* NES: B links-unten, A rechts-oben (leicht diagonal) */
+#btn-b { bottom: 0; left: 6px; }
+#btn-a { top: 0;    right: 6px; }
+
+#version {
+  position: fixed; bottom: 8px; right: 10px;
+  font-size: 0.55rem; color: #222;
+  pointer-events: none;
+}
 </style>
 </head>
 <body>
 
-<div id="top">
-  <div id="player-label">SPIELER</div>
-  <div id="player-num">?</div>
-  <div id="status">
-    <div id="status-dot"></div>
-    <span id="status-text">Verbinde...</span>
-  </div>
-  <button id="btn-permission">Bewegung erlauben</button>
+<div id="rotate-hint">
+  <div id="rotate-icon"></div>
+  <span>PHONE DREHEN</span>
 </div>
 
-<div id="track-wrap">
-  <div id="track"><div id="paddle"></div></div>
-  <div id="angle-wrap">
-    <div id="angle">0°</div>
-    <div id="angle-label">NEIGUNG</div>
+<div id="gamepad-wrap">
+  <div id="status-bar">
+    <span id="player-label">SPIELER</span>
+    <span id="player-num">?</span>
+    <div id="conn-status">
+      <div id="status-dot"></div>
+      <span id="status-text">Verbinde...</span>
+    </div>
+  </div>
+
+  <div id="nes">
+    <div id="dpad">
+      <div class="dp" id="dp-c"></div>
+      <div class="dp" id="dp-u"></div>
+      <div class="dp" id="dp-d"></div>
+      <div class="dp" id="dp-l"></div>
+      <div class="dp" id="dp-r"></div>
+      <div class="dpa" id="a-u"></div>
+      <div class="dpa" id="a-d"></div>
+      <div class="dpa" id="a-l"></div>
+      <div class="dpa" id="a-r"></div>
+    </div>
+
+    <div id="middle">
+      <div class="sys-row">
+        <button class="sys-btn" id="btn-select">SELECT</button>
+        <button class="sys-btn" id="btn-start">START</button>
+      </div>
+      <div class="stripe"></div>
+    </div>
+
+    <div id="actions">
+      <button class="act-btn" id="btn-b">B</button>
+      <button class="act-btn" id="btn-a">A</button>
+    </div>
   </div>
 </div>
 
-<div id="version">v0.0.5</div>
-
-<div id="bottom">
-  <div id="signal-bars">
-    <div class="bar" id="b1"></div><div class="bar" id="b2"></div>
-    <div class="bar" id="b3"></div><div class="bar" id="b4"></div>
-  </div>
-  <div id="send-label">SIGNAL</div>
-</div>
+<div id="version">v0.0.6</div>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-const params = new URLSearchParams(location.search);
-const player  = parseInt(params.get('player')) || 1;
+const params     = new URLSearchParams(location.search);
+const player     = parseInt(params.get('player')) || 1;
 const gamePeerId = params.get('peer');
 
 const color = player === 1 ? '#4fc3f7' : '#ef9a9a';
 document.documentElement.style.setProperty('--color', color);
 document.getElementById('player-num').textContent = player;
 
-const statusEl   = document.getElementById('status');
+const connStatus = document.getElementById('conn-status');
 const statusText = document.getElementById('status-text');
-const paddleEl   = document.getElementById('paddle');
-const angleEl    = document.getElementById('angle');
-const sendLabel  = document.getElementById('send-label');
-const bars       = [1,2,3,4].map(i => document.getElementById(`b${i}`));
-const track      = document.getElementById('track');
+let conn = null;
 
-let tilt = 0; // normalisiert: -1 (oben) bis +1 (unten)
-let conn  = null;
+// ── Gamepad-State ────────────────────────────────────────
+const gp = { up: false, down: false, left: false, right: false, a: false, b: false, select: false, start: false };
 
-const PORTRAIT_RANGE  = 60; // Grad für volle Paddle-Bewegung in Hochkant
-const LANDSCAPE_RANGE = 30; // Grad für volle Paddle-Bewegung in Querformat
-
-function getEffectiveTilt(e) {
-  const angle = screen.orientation?.angle ?? window.orientation ?? 0;
-  let raw, range;
-  if (angle === 90)                        { raw = -(e.beta ?? 0); range = LANDSCAPE_RANGE; }
-  else if (angle === 270 || angle === -90) { raw =  (e.beta ?? 0); range = LANDSCAPE_RANGE; }
-  else                                     { raw =   e.gamma ?? 0; range = PORTRAIT_RANGE;  }
-  return Math.max(-1, Math.min(1, raw / range));
+function send() {
+  if (conn?.open) conn.send({ type: 'gamepad', player,
+    dpad: { up: gp.up, down: gp.down, left: gp.left, right: gp.right },
+    a: gp.a, b: gp.b, select: gp.select, start: gp.start });
 }
 
-function updatePaddlePreview(pct) {
-  const topPx = ((pct + 1) / 2) * (track.clientHeight - paddleEl.clientHeight);
-  paddleEl.style.top = `${topPx}px`;
-  const deg = Math.round(pct * 45);
-  angleEl.textContent = `${deg > 0 ? '+' : ''}${deg}°`;
+// ── D-Pad Touch ──────────────────────────────────────────
+const dpad   = document.getElementById('dpad');
+const dpEls  = { up: document.getElementById('dp-u'), down: document.getElementById('dp-d'), left: document.getElementById('dp-l'), right: document.getElementById('dp-r') };
+const arEls  = { up: document.getElementById('a-u'),  down: document.getElementById('a-d'),  left: document.getElementById('a-l'),  right: document.getElementById('a-r') };
+
+const activeIds = new Map();
+
+function dirFrom(touch) {
+  const r  = dpad.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const dx = touch.clientX - cx,   dy = touch.clientY - cy;
+  const zone = r.width / 4;
+  return { up: dy < -zone, down: dy > zone, left: dx < -zone, right: dx > zone };
 }
 
-function flashSignal() {
-  const level = Math.min(4, Math.floor(Math.abs(tilt) * 3) + 1);
-  bars.forEach((b, i) => b.classList.toggle('active', i < level));
-  sendLabel.classList.add('sending');
-  clearTimeout(flashSignal._t);
-  flashSignal._t = setTimeout(() => {
-    bars.forEach(b => b.classList.remove('active'));
-    sendLabel.classList.remove('sending');
-  }, 120);
-}
-
-function connect() {
-  if (!gamePeerId) {
-    statusText.textContent = 'Kein Spiel gefunden – QR neu scannen';
-    statusEl.className = 'error';
-    return;
+function refreshDpad() {
+  const dirs = { up: false, down: false, left: false, right: false };
+  for (const d of activeIds.values()) {
+    if (d.up)    dirs.up    = true;
+    if (d.down)  dirs.down  = true;
+    if (d.left)  dirs.left  = true;
+    if (d.right) dirs.right = true;
   }
+  gp.up = dirs.up; gp.down = dirs.down; gp.left = dirs.left; gp.right = dirs.right;
+  for (const dir of ['up','down','left','right']) {
+    dpEls[dir].classList.toggle('active', dirs[dir]);
+    arEls[dir].classList.toggle('active', dirs[dir]);
+  }
+  send();
+}
+
+['touchstart','touchmove'].forEach(ev =>
+  dpad.addEventListener(ev, e => {
+    e.preventDefault();
+    for (const t of e.changedTouches) activeIds.set(t.identifier, dirFrom(t));
+    refreshDpad();
+  }, { passive: false })
+);
+['touchend','touchcancel'].forEach(ev =>
+  dpad.addEventListener(ev, e => {
+    e.preventDefault();
+    for (const t of e.changedTouches) activeIds.delete(t.identifier);
+    refreshDpad();
+  }, { passive: false })
+);
+
+// ── Buttons ──────────────────────────────────────────────
+function bindBtn(id, key) {
+  const el = document.getElementById(id);
+  el.addEventListener('touchstart',  e => { e.preventDefault(); gp[key] = true;  el.classList.add('active');    send(); }, { passive: false });
+  el.addEventListener('touchend',    e => { e.preventDefault(); gp[key] = false; el.classList.remove('active'); send(); }, { passive: false });
+  el.addEventListener('touchcancel', e => { e.preventDefault(); gp[key] = false; el.classList.remove('active'); send(); }, { passive: false });
+}
+bindBtn('btn-a',      'a');
+bindBtn('btn-b',      'b');
+bindBtn('btn-select', 'select');
+bindBtn('btn-start',  'start');
+
+// ── PeerJS ───────────────────────────────────────────────
+function connect() {
+  if (!gamePeerId) { statusText.textContent = 'Kein Spiel – QR neu scannen'; connStatus.className = 'error'; return; }
   const peer = new Peer();
   peer.on('open', () => {
     conn = peer.connect(gamePeerId, { metadata: { player } });
-    conn.on('open', () => {
-      statusText.textContent = 'Verbunden ✓';
-      statusEl.className = 'connected';
-    });
-    conn.on('close', () => {
-      statusText.textContent = 'Getrennt – lade neu...';
-      statusEl.className = 'error';
-      setTimeout(() => location.reload(), 2000);
-    });
+    conn.on('open',  () => { statusText.textContent = 'Verbunden ✓'; connStatus.className = 'connected'; });
+    conn.on('close', () => { statusText.textContent = 'Getrennt – lade neu...'; connStatus.className = 'error'; setTimeout(() => location.reload(), 2000); });
   });
-  peer.on('error', () => {
-    statusText.textContent = 'Verbindungsfehler';
-    statusEl.className = 'error';
-    setTimeout(() => location.reload(), 3000);
-  });
+  peer.on('error', () => { statusText.textContent = 'Verbindungsfehler'; connStatus.className = 'error'; setTimeout(() => location.reload(), 3000); });
 }
-
 connect();
 
-// Bildschirm wach halten (verhindert Ruhemodus während dem Spielen)
+// ── Wake Lock ────────────────────────────────────────────
 let wakeLock = null;
 async function requestWakeLock() {
   if (!('wakeLock' in navigator)) return;
-  try {
-    wakeLock = await navigator.wakeLock.request('screen');
-    wakeLock.addEventListener('release', () => { wakeLock = null; });
-  } catch {}
+  try { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } catch {}
 }
 requestWakeLock();
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') requestWakeLock();
-});
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') requestWakeLock(); });
 
-setInterval(() => {
-  if (conn && conn.open) {
-    conn.send({ type: 'tilt', player, tilt });
-    flashSignal();
-  }
-}, 33);
-
-function handleOrientation(e) {
-  tilt = getEffectiveTilt(e);
-  updatePaddlePreview(tilt);
-}
-
-if (typeof DeviceOrientationEvent !== 'undefined' &&
-    typeof DeviceOrientationEvent.requestPermission === 'function') {
-  const btn = document.getElementById('btn-permission');
-  btn.style.display = 'block';
-  btn.onclick = () => {
-    DeviceOrientationEvent.requestPermission().then(s => {
-      if (s === 'granted') {
-        window.addEventListener('deviceorientation', handleOrientation);
-        btn.style.display = 'none';
-      }
-    });
-  };
-} else {
-  window.addEventListener('deviceorientation', handleOrientation);
-}
+setInterval(send, 33);
 </script>
 </body>
 </html>

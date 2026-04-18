@@ -80,7 +80,7 @@
 <body>
 
 <canvas id="canvas"></canvas>
-<div id="version">v0.0.5</div>
+<div id="version">v0.0.6</div>
 
 <div class="screen" id="screen-mode">
   <h1>PONG</h1>
@@ -124,19 +124,20 @@ const W = 900, H = 550;
 canvas.width = W; canvas.height = H;
 
 const PADDLE_W = 12, PADDLE_H = 90, BALL_R = 8;
-const AI_SPEED = 4.2;
-
-function tiltToY(pct) { // pct: -1 (oben) bis +1 (unten)
-  return ((pct + 1) / 2) * (H - PADDLE_H);
-}
+const PADDLE_SPEED = 8, AI_SPEED = 4.2;
 
 let mode = 0;
 let peer, connections = {};
 let peerId = null;
 
+const gamepad = {
+  1: { up: false, down: false, left: false, right: false },
+  2: { up: false, down: false, left: false, right: false },
+};
+
 let state = {
-  p1: { y: H/2 - PADDLE_H/2, score: 0, tilt: 0 },
-  p2: { y: H/2 - PADDLE_H/2, score: 0, tilt: 0 },
+  p1: { y: H/2 - PADDLE_H/2, score: 0 },
+  p2: { y: H/2 - PADDLE_H/2, score: 0 },
   ball: { x: W/2, y: H/2, vx: 5, vy: 3 },
   running: false,
   countdown: 0,
@@ -161,7 +162,7 @@ function initPeer() {
       checkReady();
     });
     conn.on('data', msg => {
-      if (msg.type === 'tilt') state[`p${msg.player}`].tilt = msg.tilt;
+      if (msg.type === 'gamepad') Object.assign(gamepad[player], msg.dpad);
     });
     conn.on('close', () => {
       connected[player] = false;
@@ -251,14 +252,18 @@ function resetBall() {
 function update() {
   if (!state.running) return;
 
-  state.p1.y = tiltToY(state.p1.tilt);
+  if (gamepad[1].up)   state.p1.y -= PADDLE_SPEED;
+  if (gamepad[1].down) state.p1.y += PADDLE_SPEED;
+  state.p1.y = Math.max(0, Math.min(H - PADDLE_H, state.p1.y));
+
   if (mode === 1) {
     const diff = (state.ball.y - PADDLE_H / 2) - state.p2.y;
     state.p2.y += Math.sign(diff) * Math.min(Math.abs(diff), AI_SPEED);
-    state.p2.y = Math.max(0, Math.min(H - PADDLE_H, state.p2.y));
   } else {
-    state.p2.y = tiltToY(state.p2.tilt);
+    if (gamepad[2].up)   state.p2.y -= PADDLE_SPEED;
+    if (gamepad[2].down) state.p2.y += PADDLE_SPEED;
   }
+  state.p2.y = Math.max(0, Math.min(H - PADDLE_H, state.p2.y));
 
   state.ball.x += state.ball.vx;
   state.ball.y += state.ball.vy;
