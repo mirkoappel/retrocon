@@ -42,30 +42,43 @@ body::after {
 
 #qr-row {
   display: flex;
-  gap: 60px;
+  gap: min(10vw, 100px);
   align-items: flex-start;
   justify-content: center;
+  position: relative;
+}
+#qr-row::after {
+  content: 'VS';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.65rem;
+  letter-spacing: 0.3rem;
+  color: #2a2a2a;
 }
 
 .player-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 .player-card .label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   letter-spacing: 0.4rem;
-  color: #555;
+  color: #888;
 }
 .qr-wrap {
   background: #fff;
   padding: 14px;
   border-radius: 10px;
-  border: 3px solid #1e1e1e;
-  transition: border-color 0.3s;
+  border: 4px solid #1e1e1e;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
-.qr-wrap.connected { border-color: #4caf50; }
+.qr-wrap.connected {
+  border-color: #4caf50;
+  box-shadow: 0 0 20px rgba(76,175,80,0.3);
+}
 
 .status-dot {
   display: flex;
@@ -73,7 +86,7 @@ body::after {
   gap: 8px;
   font-size: 0.7rem;
   letter-spacing: 0.15rem;
-  color: #444;
+  color: #666;
 }
 .status-dot::before {
   content: '';
@@ -86,15 +99,15 @@ body::after {
 .status-dot.connected::before { background: #4caf50; box-shadow: 0 0 6px #4caf50; }
 
 #room-code {
-  font-size: 0.8rem;
-  letter-spacing: 0.25rem;
-  color: #333;
+  font-size: 0.75rem;
+  letter-spacing: 0.3rem;
+  color: #666;
 }
 #room-code span {
   color: #4fc3f7;
-  font-size: 1.2rem;
-  letter-spacing: 0.5rem;
-  text-shadow: 0 0 16px rgba(79,195,247,0.4);
+  font-size: 1.4rem;
+  letter-spacing: 0.6rem;
+  text-shadow: 0 0 20px rgba(79,195,247,0.5);
 }
 
 #start-btn {
@@ -131,13 +144,13 @@ body::after {
   top: 16px; right: 20px;
   font-size: 0.65rem;
   letter-spacing: 0.2rem;
-  color: #333;
+  color: #666;
   z-index: 10;
 }
 .room-badge span { color: #4fc3f7; }
 
 .menu-section {
-  color: #444;
+  color: #777;
   font-size: 0.65rem;
   letter-spacing: 0.4rem;
   align-self: flex-start;
@@ -168,7 +181,7 @@ body::after {
   box-shadow: 0 0 16px rgba(79,195,247,0.3);
 }
 .menu-item .badge {
-  color: #555;
+  color: #777;
   font-size: 0.7rem;
 }
 
@@ -184,7 +197,7 @@ body::after {
   font-size: 0.8rem;
   letter-spacing: 0.4rem;
   font-weight: normal;
-  color: #555;
+  color: #888;
 }
 
 /* ── Game-View ─────────────────────────────────────────── */
