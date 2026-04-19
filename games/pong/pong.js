@@ -128,12 +128,16 @@ window.RetroGames.pong = {
 
         const { paddleW, paddleH, margin, ballR } = dims();
 
-        // KI für P2 wenn niemand verbunden
+        // KI für jeden nicht verbundenen Spieler
         const conns = api.getConns();
+        const aiStep = AI_SPEED * dt * 60;
+        if (!conns.has(1)) {
+          const dy = (state.ball.y - paddleH / 2) - state.p1.y;
+          state.p1.y += Math.max(-aiStep, Math.min(aiStep, dy * 0.08));
+        }
         if (!conns.has(2)) {
-          const target = state.ball.y - paddleH / 2;
-          const dy = target - state.p2.y;
-          state.p2.y += Math.max(-AI_SPEED * dt * 60, Math.min(AI_SPEED * dt * 60, dy * 0.08));
+          const dy = (state.ball.y - paddleH / 2) - state.p2.y;
+          state.p2.y += Math.max(-aiStep, Math.min(aiStep, dy * 0.08));
         }
 
         // Ball
