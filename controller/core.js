@@ -44,6 +44,9 @@
     });
   }
 
+  function isConnected() { return !!conn?.open; }
+  function sendRaw(msg)  { if (conn?.open) conn.send(msg); }
+
   function bindBtn(id, key) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -193,7 +196,7 @@
   window.RC = {
     CODE_RE, CODE_ALPHABET, VARIANTS, VARIANT_KEY,
     params: { code, player, peerId },
-    gp, send, bindBtn, onStatus, init,
+    gp, send, sendRaw, isConnected, bindBtn, onStatus, init,
     showScan, hideScan,
     showPicker, hidePicker,
     getVariant, setVariant

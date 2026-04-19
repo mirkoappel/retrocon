@@ -1,5 +1,5 @@
 // SPA-Orchestrator: Screen-Routing + Verdrahtung von Services und Views.
-import { setupPeer, onReady, onConnect, onDisconnect, onData } from './services/connection.js';
+import { setupPeer, onReady, onConnect, onDisconnect, onData, onShowSetup } from './services/connection.js';
 import { initBoot } from './views/boot.js';
 import { renderQRs, setPlayerConnected } from './views/setup.js';
 import { initMenu, handleMenuInput } from './views/menu.js';
@@ -18,6 +18,7 @@ initGame();
 initMenu();
 
 onReady(urls => renderQRs(urls));
+onShowSetup(() => { exitGame(); showScreen('setup'); });
 onConnect(player => setPlayerConnected(player, true));
 onDisconnect(player => {
   setPlayerConnected(player, false);

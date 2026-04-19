@@ -97,7 +97,9 @@ RC.bindBtn('btn-select', 'select');
 
 // ── Overlay-Buttons ──────────────────────────────────────
 document.getElementById('btn-scan').addEventListener('pointerdown', e => {
-  e.preventDefault(); RC.showScan();
+  e.preventDefault();
+  if (RC.isConnected()) RC.sendRaw({ type: 'show-setup' });
+  else RC.showScan();
 });
 document.getElementById('btn-picker').addEventListener('pointerdown', e => {
   e.preventDefault(); RC.showPicker();
