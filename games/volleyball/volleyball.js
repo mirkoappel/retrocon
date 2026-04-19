@@ -31,11 +31,12 @@ window.RetroGames.volleyball = {
     function dims() {
       const groundY = Math.round(h * 0.9);
       const slimeR  = Math.round(h * 0.13);
+      const slimeFoot = Math.round(slimeR * 0.14);  // runde Fuß-Höhe unter Dome-Mittelpunkt
       const ballR   = Math.max(6, Math.round(h * 0.022));
       const netW    = Math.max(4, Math.round(w * 0.006));
       const netH    = Math.round(h * 0.24);
       const centerX = w / 2;
-      return { groundY, slimeR, ballR, netW, netH, centerX };
+      return { groundY, slimeR, slimeFoot, ballR, netW, netH, centerX };
     }
 
     const { groundY } = dims();
@@ -232,17 +233,18 @@ window.RetroGames.volleyball = {
           sndNet();
         }
 
-        // Slime-Kollisionen (nur obere Halbkugel)
+        // Slime-Kollisionen (nur obere Halbkugel, Dome-Mittelpunkt um slimeFoot angehoben)
         [state.p1, state.p2].forEach(p => {
+          const cy = p.y - slimeFoot;
           const dx = b.x - p.x;
-          const dy = b.y - p.y;
+          const dy = b.y - cy;
           const dist = Math.hypot(dx, dy);
           const R = slimeR + ballR;
           if (dist < R && dy < 0 && dist > 0) {
             const nx = dx / dist;
             const ny = dy / dist;
             b.x = p.x + nx * R;
-            b.y = p.y + ny * R;
+            b.y = cy + ny * R;
             const v = b.vx * nx + b.vy * ny;
             b.vx -= 2 * v * nx;
             b.vy -= 2 * v * ny;
@@ -266,7 +268,7 @@ window.RetroGames.volleyball = {
       },
 
       draw() {
-        const { groundY, slimeR, ballR, netW, netH, centerX } = dims();
+        const { groundY, slimeR, slimeFoot, ballR, netW, netH, centerX } = dims();
 
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, w, h);
@@ -299,8 +301,8 @@ window.RetroGames.volleyball = {
         ctx.restore();
 
         // Slimes
-        drawSlime(state.p1.x, state.p1.y, slimeR, BLUE, state.p1.squash);
-        drawSlime(state.p2.x, state.p2.y, slimeR, PINK, state.p2.squash);
+        drawSlime(state.p1.x, state.p1.y, slimeR, slimeFoot, BLUE, state.p1.squash);
+        drawSlime(state.p2.x, state.p2.y, slimeR, slimeFoot, PINK, state.p2.squash);
 
         // Ball
         ctx.save();
@@ -337,7 +339,7 @@ window.RetroGames.volleyball = {
       destroy() { /* AudioContext gehört der Console */ }
     };
 
-    function drawSlime(x, y, r, color, squash = 1) {
+    function drawSlime(x, y, r, foot, color, squash = 1) {
       ctx.save();
       ctx.fillStyle = color;
       ctx.shadowColor = color;
@@ -345,8 +347,12 @@ window.RetroGames.volleyball = {
       // Volumen-erhaltender Squash: Höhe *sy, Breite *1/√sy, Pivot an der Basis.
       ctx.translate(x, y);
       ctx.scale(1 / Math.sqrt(squash), squash);
+      // Dome sitzt um foot angehoben, Fuß mit weichen Ecken bis y=0.
       ctx.beginPath();
-      ctx.arc(0, 0, r, Math.PI, 0, false);
+      ctx.moveTo(-r, -foot);
+      ctx.arc(0, -foot, r, Math.PI, 0, false);       // Top-Dome
+      ctx.quadraticCurveTo(r, 0, 0, 0);              // runde rechte Ecke
+      ctx.quadraticCurveTo(-r, 0, -r, -foot);        // runde linke Ecke
       ctx.closePath();
       ctx.fill();
       ctx.restore();
