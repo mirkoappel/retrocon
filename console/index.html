@@ -253,6 +253,17 @@ body::after {
   font-size: 0.65rem;
   letter-spacing: 0.25rem;
 }
+#play-hint .btn-key {
+  display: inline-grid;
+  place-items: center;
+  width: 1.4em; height: 1.4em;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  margin-right: 0.6em;
+  font-size: 0.85em;
+  letter-spacing: 0;
+  font-weight: bold;
+}
 
 .room-badge {
   position: fixed;
@@ -369,8 +380,8 @@ body::after {
     <div class="carousel-arrow right">▶</div>
   </div>
   <div id="play-hint">
-    <div class="hint-primary">DRÜCKE A ZUM STARTEN</div>
-    <div class="hint-secondary">DRÜCKE B FÜR EINSTELLUNGEN</div>
+    <div class="hint-primary"><span class="btn-key">A</span> SPIEL AUSWÄHLEN</div>
+    <div class="hint-secondary"><span class="btn-key">B</span> EINSTELLUNGEN</div>
   </div>
 </div>
 
