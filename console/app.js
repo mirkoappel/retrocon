@@ -1,10 +1,11 @@
 // SPA-Orchestrator: Screen-Routing + Verdrahtung von Services und Views.
 import { setupPeer, onReady, onConnect, onDisconnect, onData } from './services/connection.js';
+import { initBoot } from './views/boot.js';
 import { renderQRs, setPlayerConnected } from './views/setup.js';
 import { initMenu, handleMenuInput } from './views/menu.js';
 import { initGame, startGame, exitGame, getCurrentGame } from './views/game.js';
 
-let activeScreen = 'setup';
+let activeScreen = 'boot';
 
 export function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -12,6 +13,7 @@ export function showScreen(name) {
   activeScreen = name;
 }
 
+initBoot(() => showScreen('setup'));
 initGame();
 initMenu();
 

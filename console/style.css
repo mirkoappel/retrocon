@@ -18,6 +18,77 @@ body::after {
 .screen { display: none; height: 100dvh; }
 .screen.active { display: flex; }
 
+/* ── Boot ──────────────────────────────────────────────── */
+#boot {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+#boot-terminal {
+  width: min(90vw, 560px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.t-line {
+  font-size: clamp(0.6rem, 1.6vw, 0.8rem);
+  letter-spacing: 0.05rem;
+  color: #4fc3f7;
+  opacity: 0;
+  transition: opacity 0.1s;
+  white-space: pre;
+}
+.t-line.show { opacity: 1; }
+#boot-cursor {
+  display: inline-block;
+  width: 0.55em; height: 1em;
+  background: #4fc3f7;
+  vertical-align: middle;
+  animation: cblink 0.7s step-end infinite;
+  opacity: 0;
+}
+#boot-cursor.show { opacity: 1; }
+@keyframes cblink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+#boot-press-key {
+  margin-top: 28px;
+  font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+  letter-spacing: 0.35rem;
+  color: #4fc3f7;
+  opacity: 0;
+  align-self: center;
+}
+#boot-press-key.show {
+  opacity: 1;
+  animation: pblink 1s step-end infinite;
+}
+@keyframes pblink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+#boot-logo-screen {
+  display: none;
+  position: fixed; inset: 0;
+  background: #000;
+  align-items: center;
+  justify-content: center;
+}
+#boot-logo-screen.active { display: flex; }
+#boot-logo { display: flex; }
+.letter {
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: clamp(1.8rem, 7vw, 4.5rem);
+  letter-spacing: 0.05em;
+  color: #4fc3f7;
+  opacity: 0;
+  text-shadow: 0 0 40px rgba(79,195,247,0.9), 0 0 80px rgba(79,195,247,0.4);
+}
+.letter.pop { animation: appear 0.14s forwards; }
+@keyframes appear {
+  0%   { opacity: 0; filter: brightness(8) blur(4px); }
+  60%  { opacity: 1; filter: brightness(2) blur(0); }
+  100% { opacity: 1; filter: brightness(1) blur(0); }
+}
+
 /* ── Setup-Screen ──────────────────────────────────────── */
 #setup {
   flex-direction: column;

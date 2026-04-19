@@ -1,5 +1,6 @@
 // Game-View: Canvas, Loop, Start/Exit.
 import { conns, lastInput, code } from '../services/connection.js';
+import { getAudioContext } from '../services/audio.js';
 import { showScreen } from '../app.js';
 import { resetMenu } from './menu.js';
 
@@ -33,6 +34,7 @@ export function startGame(name) {
   currentGame = mod.create(ctx, canvas.width, canvas.height, Math.max(1, conns.size), {
     exit: exitGame,
     getConns: () => conns,
+    audioCtx: getAudioContext(),
     code
   });
   for (const [p, gp] of lastInput) currentGame.input?.(p, gp, null);

@@ -46,9 +46,8 @@ window.RetroGames.pong = {
     };
 
     // ── Audio ────────────────────────────────────────────
-    // AudioContext sofort im User-Gesture-Kontext des Spielstarts erstellen
-    let audioCtx = null;
-    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+    // Globaler AudioContext aus der Console (im Boot-Gesture erstellt).
+    const audioCtx = api.audioCtx;
     function ensureAudio() {
       if (!audioCtx) return false;
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -238,9 +237,7 @@ window.RetroGames.pong = {
         }
       },
 
-      destroy() {
-        try { audioCtx?.close(); } catch {}
-      }
+      destroy() { /* AudioContext gehört der Console, nicht schließen */ }
     };
 
     function checkWin(player) {
