@@ -1,5 +1,5 @@
 // Hauptmenü: Karussell + Legende + Navigation.
-import { startGame } from './game.js';
+import { startGame, exitGame, getCurrentGame } from './game.js';
 import { showScreen } from '../app.js';
 
 let track, carousel;
@@ -42,6 +42,10 @@ export function initMenu() {
   window.addEventListener('resize', highlight);
 
   window.addEventListener('keydown', e => {
+    if (getCurrentGame()) {
+      if (e.key === 'Escape') { exitGame(); e.preventDefault(); }
+      return;
+    }
     const active = document.querySelector('.screen.active')?.id;
     if (active === 'main-menu') {
       if (e.key === 'b' || e.key === 'B') { showScreen('setup'); e.preventDefault(); }
