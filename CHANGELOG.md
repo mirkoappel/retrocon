@@ -1,0 +1,66 @@
+# Changelog
+
+Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
+
+## [Unreleased]
+
+### Geändert
+- Controller Classic: A/B-Buttons nach links gerückt für bequemere Daumen-Reichweite
+- Controller Classic: Icon-Buttons (Home, Gear, Wifi) vertikal gestapelt statt horizontal
+- Controller Classic: Größen via `vmax`/`vmin` statt `vw`/`vh` für orientierungsunabhängige Skalierung
+- Portrait-Overlay im RETROCON-Stil (Gehäuse-Hintergrund, Crimson-Akzent, 3D-Phone-Icon, zweizeiliger zentrierter Text „SMARTPHONE DREHEN")
+
+## [0.3.3]
+
+### Hinzugefügt
+- Controller: Plugin-System mit austauschbaren Varianten unter `controller/variants/`
+- Shared `core.js` für Verbindung, Gamepad-Protokoll, Scan-/Picker-Overlays
+- Classic-Variante als Default (Joystick + A/B + Menü/Gear/Wifi, Skins crimson/emerald/cobalt/mono)
+- Boot-Screen: Terminal-Bootloader → „PRESS ANY KEY" → RETROCON-Animation
+
+### Geändert
+- `controller.html` → `controller/` Plugin-Struktur mit Redirect-Stub
+- Menü-Navigation: jeder verbundene Controller kann steuern (kein Player-Tracking)
+
+## [0.3.2]
+
+### Geändert
+- Flow: Boot → Setup → Hauptmenü (Setup-Screen als initialer Screen)
+- Setup-Screen: Hinweistext + A zum Starten statt START-Button
+
+## [0.3.1]
+
+### Geändert
+- Flow: Boot → Hauptmenü, Setup via „Spieler verbinden"
+
+## [0.3.0]
+
+### Hinzugefügt
+- Setup-Screen mit 2 QR-Codes (P1 + P2)
+- Hauptmenü-Flow für Spielauswahl
+- Einheitliches Branding: RETROCON blau mit Glow
+
+## [0.2.0]
+
+### Hinzugefügt
+- Retro-Konsole-Plattform mit 4-stelligem Raum-Code
+- Rebrand: pong-controller → RETROCON
+- Wording: „Console" → „Raum" durchgängig
+
+## [0.1.x]
+
+### Hinzugefügt
+- Joystick mit fixem Mittelpunkt und Rücksprung
+- QR-Code bei Controller-Disconnect
+- Direkte Paddle-Steuerung via Joystick
+- Sound + Gewinner-Screen (bei 10 Punkten)
+
+## [0.0.x] — frühe Prototypen
+
+- Pong mit WebRTC-Handy-Steuerung (initial)
+- NES-Gamepad Controller (D-Pad + A/B/SELECT/START)
+- Fullscreen-Controller (ganzer Screen als Gamepad)
+- Analoger Joystick + LED-Status
+- QR-Scanner zum Neuverbinden
+- Wake Lock API (Display bleibt wach)
+- Portrait/Landscape-Support mit Dreh-Hinweis
