@@ -62,15 +62,22 @@
     });
   }
 
+  function scanOpen() {
+    return document.getElementById('rc-scan-overlay')?.classList.contains('active');
+  }
+  function reloadUnlessScanning(ms) {
+    setTimeout(() => { if (!scanOpen()) location.reload(); }, ms);
+  }
+
   function connect() {
     if (!peerId) return false;
     const peer = new Peer();
     peer.on('open', () => {
       conn = peer.connect(peerId, { metadata: { player } });
       conn.on('open',  () => setStatus('connected'));
-      conn.on('close', () => { setStatus('error'); setTimeout(() => location.reload(), 2000); });
+      conn.on('close', () => { setStatus('error'); reloadUnlessScanning(2000); });
     });
-    peer.on('error', () => { setStatus('error'); setTimeout(() => location.reload(), 3000); });
+    peer.on('error', () => { setStatus('error'); reloadUnlessScanning(3000); });
     return true;
   }
 
