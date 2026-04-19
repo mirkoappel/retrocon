@@ -245,23 +245,21 @@ body::after {
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.7em;
+  gap: 0.9em;
   background: transparent;
-  border: 1px solid #2a2a2a;
+  border: none;
   color: #888;
   font-family: inherit;
-  font-size: 0.75rem;
+  font-size: 1rem;
   letter-spacing: 0.3rem;
-  padding: 10px 18px;
-  border-radius: 6px;
+  padding: 8px 14px;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  transition: color 0.15s, text-shadow 0.15s;
 }
-.legend-item:hover { color: #aaa; border-color: #444; }
+.legend-item:hover { color: #bbb; }
 .legend-item.selected {
   color: #4fc3f7;
-  border-color: #4fc3f7;
-  box-shadow: 0 0 16px rgba(79,195,247,0.3);
+  text-shadow: 0 0 16px rgba(79,195,247,0.5);
 }
 .legend-item .btn-key {
   display: inline-grid;
