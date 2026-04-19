@@ -2,9 +2,23 @@
 window.RetroGames = window.RetroGames || {};
 
 window.RetroGames.pong = {
-  name: 'Pong',
+  name: 'PONG',
+  tagline: '1–2 SPIELER · CLASSIC ARCADE',
   minPlayers: 1,
   maxPlayers: 2,
+
+  // Preview-Grafik für die Menü-Karte (inline SVG)
+  artSvg: `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet">
+      <rect width="320" height="200" fill="#000"/>
+      <line x1="160" y1="10" x2="160" y2="190" stroke="#4fc3f7" stroke-width="2" stroke-dasharray="6 6" opacity="0.5"/>
+      <rect x="18"  y="60"  width="8" height="50" fill="#4fc3f7"/>
+      <rect x="294" y="95"  width="8" height="50" fill="#4fc3f7"/>
+      <circle cx="170" cy="90" r="6" fill="#4fc3f7"/>
+      <text x="90"  y="40" font-family="Courier New, monospace" font-size="28" font-weight="bold" fill="#4fc3f7" text-anchor="middle" opacity="0.9">3</text>
+      <text x="230" y="40" font-family="Courier New, monospace" font-size="28" font-weight="bold" fill="#4fc3f7" text-anchor="middle" opacity="0.9">1</text>
+    </svg>
+  `,
 
   create(ctx, W, H, numPlayers, api) {
     const PADDLE_W = 14, PADDLE_H = 110, BALL_R = 9;

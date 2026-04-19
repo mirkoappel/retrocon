@@ -134,8 +134,120 @@ body::after {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 30px;
   padding: 40px;
+}
+
+#main-menu h1.retrocon-logo {
+  color: #4fc3f7;
+  letter-spacing: 0.5rem;
+  font-size: clamp(1.2rem, 3.5vw, 2rem);
+  text-shadow: 0 0 40px rgba(79,195,247,0.9), 0 0 80px rgba(79,195,247,0.4);
+}
+
+/* ── Karussell ─────────────────────────────────────────── */
+#carousel {
+  position: relative;
+  width: min(900px, 92vw);
+  height: clamp(260px, 42vh, 400px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#carousel-track {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  transition: transform 0.35s cubic-bezier(0.3, 0.8, 0.2, 1);
+  will-change: transform;
+}
+
+.game-card {
+  flex-shrink: 0;
+  width: clamp(240px, 32vw, 340px);
+  background: #0a0a0a;
+  border: 2px solid #222;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0.35;
+  transform: scale(0.82);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.game-card.selected {
+  opacity: 1;
+  transform: scale(1);
+  border-color: #4fc3f7;
+  box-shadow: 0 0 32px rgba(79,195,247,0.35), inset 0 0 20px rgba(79,195,247,0.05);
+}
+
+.game-card .art {
+  aspect-ratio: 16 / 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  border-bottom: 1px solid #222;
+  overflow: hidden;
+}
+.game-card.selected .art { border-bottom-color: #4fc3f7; }
+.game-card .art svg { width: 100%; height: 100%; display: block; }
+
+.game-card .meta {
+  padding: 14px 18px 16px;
+  text-align: center;
+}
+.game-card .title {
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: bold;
+  letter-spacing: 0.3rem;
+  margin-bottom: 6px;
+}
+.game-card.selected .title {
+  color: #4fc3f7;
+  text-shadow: 0 0 16px rgba(79,195,247,0.5);
+}
+.game-card .tagline {
+  color: #666;
+  font-size: 0.65rem;
+  letter-spacing: 0.2rem;
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #4fc3f7;
+  font-size: 2rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  text-shadow: 0 0 12px rgba(79,195,247,0.6);
+  z-index: 2;
+}
+#carousel.has-prev .carousel-arrow.left  { opacity: 0.7; }
+#carousel.has-next .carousel-arrow.right { opacity: 0.7; }
+.carousel-arrow.left  { left: 8px; }
+.carousel-arrow.right { right: 8px; }
+
+#play-hint {
+  color: #4fc3f7;
+  font-size: 0.8rem;
+  letter-spacing: 0.35rem;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+#main-menu.on-actions #play-hint { display: none; }
+
+#menu-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .room-badge {
@@ -246,11 +358,16 @@ body::after {
 
 <!-- ── Hauptmenü ─────────────────────────────────────── -->
 <div class="screen" id="main-menu">
-  <h1 style="color:#4fc3f7;letter-spacing:0.5rem;font-size:clamp(1.2rem,3.5vw,2rem);text-shadow:0 0 40px rgba(79,195,247,0.9),0 0 80px rgba(79,195,247,0.4);margin-bottom:10px">RETROCON</h1>
-  <div class="menu-section">SPIELE</div>
-  <button class="menu-item selected" data-action="game" data-game="pong">PONG <span class="badge">1–2 SPIELER</span></button>
-  <div class="menu-section">CONTROLLER</div>
-  <button class="menu-item" data-action="connect">SPIELER VERBINDEN <span class="badge">↗</span></button>
+  <h1 class="retrocon-logo">RETROCON</h1>
+  <div id="carousel">
+    <div class="carousel-arrow left">◀</div>
+    <div id="carousel-track"></div>
+    <div class="carousel-arrow right">▶</div>
+  </div>
+  <div id="play-hint">DRÜCKE A ZUM STARTEN</div>
+  <div id="menu-actions">
+    <button class="menu-item" data-action="connect">SPIELER VERBINDEN <span class="badge">↗</span></button>
+  </div>
 </div>
 
 <!-- ── Einstellungen ─────────────────────────────────── -->
@@ -372,43 +489,98 @@ function setPlayerConnected(player, on) {
 setupPeer();
 
 
-// ── Menü-Navigation ──────────────────────────────────────
-const menuItems = () => [...document.querySelectorAll(`#${activeScreen} .menu-item`)];
-let menuIdx = 0;
+// ── Karussell aufbauen ───────────────────────────────────
+const gameIds = Object.keys(window.RetroGames || {});
+const track = document.getElementById('carousel-track');
+const carousel = document.getElementById('carousel');
+
+gameIds.forEach(id => {
+  const g = window.RetroGames[id];
+  const card = document.createElement('div');
+  card.className = 'game-card';
+  card.dataset.game = id;
+  card.innerHTML = `
+    <div class="art">${g.artSvg || ''}</div>
+    <div class="meta">
+      <div class="title">${g.name}</div>
+      <div class="tagline">${g.tagline || ''}</div>
+    </div>
+  `;
+  card.addEventListener('click', () => {
+    if (carouselIdx === gameIds.indexOf(id)) startGame(id);
+    else { carouselIdx = gameIds.indexOf(id); menuSection = 'carousel'; highlightMenu(); }
+  });
+  track.appendChild(card);
+});
+
+let carouselIdx = 0;
+let actionIdx = 0;
+let menuSection = 'carousel'; // 'carousel' | 'actions'
 
 function highlightMenu() {
-  const items = menuItems();
-  items.forEach((el, i) => el.classList.toggle('selected', i === menuIdx));
+  const cards = [...track.children];
+  cards.forEach((el, i) => el.classList.toggle('selected', i === carouselIdx));
+
+  // Track-Position: ausgewählte Karte zentrieren
+  const selected = cards[carouselIdx];
+  if (selected) {
+    const offset = selected.offsetLeft + selected.offsetWidth / 2 - carousel.clientWidth / 2;
+    track.style.transform = `translateX(${-offset}px)`;
+  }
+
+  carousel.classList.toggle('has-prev', carouselIdx > 0);
+  carousel.classList.toggle('has-next', carouselIdx < cards.length - 1);
+
+  const actions = [...document.querySelectorAll('#menu-actions .menu-item')];
+  actions.forEach((el, i) => el.classList.toggle('selected', menuSection === 'actions' && i === actionIdx));
+  document.getElementById('main-menu').classList.toggle('on-actions', menuSection === 'actions');
+
+  // Karten-Selected-Ring entfernen wenn Fokus auf Actions
+  if (menuSection === 'actions') cards.forEach(el => el.classList.remove('selected'));
 }
 
 function handleMenuInput(player, gp, prev) {
   if (activeScreen === 'setup') {
-    if (gp.a && !prev?.a) { showScreen('main-menu'); menuIdx = 0; highlightMenu(); }
+    if (gp.a && !prev?.a) { showScreen('main-menu'); menuSection = 'carousel'; carouselIdx = 0; highlightMenu(); }
     return;
   }
-  const items = menuItems();
-  if (gp.dpad.down && !prev?.dpad?.down) { menuIdx = (menuIdx + 1) % items.length; highlightMenu(); }
-  if (gp.dpad.up   && !prev?.dpad?.up)   { menuIdx = (menuIdx - 1 + items.length) % items.length; highlightMenu(); }
-  if (gp.a && !prev?.a) activateItem(items[menuIdx]);
-  if (gp.b && !prev?.b && activeScreen !== 'main-menu') { showScreen('main-menu'); menuIdx = 0; highlightMenu(); }
+  if (activeScreen === 'main-menu') {
+    if (menuSection === 'carousel') {
+      if (gp.dpad.right && !prev?.dpad?.right && carouselIdx < gameIds.length - 1) { carouselIdx++; highlightMenu(); }
+      if (gp.dpad.left  && !prev?.dpad?.left  && carouselIdx > 0)                 { carouselIdx--; highlightMenu(); }
+      if (gp.dpad.down  && !prev?.dpad?.down) { menuSection = 'actions'; actionIdx = 0; highlightMenu(); }
+      if (gp.a && !prev?.a) startGame(gameIds[carouselIdx]);
+    } else {
+      const actions = [...document.querySelectorAll('#menu-actions .menu-item')];
+      if (gp.dpad.up    && !prev?.dpad?.up)    { menuSection = 'carousel'; highlightMenu(); }
+      if (gp.dpad.right && !prev?.dpad?.right && actionIdx < actions.length - 1) { actionIdx++; highlightMenu(); }
+      if (gp.dpad.left  && !prev?.dpad?.left  && actionIdx > 0)                  { actionIdx--; highlightMenu(); }
+      if (gp.a && !prev?.a) activateItem(actions[actionIdx]);
+    }
+    return;
+  }
+  // generische Menüs (z.B. settings): klassische vertikale Navigation
+  const items = [...document.querySelectorAll(`#${activeScreen} .menu-item`)];
+  if (!items.length) return;
+  if (gp.dpad.down && !prev?.dpad?.down) { actionIdx = (actionIdx + 1) % items.length; items.forEach((el,i)=>el.classList.toggle('selected',i===actionIdx)); }
+  if (gp.dpad.up   && !prev?.dpad?.up)   { actionIdx = (actionIdx - 1 + items.length) % items.length; items.forEach((el,i)=>el.classList.toggle('selected',i===actionIdx)); }
+  if (gp.a && !prev?.a) activateItem(items[actionIdx]);
+  if (gp.b && !prev?.b) { showScreen('main-menu'); menuSection = 'carousel'; highlightMenu(); }
 }
 
-document.querySelectorAll('.menu-item').forEach((el, i) => {
-  el.addEventListener('click', () => {
-    menuIdx = [...el.parentElement.querySelectorAll('.menu-item')].indexOf(el);
-    activateItem(el);
-  });
+document.querySelectorAll('#menu-actions .menu-item, #settings .menu-item').forEach(el => {
+  el.addEventListener('click', () => activateItem(el));
 });
 
 function activateItem(el) {
   if (!el) return;
   const action = el.dataset.action;
-  if (action === 'game')    { menuIdx = 0; startGame(el.dataset.game); }
-  if (action === 'connect') { menuIdx = 0; showScreen('setup'); highlightMenu(); }
-  if (action === 'back')    { menuIdx = 1; showScreen('main-menu'); highlightMenu(); }
+  if (action === 'connect') { showScreen('setup'); }
+  if (action === 'back')    { showScreen('main-menu'); menuSection = 'carousel'; carouselIdx = 0; highlightMenu(); }
 }
 
 highlightMenu();
+window.addEventListener('resize', highlightMenu);
 
 // ── Game-Loader ──────────────────────────────────────────
 let currentGame = null, rafId = null;
@@ -449,7 +621,7 @@ function exitGame() {
   currentGame = null;
   gameView.style.display = 'none';
   showScreen('main-menu');
-  menuIdx = 0; highlightMenu();
+  menuSection = 'carousel'; highlightMenu();
 }
 </script>
 </body>
