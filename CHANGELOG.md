@@ -2,6 +2,29 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.7.0]
+
+### Hinzugefügt
+- **2D-Slide-Menü**: Hauptmenü als vertikale Slide-Liste (RETROCON · CONTROLLER · SPIELE · EINSTELLUNGEN · CREDITS) statt flachem Karussell
+  - Pfeiltasten / Mausrad / Klick auf Pfeil+Label navigieren zwischen Slides
+  - Pfeil-Labels zeigen das Ziel-Slide (nicht das aktuelle)
+  - Erstes Slide zeigt RETROCON-Logo-Animation; „WEITER"-Label führt den Nutzer ins Menü
+  - Controller-Slide ist direkt in die Slide-Liste integriert (kein separater Setup-Screen mehr)
+- **Ingame-Menü** (ESC / Controller-SELECT): Pause-Overlay mit eigenem Slide-Mechanismus
+  - Slide 0: WEITER · SPIEL BEENDEN · HILFE
+  - Slide 1 (HILFE): Steuerungs-Übersicht im selben visuellen Stil wie das Hauptmenü
+  - Spiel pausiert beim Öffnen, Canvas bleibt sichtbar im Hintergrund
+  - Navigation per Tastatur, Maus und Controller (Dpad + A/B)
+- **Tastatur-Belegung**: P1 = Pfeiltasten + Enter, P2 = WASD + Leertaste; beide Schemas funktionieren auch zur Menü-Navigation
+- **Toast-Hinweis** beim Spielstart: „ESC · MENÜ" erscheint 3 s unten mittig und blendet aus
+- **Spiel beenden** kehrt zum SPIELE-Slide zurück, das zuletzt gespielte Spiel ist im Karussell fokussiert
+
+### Geändert
+- Boot-Terminal oben links ausgerichtet — echter Terminal-Look, „PRESS ANY KEY TO START" fließt als normale blinkende Zeile im Textfluss
+- Alle Pfeile als weiche CSS-Chevrons (border-right + border-top + rotate)
+- ESC im Spiel öffnet Ingame-Menü statt direkt zu beenden
+- Controller-SELECT öffnet Ingame-Menü (vorher: direkt zurück ins Hauptmenü)
+
 ## [0.6.0]
 
 ### Hinzugefügt

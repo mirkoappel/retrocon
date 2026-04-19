@@ -6,7 +6,7 @@ const WORD = 'RETROCON';
 const LETTER_DELAY = 110;
 
 const LINES = [
-  { text: 'RETROCON OS  v0.5.0',              delay: 0 },
+  { text: 'RETROCON OS  v0.7.0',              delay: 0 },
   { text: 'COPYRIGHT (C) 2026 RETROCON',      delay: 300 },
   { text: '',                                 delay: 550 },
   { text: 'BIOS v2.1  CHECKING MEMORY... OK', delay: 650 },

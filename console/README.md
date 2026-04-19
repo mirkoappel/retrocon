@@ -1,50 +1,99 @@
 # Console
 
-Die SPA, die auf dem Bildschirm läuft. Enthält Boot-Intro, Setup-Screen, Spielmenü und Canvas-Game-View in einem einzigen Dokument — so bleibt der AudioContext über alle Screens hinweg gültig.
+Die SPA, die auf dem Bildschirm läuft. Enthält Boot-Intro, Hauptmenü und Canvas-Game-View in einem einzigen Dokument — so bleibt der AudioContext über alle Screens hinweg gültig.
 
 ## Screen-Flow
 
 ```
-Boot  →  Setup (QR-Codes)  →  Hauptmenü  →  Game-View
-              ↑                   ↑
-              └── B (Controller) ─┘
+Boot  →  Hauptmenü (Slide: RETROCON)
+              ↓  navigieren
+         Slide: CONTROLLER   ← QR-Codes, Player-Status
+         Slide: SPIELE        ← Karussell, Spiel starten
+         Slide: EINSTELLUNGEN
+         Slide: CREDITS
+              ↓  Spiel starten
+         Game-View
+              ↓  ESC
+         Ingame-Menü (WEITER / SPIEL BEENDEN / HILFE)
 ```
 
-- **Boot**: Terminal-Intro + RETROCON-Animation. Der erste Klick/Tap erzeugt den globalen AudioContext.
-- **Setup**: Zeigt QR-Codes für P1 und P2. Smartphone scannt → verbindet sich per WebRTC. Sobald mindestens ein Controller verbunden ist, erscheint der „A zum Starten"-Hinweis.
-- **Hauptmenü**: Horizontales Karussell aller registrierten Spiele (aus `window.RetroGames`). B öffnet Setup zum Hinzufügen/Wechseln eines Spielers.
-- **Game-View**: Canvas im Vollbild. SELECT auf dem Controller → zurück ins Hauptmenü.
+## Hauptmenü — 2D-Navigation
+
+Das Menü ist als vertikale **Slide-Liste** aufgebaut. Horizontal scrollt das Spiele-Karussell.
+
+### Zeilen (Rows)
+
+| Index | Slide | Inhalt |
+|---|---|---|
+| 0 | RETROCON | Logo-Animation |
+| 1 | CONTROLLER | QR-Codes für P1 + P2, Verbindungsstatus |
+| 2 | SPIELE | Karussell aller registrierten Spiele |
+| 3 | EINSTELLUNGEN | (bald verfügbar) |
+| 4 | CREDITS | (bald verfügbar) |
+
+### Navigation
+
+| Eingabe | Aktion |
+|---|---|
+| ↑ / ↓ · W / S · Dpad | Slide wechseln |
+| ← / → · A / D · Dpad (auf SPIELE) | Karussell-Navigation |
+| Enter / Leertaste / A (auf SPIELE) | Spiel starten |
+| Klick auf Pfeil/Label oben/unten | Slide wechseln |
+| Klick auf Karte (1×) | Karte fokussieren |
+| Klick auf Karte (2×) | Spiel starten |
+| Mausrad | Slide wechseln (700 ms Cooldown) |
+
+### Keyboard-Belegung (ohne Controller)
+
+| Spieler | Bewegung | Bestätigen | Spezial |
+|---|---|---|---|
+| P1 | Pfeiltasten | Enter | Shift (B) |
+| P2 | W A S D | Leertaste | Q (B) |
+
+Beide Schemas funktionieren auch zur Menü-Navigation.
+
+## Ingame-Menü
+
+ESC (Tastatur) oder SELECT (Controller) öffnet das Pause-Menü. Das Spiel pausiert, der Canvas bleibt im Hintergrund sichtbar.
+
+Das Menü nutzt denselben Slide-Mechanismus wie das Hauptmenü:
+
+**Slide 0 — Pause**
+
+| Eintrag | Aktion |
+|---|---|
+| WEITER | Spiel fortsetzen (auch: ESC / B) |
+| SPIEL BEENDEN | Zurück zum SPIELE-Slide, letztes Spiel im Fokus |
+| HILFE | → Slide 1 |
+
+**Slide 1 — Steuerung**
+
+Übersicht aller Eingabemethoden. Zurück per Pfeil-Hoch, ESC, B oder Klick auf „← ZURÜCK".
 
 ## Dateistruktur
 
 ```
 console/
-  index.html          Shell: Screen-Container für alle Views
-  style.css           Alle Styles (Boot, Setup, Menü, HUD, Overlays)
-  app.js              Orchestrator: Screen-Routing, Event-Verdrahtung
+  index.html          Shell: Screen-Container für alle Views + Ingame-Overlay
+  style.css           Alle Styles (Boot, Menü, Slides, Ingame-Overlay, Toast)
+  app.js              Orchestrator: Screen-Routing, Controller-Input-Routing
   services/
     connection.js     PeerJS-Verbindung, Raum-Code, Controller-Pool, Gamepad-State
     audio.js          Globaler AudioContext (lazy, im Boot-Gesture erzeugt)
   views/
-    boot.js           Terminal-Intro + RETROCON-Animation + Audio-Init
-    setup.js          QR-Codes + Player-Status-Anzeige
-    menu.js           Karussell + Navigation + Keyboard-Fallback
-    game.js           Canvas + requestAnimationFrame-Loop + Game-API
+    boot.js           Terminal-Intro (oben links) + RETROCON-Animation auf Slide 0
+    setup.js          QR-Codes + Player-Status-Anzeige (Controller-Slide)
+    menu.js           Slide-Navigation, Karussell, Keyboard + Controller-Input
+    game.js           Canvas + RAF-Loop + Ingame-Menü + Pause-System
 ```
 
-## Keyboard-Steuerung (Entwicklung / Demo ohne Controller)
+## Boot
 
-| Taste | Aktion |
-|---|---|
-| Beliebige Taste / Klick | Boot starten |
-| Pfeiltasten | Karussell-Navigation im Menü |
-| A / Enter | Spiel auswählen |
-| B | Setup-Screen öffnen |
-| Esc | Im Menü: Setup; im Spiel: zurück ins Menü |
+Terminal-Ausgabe oben links, monospace, Zeilen erscheinen zeitversetzt. Nach der letzten Zeile blinkt „PRESS ANY KEY TO START" im selben Stil. Erster Klick/Tap/Taste:
 
-## Raum-Code & Verbindung
-
-`connection.js` generiert beim Start einen zufälligen 4-stelligen Code (`console-XXXX`). Controller verbinden sich als Peers `XXXX-1` bzw. `XXXX-2`. Die Verbindung ist P2P via PeerJS — kein eigener Server nötig.
+1. Boot-Screen blendet ab, Hauptmenü erscheint auf Slide 0 (RETROCON)
+2. RETROCON-Logo animiert buchstabenweise
+3. Nutzer navigiert manuell weiter → lernt das Menüsystem
 
 ## Game-API (`api`-Objekt)
 
@@ -52,8 +101,8 @@ Jedes Spiel bekommt beim Start ein `api`-Objekt:
 
 | Eigenschaft | Beschreibung |
 |---|---|
-| `api.exit()` | Zurück zum Hauptmenü |
-| `api.getConns()` | `Map(playerIndex → DataConnection)` der verbundenen Controller |
+| `api.exit()` | Spiel beenden, zurück zum SPIELE-Slide |
+| `api.getConns()` | `Map(playerIndex → 'keyboard' \| DataConnection)` |
 | `api.audioCtx` | Globaler AudioContext (nicht schließen!) |
 | `api.code` | Aktueller Raum-Code (4-stellig) |
 
