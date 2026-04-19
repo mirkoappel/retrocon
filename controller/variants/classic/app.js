@@ -32,6 +32,8 @@ function layoutJoystick() {
 }
 layoutJoystick();
 window.addEventListener('resize', layoutJoystick);
+window.addEventListener('orientationchange', layoutJoystick);
+new ResizeObserver(layoutJoystick).observe(joystickArea);
 
 function joystickMove(e) {
   const r  = joystickArea.getBoundingClientRect();
