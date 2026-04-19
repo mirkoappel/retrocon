@@ -105,21 +105,60 @@ body::after {
 }
 #setup.open { display: flex; }
 
+#setup-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: 48px 40px 32px;
+  background: #0d0d0d;
+  border: 1px solid rgba(79,195,247,0.18);
+  border-radius: 14px;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.5);
+  max-width: 92vw;
+}
+
 #setup-close {
   position: absolute;
-  top: 20px; right: 24px;
+  top: 16px; right: 18px;
   background: transparent;
   border: 1px solid #2a2a2a;
   color: #555;
   font-family: inherit;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   letter-spacing: 0.25rem;
-  padding: 8px 18px;
+  padding: 6px 14px;
   border-radius: 4px;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }
 #setup-close:hover { border-color: #666; color: #aaa; }
+
+#setup-hints {
+  display: flex;
+  gap: 28px;
+}
+.hint-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.6rem;
+  letter-spacing: 0.2rem;
+  color: #333;
+}
+.hint-key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.8em;
+  height: 1.8em;
+  padding: 0 6px;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #444;
+  letter-spacing: 0;
+}
 
 #setup > h1 {
   font-family: 'Press Start 2P', 'Courier New', monospace;
