@@ -347,12 +347,13 @@ window.RetroGames.volleyball = {
       // Volumen-erhaltender Squash: Höhe *sy, Breite *1/√sy, Pivot an der Basis.
       ctx.translate(x, y);
       ctx.scale(1 / Math.sqrt(squash), squash);
-      // Dome sitzt um foot angehoben, Fuß mit weichen Ecken bis y=0.
+      // Dome um foot angehoben + viertel-Kreis-Ecken + kurze Basislinie.
+      const cr = foot;
       ctx.beginPath();
-      ctx.moveTo(-r, -foot);
-      ctx.arc(0, -foot, r, Math.PI, 0, false);       // Top-Dome
-      ctx.quadraticCurveTo(r, 0, 0, 0);              // runde rechte Ecke
-      ctx.quadraticCurveTo(-r, 0, -r, -foot);        // runde linke Ecke
+      ctx.arc(0, -foot, r, Math.PI, 0, false);               // Top-Dome, endet bei (r, -foot)
+      ctx.arc(r - cr, -foot, cr, 0, Math.PI / 2, false);     // runde rechte Ecke nach unten
+      ctx.lineTo(-r + cr, 0);                                // kurze Basis
+      ctx.arc(-r + cr, -foot, cr, Math.PI / 2, Math.PI, false); // runde linke Ecke hoch
       ctx.closePath();
       ctx.fill();
       ctx.restore();
