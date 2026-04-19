@@ -47,12 +47,40 @@ export function initMenu() {
       return;
     }
     const active = document.querySelector('.screen.active')?.id;
+
     if (active === 'main-menu') {
-      if (e.key === 'b' || e.key === 'B') { showScreen('setup'); e.preventDefault(); }
+      switch (e.key) {
+        case 'ArrowRight':
+          if (carouselIdx < gameIds.length - 1) { carouselIdx++; highlight(); }
+          e.preventDefault(); break;
+        case 'ArrowLeft':
+          if (carouselIdx > 0) { carouselIdx--; highlight(); }
+          e.preventDefault(); break;
+        case 'ArrowDown':
+          if (menuSection === 'carousel') { menuSection = 'legend'; legendIdx = 0; highlight(); }
+          else if (legendIdx < legendItems().length - 1) { legendIdx++; highlight(); }
+          e.preventDefault(); break;
+        case 'ArrowUp':
+          if (menuSection === 'legend') {
+            if (legendIdx > 0) { legendIdx--; highlight(); }
+            else { menuSection = 'carousel'; highlight(); }
+          }
+          e.preventDefault(); break;
+        case 'Enter': case ' ':
+          if (menuSection === 'legend') activateLegend(legendItems()[legendIdx]?.dataset.action);
+          else startGame(gameIds[carouselIdx]);
+          e.preventDefault(); break;
+        case 'b': case 'B':
+          showScreen('setup'); e.preventDefault(); break;
+      }
     } else if (active === 'setup') {
-      if (e.key === 'Enter' || e.key === 'a' || e.key === 'A' || e.key === 'Escape') {
+      // Enter/A navigieren zurück — außer ein Mode-Button ist fokussiert (dann native Click)
+      if (e.key === 'Escape' ||
+          ((e.key === 'Enter' || e.key === 'a' || e.key === 'A') &&
+           !document.activeElement?.classList.contains('mode-btn'))) {
         showScreen('main-menu'); resetMenu(); e.preventDefault();
       }
+      // 1/2 für Modus-Wechsel: in setup.js
     }
   });
 }
