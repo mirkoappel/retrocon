@@ -1,6 +1,5 @@
-// Boot-View: Terminal-Intro → RETROCON-Animation → onFinish().
-// Der User-Klick hier ist die einzige Gesture — hier wird der globale
-// AudioContext erzeugt, damit Audio im Rest der App funktioniert.
+// Boot-View: Terminal-Intro → RETROCON-Animation auf Slide 1 → onReady/onAnimDone.
+// Der User-Klick hier ist die einzige Gesture — AudioContext wird hier erzeugt.
 import { createAudioContext } from '../services/audio.js';
 
 const WORD = 'RETROCON';
@@ -20,12 +19,22 @@ const LINES = [
 ];
 const PRESS_DELAY = 2500;
 
-export function initBoot(onFinish) {
+// onReady   – sofort beim Keypress: Boot-Screen weg, Main-Menu zeigen
+// onAnimDone – wenn alle Buchstaben erschienen sind: zu Slide 2 scrollen
+export function initBoot(onReady, onAnimDone) {
   const terminal = document.getElementById('boot-terminal');
   const cursor   = document.getElementById('boot-cursor');
   const pressKey = document.getElementById('boot-press-key');
-  const logoScreen = document.getElementById('boot-logo-screen');
-  const logoEl     = document.getElementById('boot-logo');
+
+  // Letters vorab in den RETROCON-Slide-Titel einbauen
+  const logoTitle = document.querySelector('#row-logo .slide-title--logo');
+  logoTitle.textContent = '';
+  WORD.split('').forEach(ch => {
+    const s = document.createElement('span');
+    s.className = 'letter';
+    s.textContent = ch;
+    logoTitle.appendChild(s);
+  });
 
   LINES.forEach(({ text, delay }) => {
     setTimeout(() => {
@@ -38,17 +47,7 @@ export function initBoot(onFinish) {
   });
 
   setTimeout(() => cursor.classList.add('show'), PRESS_DELAY - 200);
-  setTimeout(() => {
-    pressKey.classList.add('show');
-    enableStart();
-  }, PRESS_DELAY);
-
-  WORD.split('').forEach(ch => {
-    const s = document.createElement('span');
-    s.className = 'letter';
-    s.textContent = ch;
-    logoEl.appendChild(s);
-  });
+  setTimeout(() => { pressKey.classList.add('show'); enableStart(); }, PRESS_DELAY);
 
   let started = false;
   function startIntro() {
@@ -58,18 +57,17 @@ export function initBoot(onFinish) {
     const ctx = createAudioContext();
     if (ctx) playBoot(ctx);
 
-    logoScreen.classList.add('active');
-    terminal.style.display = 'none';
+    // Boot-Screen sofort wegblenden, Main-Menu zeigen
+    document.getElementById('boot').classList.remove('active');
+    onReady();
 
-    logoEl.querySelectorAll('.letter').forEach((el, i) =>
+    // Buchstaben auf dem RETROCON-Slide animieren
+    logoTitle.querySelectorAll('.letter').forEach((el, i) =>
       setTimeout(() => el.classList.add('pop'), i * LETTER_DELAY)
     );
 
-    const total = WORD.length * LETTER_DELAY + 1300;
-    setTimeout(() => {
-      document.getElementById('boot').classList.remove('active');
-      onFinish();
-    }, total);
+    const total = WORD.length * LETTER_DELAY + 600;
+    setTimeout(onAnimDone, total);
   }
 
   function enableStart() {

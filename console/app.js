@@ -1,9 +1,9 @@
 // SPA-Orchestrator: Screen-Routing + Verdrahtung von Services und Views.
 import { setupPeer, onReady, onConnect, onDisconnect, onData } from './services/connection.js';
 import { initBoot } from './views/boot.js';
-import { renderQRs, setPlayerConnected, showSetup } from './views/setup.js';
-import { initMenu, handleMenuInput } from './views/menu.js';
-import { initGame, startGame, exitGame, getCurrentGame } from './views/game.js';
+import { renderQRs, setPlayerConnected } from './views/setup.js';
+import { initMenu, handleMenuInput, resetMenu, goToRow } from './views/menu.js';
+import { initGame, startGame, exitGame, getCurrentGame, isIngameMenuOpen, handleIngameMenuInput, openIgMenu } from './views/game.js';
 
 let activeScreen = 'boot';
 
@@ -13,7 +13,10 @@ export function showScreen(name) {
   activeScreen = name;
 }
 
-initBoot(() => { showScreen('main-menu'); showSetup(); });
+initBoot(
+  () => { showScreen('main-menu'); resetMenu(); },
+  () => {}
+);
 initGame();
 initMenu();
 
@@ -25,8 +28,13 @@ onDisconnect(player => {
 });
 onData((player, gp, prev) => {
   const cg = getCurrentGame();
-  if (cg) cg.input?.(player, gp, prev);
-  else handleMenuInput(activeScreen, gp, prev);
+  if (cg) {
+    if (isIngameMenuOpen()) { handleIngameMenuInput(gp, prev); return; }
+    if (gp.select && !prev?.select) { openIgMenu(); return; }
+    cg.input?.(player, gp, prev);
+  } else {
+    handleMenuInput(activeScreen, gp, prev);
+  }
 });
 
 setupPeer();

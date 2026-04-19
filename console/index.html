@@ -21,46 +21,103 @@
     <div id="boot-press-key">PRESS ANY KEY TO START</div>
     <div id="boot-cursor"></div>
   </div>
-  <div id="boot-logo-screen"><div id="boot-logo"></div></div>
-</div>
-
-<!-- ── Setup-Overlay (QR-Codes) ───────────────────────── -->
-<div id="setup">
-  <div id="setup-panel">
-    <button id="setup-close">SCHLIESSEN</button>
-    <h1>VERBINDE DEIN SMARTPHONE ALS GAME-CONTROLLER</h1>
-    <div id="qr-row">
-      <div class="player-card">
-        <div class="label">SPIELER 1</div>
-        <div class="qr-wrap" id="qr-wrap-1"><div id="qr-1"></div></div>
-        <div class="status-dot" id="dot-1">WARTE AUF VERBINDUNG</div>
-      </div>
-      <div class="player-card">
-        <div class="label">SPIELER 2</div>
-        <div class="qr-wrap" id="qr-wrap-2"><div id="qr-2"></div></div>
-        <div class="status-dot" id="dot-2">WARTE AUF VERBINDUNG</div>
-      </div>
-    </div>
-    <div id="setup-hints">
-      <span class="hint-item"><span class="hint-key">ESC</span>SCHLIESSEN</span>
-      <span class="hint-item"><span class="hint-key">A</span>SCHLIESSEN</span>
-    </div>
-  </div>
 </div>
 
 <!-- ── Hauptmenü ─────────────────────────────────────── -->
 <div class="screen" id="main-menu">
-  <h1 class="retrocon-logo">RETROCON</h1>
-  <div id="carousel">
-    <div class="carousel-arrow left">◀</div>
-    <div id="carousel-track"></div>
-    <div class="carousel-arrow right">▶</div>
+  <div id="row-top">
+    <span class="row-arrow" id="row-arrow-up"></span>
+    <span id="row-label-up"></span>
+  </div>
+  <div id="menu-rows">
+    <div id="menu-rows-track">
+      <div class="menu-row" id="row-logo">
+        <h2 class="slide-title slide-title--logo">RETROCON</h2>
+      </div>
+      <div class="menu-row" id="row-controller">
+        <h2 class="slide-title">CONTROLLER</h2>
+        <p class="slide-hint">VERBINDE DEIN SMARTPHONE ALS CONTROLLER</p>
+        <div id="qr-row">
+          <div class="player-card" id="player-card-1">
+            <div class="qr-art"><div id="qr-1"></div></div>
+            <div class="meta">
+              <div class="label">SPIELER 1</div>
+              <div class="status-dot" id="dot-1">WARTE AUF VERBINDUNG</div>
+            </div>
+          </div>
+          <div class="player-card" id="player-card-2">
+            <div class="qr-art"><div id="qr-2"></div></div>
+            <div class="meta">
+              <div class="label">SPIELER 2</div>
+              <div class="status-dot" id="dot-2">WARTE AUF VERBINDUNG</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="menu-row" id="row-spiele">
+        <h2 class="slide-title">SPIELE</h2>
+        <div id="carousel">
+          <div class="carousel-arrow left"></div>
+          <div id="carousel-track"></div>
+          <div class="carousel-arrow right"></div>
+        </div>
+      </div>
+      <div class="menu-row">
+        <h2 class="slide-title">EINSTELLUNGEN</h2>
+        <p class="slide-placeholder">BALD VERFÜGBAR</p>
+      </div>
+      <div class="menu-row">
+        <h2 class="slide-title">CREDITS</h2>
+        <p class="slide-placeholder">BALD VERFÜGBAR</p>
+      </div>
+    </div>
+  </div>
+  <div id="row-bottom">
+    <span id="row-label-down"></span>
+    <span class="row-arrow" id="row-arrow-down"></span>
   </div>
 </div>
 
 <!-- ── Game-View ─────────────────────────────────────── -->
 <div id="game-view" style="display:none">
   <canvas id="game-canvas"></canvas>
+  <div id="game-toast"></div>
+
+  <div id="ingame-overlay">
+    <div id="ig-nav-top">
+      <span class="row-arrow" id="ig-nav-arrow"></span>
+      <span id="ig-nav-label"></span>
+    </div>
+    <div id="ig-slides">
+      <div id="ig-slides-track">
+
+        <div class="ig-slide" id="ig-slide-menu">
+          <div class="ig-item selected" data-idx="0">WEITER</div>
+          <div class="ig-item" data-idx="1">SPIEL BEENDEN</div>
+          <div class="ig-item" data-idx="2">HILFE</div>
+        </div>
+
+        <div class="ig-slide" id="ig-slide-help">
+          <h2 class="slide-title">STEUERUNG</h2>
+          <div class="ig-help-blocks">
+            <div class="ig-help-block">
+              <div class="ig-help-block-title">SPIELER 1 · TASTATUR</div>
+              <p class="slide-hint">PFEILTASTEN BEWEGEN<br>ENTER BESTÄTIGEN</p>
+            </div>
+            <div class="ig-help-block">
+              <div class="ig-help-block-title">SPIELER 2 · TASTATUR</div>
+              <p class="slide-hint">W · A · S · D BEWEGEN<br>LEERTASTE BESTÄTIGEN</p>
+            </div>
+            <div class="ig-help-block">
+              <div class="ig-help-block-title">CONTROLLER</div>
+              <p class="slide-hint">SMARTPHONE VERBINDEN<br>IM CONTROLLER-MENÜ</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="footer">v0.5.0</div>

@@ -1,22 +1,29 @@
-// Game-View: Canvas, Loop, Start/Exit.
+// Game-View: Canvas, Loop, Start/Exit, In-Game-Overlay (Slide-Menü).
 import { conns, lastInput, code, localPlayers } from '../services/connection.js';
 import { getAudioContext } from '../services/audio.js';
 import { showScreen } from '../app.js';
-import { resetMenu } from './menu.js';
+import { resetMenu, goToGame } from './menu.js';
 
 let currentGame = null;
+let currentGameId = null;
 let rafId = null;
-let canvas, ctx, gameView;
+let paused = false;
+let canvas, ctx, gameView, toast, igOverlay, igSlidesEl, igTrack, igSlides, igNavTop, igNavArrow, igNavLabel, igItems;
+let toastTimer = null;
+let igSlideIdx = 0;   // 0 = Pause-Menü, 1 = Hilfe
+let igMenuIdx  = 0;   // ausgewählter Eintrag im Pause-Menü
 
-// Tastatur-Input: P1 = WASD + Space(A) + Q(B), P2 = Pfeiltasten + Enter(A) + Shift(B)
+// P1: Pfeiltasten + Enter, P2: WASD + Leertaste
 const keys = new Set();
 const prevKbGp = {};
 
 const KB = {
-  1: { up:'KeyW', down:'KeyS', left:'KeyA', right:'KeyD', a:['Space'],            b:['KeyQ'] },
-  2: { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight',
-       a:['Enter','Numpad0'], b:['ShiftLeft','ShiftRight'] },
+  1: { up:'ArrowUp', down:'ArrowDown', left:'ArrowLeft', right:'ArrowRight',
+       a:['Enter','NumpadEnter'], b:['ShiftRight','ShiftLeft'] },
+  2: { up:'KeyW', down:'KeyS', left:'KeyA', right:'KeyD', a:['Space'], b:['KeyQ'] },
 };
+
+const IG_ITEMS = ['WEITER', 'SPIEL BEENDEN', 'HILFE'];
 
 function makeKbGamepad(player) {
   const m = KB[player] || KB[1];
@@ -38,15 +45,39 @@ function makeKbGamepad(player) {
 }
 
 export function initGame() {
-  canvas   = document.getElementById('game-canvas');
-  ctx      = canvas.getContext('2d');
-  gameView = document.getElementById('game-view');
+  canvas      = document.getElementById('game-canvas');
+  ctx         = canvas.getContext('2d');
+  gameView    = document.getElementById('game-view');
+  toast       = document.getElementById('game-toast');
+  igOverlay   = document.getElementById('ingame-overlay');
+  igSlidesEl  = document.getElementById('ig-slides');
+  igTrack     = document.getElementById('ig-slides-track');
+  igSlides    = igOverlay.querySelectorAll('.ig-slide');
+  igNavTop    = document.getElementById('ig-nav-top');
+  igNavArrow  = document.getElementById('ig-nav-arrow');
+  igNavLabel  = document.getElementById('ig-nav-label');
+  igItems     = igOverlay.querySelectorAll('.ig-item');
+
+  igItems.forEach((el, i) => el.addEventListener('click', () => {
+    if (igSlideIdx !== 0) return;
+    igMenuIdx = i;
+    selectIgMenuItem();
+  }));
+
+  igNavTop.addEventListener('click', () => {
+    if (igSlideIdx > 0) { igSlideIdx--; refreshIg(); }
+  });
+
   window.addEventListener('resize', () => {
     resizeCanvas();
+    refreshIg();
     currentGame?.resize?.(canvas.width, canvas.height);
   });
+
   window.addEventListener('keydown', e => {
     if (!currentGame) return;
+    if (e.code === 'Escape') { e.preventDefault(); handleEsc(); return; }
+    if (paused) { handleIgKey(e); return; }
     keys.add(e.code);
     if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))
       e.preventDefault();
@@ -54,7 +85,91 @@ export function initGame() {
   window.addEventListener('keyup', e => keys.delete(e.code));
 }
 
-export const getCurrentGame = () => currentGame;
+function handleEsc() {
+  if (!paused) { openIgOverlay(); return; }
+  if (igSlideIdx > 0) { igSlideIdx = 0; refreshIg(); return; }
+  resumeGame();
+}
+
+function handleIgKey(e) {
+  if (igSlideIdx === 1) {
+    if (e.code === 'Escape' || e.code === 'KeyB' || e.code === 'Backspace' ||
+        e.code === 'ArrowUp' || e.code === 'KeyW') {
+      igSlideIdx = 0; refreshIg(); e.preventDefault();
+    }
+    return;
+  }
+  // Slide 0: Menü-Navigation
+  if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+    igMenuIdx = (igMenuIdx - 1 + IG_ITEMS.length) % IG_ITEMS.length;
+    refreshIgItems(); e.preventDefault();
+  } else if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+    igMenuIdx = (igMenuIdx + 1) % IG_ITEMS.length;
+    refreshIgItems(); e.preventDefault();
+  } else if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space') {
+    selectIgMenuItem(); e.preventDefault();
+  }
+}
+
+function selectIgMenuItem() {
+  if (igMenuIdx === 0) { resumeGame(); }
+  else if (igMenuIdx === 1) { closeIgOverlay(); exitGame(); }
+  else if (igMenuIdx === 2) { igSlideIdx = 1; refreshIg(); }
+}
+
+function refreshIg() {
+  const h = igSlidesEl.clientHeight;
+  igSlides.forEach(s => s.style.height = h + 'px');
+  igTrack.style.transform = `translateY(${-igSlideIdx * h}px)`;
+
+  const canBack = igSlideIdx > 0;
+  igNavArrow.classList.toggle('visible', canBack);
+  igNavLabel.classList.toggle('visible', canBack);
+  igNavLabel.textContent = canBack ? 'ZURÜCK' : '';
+}
+
+function refreshIgItems() {
+  igItems.forEach((el, i) => el.classList.toggle('selected', i === igMenuIdx));
+}
+
+export function openIgMenu() { openIgOverlay(); }
+
+function openIgOverlay() {
+  paused = true;
+  igSlideIdx = 0;
+  igMenuIdx  = 0;
+  keys.clear();
+  igOverlay.classList.add('visible');
+  refreshIgItems();
+  refreshIg();
+}
+
+function closeIgOverlay() {
+  igOverlay.classList.remove('visible');
+}
+
+function resumeGame() {
+  closeIgOverlay();
+  paused = false;
+}
+
+export const getCurrentGame    = () => currentGame;
+export const isIngameMenuOpen  = () => paused;
+
+export function handleIngameMenuInput(gp, prev) {
+  if (igSlideIdx === 1) {
+    if ((gp.b && !prev?.b) || (gp.select && !prev?.select) ||
+        (gp.dpad?.up && !prev?.dpad?.up)) {
+      igSlideIdx = 0; refreshIg();
+    }
+    return;
+  }
+  if (gp.dpad?.up   && !prev?.dpad?.up)   { igMenuIdx = (igMenuIdx - 1 + IG_ITEMS.length) % IG_ITEMS.length; refreshIgItems(); }
+  if (gp.dpad?.down && !prev?.dpad?.down) { igMenuIdx = (igMenuIdx + 1) % IG_ITEMS.length; refreshIgItems(); }
+  if (gp.a     && !prev?.a)               selectIgMenuItem();
+  if (gp.b     && !prev?.b)               resumeGame();
+  if (gp.start && !prev?.start)           resumeGame();
+}
 
 function resizeCanvas() {
   canvas.width  = canvas.clientWidth  * devicePixelRatio;
@@ -64,6 +179,8 @@ function resizeCanvas() {
 export function startGame(name) {
   const mod = window.RetroGames?.[name];
   if (!mod) return;
+  currentGameId = name;
+  paused = false;
   gameView.style.display = 'block';
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   resizeCanvas();
@@ -81,27 +198,41 @@ export function startGame(name) {
     code
   });
   for (const [p, gp] of lastInput) currentGame.input?.(p, gp, null);
+  showToast('ESC · MENÜ', 3000);
   let last = performance.now();
   (function loop(now) {
     const dt = Math.min(50, now - last) / 1000; last = now;
-    for (const p of localPlayers) {
-      if (!conns.has(p)) {
-        const kbGp = makeKbGamepad(p);
-        currentGame.input?.(p, kbGp, prevKbGp[p] || null);
-        prevKbGp[p] = kbGp;
+    if (!paused) {
+      for (const p of localPlayers) {
+        if (!conns.has(p)) {
+          const kbGp = makeKbGamepad(p);
+          currentGame.input?.(p, kbGp, prevKbGp[p] || null);
+          prevKbGp[p] = kbGp;
+        }
       }
+      currentGame.update?.(dt);
     }
-    currentGame.update?.(dt);
     currentGame.draw?.();
     rafId = requestAnimationFrame(loop);
   })(performance.now());
 }
 
+function showToast(text, duration) {
+  if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+  toast.textContent = text;
+  toast.classList.add('visible');
+  toastTimer = setTimeout(() => { toast.classList.remove('visible'); toastTimer = null; }, duration);
+}
+
 export function exitGame() {
   cancelAnimationFrame(rafId);
   currentGame?.destroy?.();
+  const lastId = currentGameId;
   currentGame = null;
+  currentGameId = null;
+  paused = false;
+  closeIgOverlay();
   gameView.style.display = 'none';
   showScreen('main-menu');
-  resetMenu();
+  goToGame(lastId);
 }
