@@ -15,8 +15,8 @@ window.RetroGames.pong = {
       <rect x="18"  y="60"  width="8" height="50" fill="#4fc3f7"/>
       <rect x="294" y="95"  width="8" height="50" fill="#4fc3f7"/>
       <circle cx="170" cy="90" r="6" fill="#4fc3f7"/>
-      <text x="90"  y="40" font-family="Courier New, monospace" font-size="28" font-weight="bold" fill="#4fc3f7" text-anchor="middle" opacity="0.9">3</text>
-      <text x="230" y="40" font-family="Courier New, monospace" font-size="28" font-weight="bold" fill="#4fc3f7" text-anchor="middle" opacity="0.9">1</text>
+      <text x="90"  y="40" font-family="'Press Start 2P', 'Courier New', monospace" font-size="22" fill="#4fc3f7" text-anchor="middle" opacity="0.9">3</text>
+      <text x="230" y="40" font-family="'Press Start 2P', 'Courier New', monospace" font-size="22" fill="#4fc3f7" text-anchor="middle" opacity="0.9">1</text>
     </svg>
   `,
 
@@ -193,10 +193,10 @@ window.RetroGames.pong = {
         // Score
         ctx.fillStyle = ACCENT;
         ctx.globalAlpha = 0.9;
-        ctx.font = `bold ${Math.floor(h * 0.18)}px Courier New`;
+        ctx.font = `${Math.floor(h * 0.14)}px "Press Start 2P", Courier New`;
         ctx.textAlign = 'center';
-        ctx.fillText(state.p1.score, w * 0.28, h * 0.22);
-        ctx.fillText(state.p2.score, w * 0.72, h * 0.22);
+        ctx.fillText(state.p1.score, w * 0.28, h * 0.24);
+        ctx.fillText(state.p2.score, w * 0.72, h * 0.24);
         ctx.globalAlpha = 1;
 
         // Paddles (beide Akzent-Blau, mit leichtem Glow)
@@ -221,15 +221,15 @@ window.RetroGames.pong = {
           ctx.shadowColor = ACCENT;
           ctx.shadowBlur = Math.round(w * 0.03);
           ctx.textAlign = 'center';
-          ctx.font = `bold ${Math.floor(h * 0.12)}px Courier New`;
+          ctx.font = `${Math.floor(h * 0.09)}px "Press Start 2P", Courier New`;
           ctx.fillText(`SPIELER ${state.winner}`, w / 2, h * 0.42);
 
-          ctx.font = `${Math.floor(h * 0.06)}px Courier New`;
-          ctx.fillText('GEWINNT', w / 2, h * 0.52);
+          ctx.font = `${Math.floor(h * 0.055)}px "Press Start 2P", Courier New`;
+          ctx.fillText('GEWINNT', w / 2, h * 0.54);
           ctx.shadowBlur = 0;
 
           ctx.fillStyle = '#555';
-          ctx.font = `${Math.floor(h * 0.035)}px Courier New`;
+          ctx.font = `${Math.floor(h * 0.028)}px "Press Start 2P", Courier New`;
           ctx.fillText('A · NEUSTART', w / 2, h * 0.72);
         }
       },

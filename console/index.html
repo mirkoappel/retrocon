@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RETROCON</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -35,13 +38,14 @@ body::after {
 }
 
 #setup h1 {
-  font-size: clamp(1rem, 2.8vw, 1.8rem);
-  letter-spacing: 0.25rem;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: clamp(0.75rem, 1.8vw, 1.2rem);
+  letter-spacing: 0.1rem;
   color: #4fc3f7;
   text-shadow: 0 0 40px rgba(79,195,247,0.9), 0 0 80px rgba(79,195,247,0.4);
   text-align: center;
   max-width: 90vw;
-  line-height: 1.4;
+  line-height: 1.6;
 }
 
 #qr-row {
@@ -139,9 +143,10 @@ body::after {
 }
 
 #main-menu h1.retrocon-logo {
+  font-family: 'Press Start 2P', 'Courier New', monospace;
   color: #4fc3f7;
-  letter-spacing: 0.5rem;
-  font-size: clamp(1.2rem, 3.5vw, 2rem);
+  letter-spacing: 0.15rem;
+  font-size: clamp(1rem, 2.6vw, 1.6rem);
   text-shadow: 0 0 40px rgba(79,195,247,0.9), 0 0 80px rgba(79,195,247,0.4);
 }
 
@@ -202,11 +207,11 @@ body::after {
   text-align: center;
 }
 .game-card .title {
+  font-family: 'Press Start 2P', 'Courier New', monospace;
   color: #fff;
-  font-size: 1.4rem;
-  font-weight: bold;
-  letter-spacing: 0.3rem;
-  margin-bottom: 6px;
+  font-size: 1.1rem;
+  letter-spacing: 0.1rem;
+  margin-bottom: 10px;
 }
 .game-card.selected .title {
   color: #4fc3f7;
