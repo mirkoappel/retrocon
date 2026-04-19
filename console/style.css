@@ -323,42 +323,6 @@ body::after {
 .carousel-arrow.left  { left: 8px; }
 .carousel-arrow.right { right: 8px; }
 
-#menu-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: stretch;
-  width: min(90vw, 320px);
-}
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.9em;
-  background: transparent;
-  border: none;
-  color: #888;
-  font-family: inherit;
-  font-size: 1rem;
-  letter-spacing: 0.3rem;
-  padding: 8px 14px;
-  cursor: pointer;
-  transition: color 0.15s, text-shadow 0.15s;
-}
-.legend-item:hover { color: #bbb; }
-.legend-item.selected {
-  color: #4fc3f7;
-  text-shadow: 0 0 16px rgba(79,195,247,0.5);
-}
-.legend-item .btn-key {
-  display: inline-grid;
-  place-items: center;
-  width: 1.6em; height: 1.6em;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  font-size: 0.85em;
-  letter-spacing: 0;
-  font-weight: bold;
-}
 
 .room-badge {
   position: fixed;
