@@ -11,19 +11,6 @@ Retro-Spielkonsole im Browser. Smartphone als Controller – kein App-Download, 
 
 RETROCON ist eine **Plattform** für mehrere klassische Retro-Spiele. Die Steuerung erfolgt über Smartphones, die sich per WebRTC (P2P, kein eigener Server) verbinden. Jede Spielsitzung bekommt einen 4-stelligen **Raum-Code** — so können viele Gruppen gleichzeitig spielen, ohne sich gegenseitig zu stören.
 
-### User Flow
-
-```
-index.html             console.html              controller/
-────────────           ──────────────────        ───────────────
-Boot-Screen       →    Setup-Screen         ←    QR-Code scannen
-Terminal-Style         (QR P1 + QR P2)
-"PRESS ANY KEY"        ↓ A drücken
-RETROCON-Intro         Hauptmenü
-                       ├─ PONG starten
-                       └─ SPIELER VERBINDEN → QR-Screen
-```
-
 Szenario: Alle sitzen vor einem Bildschirm. Laptopscreen = Spielfeld. 1–2 Smartphones als Controller.
 
 ---
