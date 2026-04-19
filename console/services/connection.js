@@ -14,13 +14,12 @@ export const prevInput = new Map();
 export let code = '';
 
 let peer = null;
-const cb = { ready: () => {}, connect: () => {}, disconnect: () => {}, data: () => {}, showSetup: () => {} };
+const cb = { ready: () => {}, connect: () => {}, disconnect: () => {}, data: () => {} };
 
 export const onReady      = fn => { cb.ready      = fn; };
 export const onConnect    = fn => { cb.connect    = fn; };
 export const onDisconnect = fn => { cb.disconnect = fn; };
 export const onData       = fn => { cb.data       = fn; };
-export const onShowSetup  = fn => { cb.showSetup  = fn; };
 
 export function setupPeer(attempt = 0) {
   code = genCode();
@@ -52,7 +51,6 @@ export function setupPeer(attempt = 0) {
       }
     });
     conn.on('data', data => {
-      if (data?.type === 'show-setup') { cb.showSetup(player); return; }
       if (data?.type !== 'gamepad') return;
       prevInput.set(player, lastInput.get(player) ?? null);
       lastInput.set(player, data);

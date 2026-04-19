@@ -40,6 +40,17 @@ export function initMenu() {
 
   highlight();
   window.addEventListener('resize', highlight);
+
+  window.addEventListener('keydown', e => {
+    const active = document.querySelector('.screen.active')?.id;
+    if (active === 'main-menu') {
+      if (e.key === 'b' || e.key === 'B') { showScreen('setup'); e.preventDefault(); }
+    } else if (active === 'setup') {
+      if (e.key === 'Enter' || e.key === 'a' || e.key === 'A' || e.key === 'Escape') {
+        showScreen('main-menu'); resetMenu(); e.preventDefault();
+      }
+    }
+  });
 }
 
 function highlight() {
