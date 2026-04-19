@@ -2,6 +2,28 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.5.0]
+
+### Hinzugefügt
+- Controller als **PWA installierbar**: Web-Manifest + iOS/Android-Meta-Tags + generierte Icons (192, 512, maskable). „Zum Home-Screen" → Fullscreen-Start, Scanner öffnet automatisch wenn kein Code in der URL
+- Manifest `display: fullscreen` (Android blendet System-Bars aus; iOS bleibt bei black-translucent da Apple keinen PWA-Statusleisten-Hide erlaubt)
+- QR-Scanner: **antippbare Rahmen** um erkannte Codes — Tap auf den Rahmen verbindet direkt als Spieler 1/2, Label zeigt welcher
+- QR-Scanner nutzt nativen `BarcodeDetector` (Chromium Android, Safari iOS 17+), jsQR bleibt als Fallback
+- ABBRECHEN-Button im Scanner prominent rot unten mittig (vorher unscheinbarer „SCHLIESSEN"-Pill oben rechts)
+- Hauptmenü: B öffnet den Setup-Screen zum Hinzufügen/Wechseln eines Spielers (gleiches Layout wie beim Start, kein separater Settings-Screen mehr)
+- Keyboard-Steuerung in der Console: `B` öffnet Setup, `A`/`Enter`/`Esc` zurück ins Menü, `Esc` im Spiel kehrt ins Hauptmenü
+
+### Geändert
+- Controller-Layout respektiert `safe-area-inset-left/right` (Landscape-relevant), Joystick bleibt vertikal exakt zentriert via ResizeObserver
+- `connect()` im Controller reloadet bei Peer-Fehler nicht mehr automatisch — LED wird rot, User scannt bei Bedarf neu
+- Setup-Screen Typografie: H1 `clamp(1.6rem, 3.5vw, 2.6rem)`, Hinweistext 1.4rem — lesbar aus Sofa-Distanz
+- Controller-Skripte via `?v=` Cache-Bust versioniert, damit Produktions-Handys neue JS-Versionen ohne manuellen Clear bekommen
+
+### Entfernt
+- Viewfinder-Crop + 40%-Mindestgrößen-Filter im Scanner (durch kontinuierliche Multi-Code-Erkennung mit Frame-Tap ersetzt)
+- Auto-Reload im Controller bei Peer-Disconnect
+- Separater Settings-Screen im Console-UI (ungenutzter Duplikat)
+
 ## [0.4.0]
 
 ### Hinzugefügt

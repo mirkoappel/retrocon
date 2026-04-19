@@ -22,6 +22,20 @@ Wifi-Icon leuchtet zusätzlich grün wenn verbunden — doppelte Status-Anzeige 
 
 Im Hochformat wird ein Hinweis-Overlay im RETROCON-Stil angezeigt (Gehäusefarbe, Akzent-Glow, animiertes Phone-Icon), das zum Drehen auffordert — der Controller ist für Querformat ausgelegt.
 
+## PWA-Install
+
+Der Controller ist als **Progressive Web App** installierbar. `controller/manifest.webmanifest` (fullscreen, landscape, RETROCON-Icons 192/512 + maskable) ist aus der Classic-Variante verlinkt plus iOS-Meta-Tags (`apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style: black-translucent`).
+
+Flow: Controller-URL am Handy öffnen → Share → „Zum Home-Screen". Beim Start ohne `?code=` öffnet der Controller automatisch den Scanner — direkt Raum-QR tippen, verbunden.
+
+Safe-Area-Insets (`env(safe-area-inset-left/right)`) halten das Gehäuse auch auf Geräten mit Notch frei, der Joystick wird via ResizeObserver nach späten Viewport-Änderungen (PWA-Chrome-Hide, Rotation) re-zentriert.
+
+## QR-Scanner
+
+`qr-scanner.js` bevorzugt den nativen `BarcodeDetector` (Chromium Android, Safari iOS 17+) und fällt auf jsQR zurück. Der Scanner läuft kontinuierlich und zeichnet um jeden erkannten QR einen blauen Rahmen mit Label („SPIELER 1"/„SPIELER 2") — Tap auf einen Rahmen navigiert direkt zu dieser Spieler-URL. Kein Auto-Matching mehr, kein Viewfinder-Crop.
+
+ABBRECHEN-Button prominent rot unten mittig schließt das Overlay und stoppt den Kamera-Stream.
+
 ## Neue Variante hinzufügen
 
 1. Ordner `controller/variants/<id>/` anlegen mit `index.html`, `style.css`, `app.js`

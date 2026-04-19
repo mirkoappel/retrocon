@@ -31,9 +31,11 @@ console/                SPA: Boot + Setup + Hauptmenü + Game-View in einem Doku
     setup.js            QR-Codes + Player-Status
     menu.js             Karussell + Legende + Navigation
     game.js             Canvas + Game-Loop
-controller/             Smartphone-Controller (Plugin-System)
+controller/             Smartphone-Controller (Plugin-System, PWA-installierbar)
   core.js               Shared: Verbindung, Gamepad-Protokoll, Variant-Picker
-  qr-scanner.js         Kamera + jsQR (Viewfinder-Crop, Mindest-Größe)
+  qr-scanner.js         Kamera + BarcodeDetector/jsQR, antippbare Code-Frames
+  manifest.webmanifest  PWA-Manifest (fullscreen, landscape, Icons)
+  icons/                Generierte PNG-Icons (192, 512, maskable)
   variants/classic/     Default-Variante
 games/                  Spielmodule (je Spiel ein Ordner)
   pong/
@@ -62,8 +64,10 @@ CHANGELOG.md            Versions-Historie
 |---|---|
 | PeerJS 1.5.4 | WebRTC-Abstraktion, P2P-Verbindung |
 | `0.peerjs.com` | Öffentlicher Signaling-Broker |
-| jsQR 1.4.0 | QR-Erkennung im Controller |
+| BarcodeDetector API | Native QR-Erkennung (bevorzugt) |
+| jsQR 1.4.0 | QR-Erkennung als Fallback im Controller |
 | QRCode.js | QR-Generierung in der Console |
+| Web App Manifest | PWA-Install (Homescreen, Fullscreen) |
 | HTML5 Canvas | Spielfeld-Rendering |
 | Web Audio API | Retro-Sounds (ohne Audio-Files) |
 | Wake Lock API | Smartphone bleibt wach |

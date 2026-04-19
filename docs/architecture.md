@@ -46,6 +46,18 @@ views/             Ein Modul pro Screen
 
 Menünavigation: jeder verbundene Controller kann das Menü steuern. Die Game-Card-Vorschau kommt pro Spiel als `artSvg` aus dem Spielmodul.
 
+### Keyboard-Fallback
+
+Die Console unterstützt zusätzlich Maus + Tastatur — nützlich wenn (noch) kein Controller verbunden ist oder zu Demo-Zwecken.
+
+| Kontext | Taste | Aktion |
+|---|---|---|
+| Hauptmenü | `B` | Setup-Screen öffnen |
+| Setup-Screen | `A` / `Enter` / `Esc` | zurück ins Hauptmenü |
+| Im Spiel | `Esc` | Spiel beenden, zurück ins Menü |
+
+Klicks auf Game-Cards (Karussell) und Legendeneinträge funktionieren wie auf einem Controller.
+
 ## Bekannte Einschränkungen
 
 - **PeerJS Public Broker** (`0.peerjs.com`): kein SLA, Community-Dienst. Bei Ausfall eigenen Broker hosten oder wechseln.
