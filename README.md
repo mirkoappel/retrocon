@@ -52,9 +52,12 @@ CHANGELOG.md            Versions-Historie
 
 ## Dokumentation
 
+- [console/](console/README.md) — Screen-Flow, Dateistruktur, Game-API
+- [controller/](controller/README.md) — Verbindungsablauf, Classic-Layout, PWA-Install
+- [games/pong/](games/pong/README.md) · [games/volleyball/](games/volleyball/README.md) · [games/vacuum/](games/vacuum/README.md) — je Spiel Steuerung + Mechaniken
 - [Architektur](docs/architecture.md) — WebRTC, Raum-System, Screen-Flow
-- [Spiele](docs/games.md) — Game-Modul-Interface, neues Spiel hinzufügen
-- [Controller-Varianten](docs/controller-variants.md) — Plugin-System, Classic-Layout, eigene Variante bauen
+- [Spiele — Modul-Interface](docs/games.md) — Game-Modul-Interface, neues Spiel hinzufügen
+- [Controller-Varianten](docs/controller-variants.md) — Plugin-System, eigene Variante bauen
 - [Gamepad-Protokoll](docs/protocol.md) — JSON-Schema zwischen Controller und Console
 - [Changelog](CHANGELOG.md)
 
