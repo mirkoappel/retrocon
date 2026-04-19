@@ -24,7 +24,12 @@
       <video id="rc-scan-video" playsinline muted></video>
       <canvas id="rc-scan-canvas"></canvas>
       <div id="rc-scan-hint">QR-CODE ANVISIEREN — DANN SCAN DRÜCKEN</div>
-      <button id="rc-scan-btn">SCAN</button>
+      <button id="rc-scan-btn" aria-label="Scannen">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </button>
       <button id="rc-scan-close">SCHLIESSEN</button>
     `;
     document.body.appendChild(overlay);
@@ -43,16 +48,15 @@
         white-space: nowrap;
       }
       #rc-scan-btn {
-        position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); z-index: 3;
-        width: 84px; height: 84px; border-radius: 50%;
-        background: #fff; border: 4px solid rgba(255,255,255,0.4);
-        box-shadow: 0 0 0 3px #000;
-        font-family: 'Courier New', monospace;
-        font-size: 0.75rem; letter-spacing: 0.1rem; font-weight: bold;
-        color: #000; cursor: pointer; touch-action: none;
+        position: absolute; bottom: 24px; right: 24px; z-index: 3;
+        width: 72px; height: 72px; border-radius: 50%;
+        background: #e53935; border: 3px solid rgba(255,255,255,0.5);
+        box-shadow: 0 0 0 2px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; touch-action: none; padding: 0;
       }
-      #rc-scan-btn:active { transform: translateX(-50%) scale(0.94); }
-      #rc-scan-btn.busy { background: #888; color: #222; }
+      #rc-scan-btn:active { transform: scale(0.94); }
+      #rc-scan-btn.busy { background: #7a1e1b; }
       #rc-scan-close {
         position: absolute; top: 16px; right: 16px; z-index: 3;
         background: rgba(0,0,0,0.6); border: 1px solid #333; color: #aaa;
@@ -101,30 +105,52 @@
     scanBtn?.classList.remove('busy');
   }
 
-  function pickValid(values) {
-    for (const v of values) {
-      try {
-        const url = new URL(v);
-        if (url.searchParams.has('code') || url.searchParams.has('peer')) return v;
-      } catch {}
+  function isValid(v) {
+    try {
+      const url = new URL(v);
+      return url.searchParams.has('code') || url.searchParams.has('peer');
+    } catch { return false; }
+  }
+
+  function centroid(points) {
+    let cx = 0, cy = 0;
+    for (const p of points) { cx += p.x; cy += p.y; }
+    return { x: cx / points.length, y: cy / points.length };
+  }
+
+  function pickClosestToCenter(candidates, frameW, frameH) {
+    const fx = frameW / 2, fy = frameH / 2;
+    let best = null, bestDist = Infinity;
+    for (const c of candidates) {
+      if (!isValid(c.value)) continue;
+      const d = Math.hypot(c.center.x - fx, c.center.y - fy);
+      if (d < bestDist) { bestDist = d; best = c.value; }
     }
-    return null;
+    return best;
   }
 
   async function detectOnce() {
     if (video.readyState !== 4) return null;
+    const vw = video.videoWidth, vh = video.videoHeight;
     if (detector) {
       try {
         const codes = await detector.detect(video);
-        return pickValid(codes.map(c => c.rawValue));
+        const cands = codes.map(c => ({
+          value: c.rawValue,
+          center: centroid(c.cornerPoints)
+        }));
+        return pickClosestToCenter(cands, vw, vh);
       } catch {}
     }
-    canvas.width  = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width  = vw;
+    canvas.height = vh;
     ctx.drawImage(video, 0, 0);
-    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const img = ctx.getImageData(0, 0, vw, vh);
     const qr = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-    return qr?.data ? pickValid([qr.data]) : null;
+    if (!qr?.data) return null;
+    const L = qr.location;
+    const center = centroid([L.topLeftCorner, L.topRightCorner, L.bottomLeftCorner, L.bottomRightCorner]);
+    return pickClosestToCenter([{ value: qr.data, center }], vw, vh);
   }
 
   async function runScan() {
