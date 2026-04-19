@@ -1,14 +1,20 @@
 // QR-Scanner für den Controller
-// Vollbild-Kamera, kontinuierliches Scannen mit jsQR über den gesamten Frame.
-// Erster Treffer mit gültiger Raum-URL gewinnt.
+// Nativer BarcodeDetector (Chrome Android, Safari iOS 17+) mit jsQR-Fallback.
+// Vollbild-Kamera, kontinuierliches Scannen, erster Treffer gewinnt.
 //
 // API:
 //   QRScanner.show()   Kamera starten + Overlay zeigen
 //   QRScanner.hide()   Overlay schließen + Kamera freigeben
 
 (function () {
-  let stream = null, raf = null;
+  let stream = null, raf = null, busy = false;
   let overlay, video, canvas, ctx;
+  let detector = null;
+
+  if ('BarcodeDetector' in window) {
+    try { detector = new window.BarcodeDetector({ formats: ['qr_code'] }); }
+    catch { detector = null; }
+  }
 
   function ensureDom() {
     if (overlay) return;
@@ -49,7 +55,10 @@
 
   function show() {
     ensureDom();
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    })
       .then(s => { stream = s; video.srcObject = s; return video.play(); })
       .then(() => { overlay.classList.add('active'); loop(); })
       .catch(err => alert('Kamera nicht verfügbar: ' + err.message));
@@ -63,22 +72,34 @@
     stream = null;
   }
 
-  function loop() {
-    if (!stream) return;
-    if (video.readyState === 4) {
-      canvas.width  = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
-      const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const qr = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
-      if (qr?.data) {
-        try {
-          const url = new URL(qr.data);
-          if (url.searchParams.has('code') || url.searchParams.has('peer')) {
-            hide(); location.href = qr.data; return;
-          }
-        } catch {}
+  function handleHit(data) {
+    try {
+      const url = new URL(data);
+      if (url.searchParams.has('code') || url.searchParams.has('peer')) {
+        hide(); location.href = data; return true;
       }
+    } catch {}
+    return false;
+  }
+
+  async function loop() {
+    if (!stream) return;
+    if (!busy && video.readyState === 4) {
+      busy = true;
+      try {
+        if (detector) {
+          const codes = await detector.detect(video);
+          if (codes[0]?.rawValue && handleHit(codes[0].rawValue)) return;
+        } else {
+          canvas.width  = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0);
+          const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const qr = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+          if (qr?.data && handleHit(qr.data)) return;
+        }
+      } catch {}
+      busy = false;
     }
     raf = requestAnimationFrame(loop);
   }
