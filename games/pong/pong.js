@@ -21,13 +21,24 @@ window.RetroGames.pong = {
   `,
 
   create(ctx, W, H, numPlayers, api) {
-    const PADDLE_W = 14, PADDLE_H = 110, BALL_R = 9;
     const AI_SPEED = 5.5, WIN_SCORE = 10;
+    const ACCENT = '#4fc3f7';
 
     let w = W, h = H;
+
+    // Maße proportional zur Canvas-Größe
+    function dims() {
+      const paddleW = Math.max(12, Math.round(w * 0.02));
+      const paddleH = Math.round(h * 0.22);
+      const margin  = Math.round(w * 0.06);
+      const ballR   = Math.max(6, Math.round(h * 0.018));
+      return { paddleW, paddleH, margin, ballR };
+    }
+
+    const { paddleH } = dims();
     const state = {
-      p1: { y: h / 2 - PADDLE_H / 2, score: 0, joyActive: false },
-      p2: { y: h / 2 - PADDLE_H / 2, score: 0, joyActive: false },
+      p1: { y: h / 2 - paddleH / 2, score: 0, joyActive: false },
+      p2: { y: h / 2 - paddleH / 2, score: 0, joyActive: false },
       ball: { x: w / 2, y: h / 2, vx: 0, vy: 0 },
       countdown: 3,
       countdownTimer: 0,
@@ -88,9 +99,10 @@ window.RetroGames.pong = {
 
       input(player, gp, prev) {
         const p = player === 1 ? state.p1 : state.p2;
+        const { paddleH } = dims();
         if (gp.joystick.active) {
           p.joyActive = true;
-          p.y = ((gp.joystick.y + 1) / 2) * (h - PADDLE_H);
+          p.y = ((gp.joystick.y + 1) / 2) * (h - paddleH);
         } else {
           p.joyActive = false;
         }
@@ -119,10 +131,12 @@ window.RetroGames.pong = {
           return;
         }
 
+        const { paddleW, paddleH, margin, ballR } = dims();
+
         // KI für P2 wenn niemand verbunden
         const conns = api.getConns();
         if (!conns.has(2)) {
-          const target = state.ball.y - PADDLE_H / 2;
+          const target = state.ball.y - paddleH / 2;
           const dy = target - state.p2.y;
           state.p2.y += Math.max(-AI_SPEED * dt * 60, Math.min(AI_SPEED * dt * 60, dy * 0.08));
         }
@@ -133,22 +147,24 @@ window.RetroGames.pong = {
         b.y += b.vy * dt;
 
         // Wand oben/unten
-        if (b.y - BALL_R < 0)     { b.y = BALL_R;     b.vy = -b.vy; sndWall(); }
-        if (b.y + BALL_R > h)     { b.y = h - BALL_R; b.vy = -b.vy; sndWall(); }
+        if (b.y - ballR < 0)     { b.y = ballR;     b.vy = -b.vy; sndWall(); }
+        if (b.y + ballR > h)     { b.y = h - ballR; b.vy = -b.vy; sndWall(); }
 
         // Paddle P1 (links)
-        if (b.x - BALL_R < PADDLE_W + 20 && b.x > 20 &&
-            b.y > state.p1.y && b.y < state.p1.y + PADDLE_H && b.vx < 0) {
+        const p1X = margin;
+        if (b.x - ballR < p1X + paddleW && b.x > p1X &&
+            b.y > state.p1.y && b.y < state.p1.y + paddleH && b.vx < 0) {
           b.vx = -b.vx * 1.05;
-          const hit = (b.y - (state.p1.y + PADDLE_H / 2)) / (PADDLE_H / 2);
+          const hit = (b.y - (state.p1.y + paddleH / 2)) / (paddleH / 2);
           b.vy += hit * 200;
           sndPaddle();
         }
         // Paddle P2 (rechts)
-        if (b.x + BALL_R > w - PADDLE_W - 20 && b.x < w - 20 &&
-            b.y > state.p2.y && b.y < state.p2.y + PADDLE_H && b.vx > 0) {
+        const p2X = w - margin - paddleW;
+        if (b.x + ballR > p2X && b.x < p2X + paddleW &&
+            b.y > state.p2.y && b.y < state.p2.y + paddleH && b.vx > 0) {
           b.vx = -b.vx * 1.05;
-          const hit = (b.y - (state.p2.y + PADDLE_H / 2)) / (PADDLE_H / 2);
+          const hit = (b.y - (state.p2.y + paddleH / 2)) / (paddleH / 2);
           b.vy += hit * 200;
           sndPaddle();
         }
@@ -158,41 +174,48 @@ window.RetroGames.pong = {
         if (b.x > w)     { state.p1.score++; sndScore(); checkWin(1) || (startRound(), state.ball.vx = -Math.abs(state.ball.vx)); }
 
         // Paddle-Begrenzung
-        state.p1.y = Math.max(0, Math.min(h - PADDLE_H, state.p1.y));
-        state.p2.y = Math.max(0, Math.min(h - PADDLE_H, state.p2.y));
+        state.p1.y = Math.max(0, Math.min(h - paddleH, state.p1.y));
+        state.p2.y = Math.max(0, Math.min(h - paddleH, state.p2.y));
       },
 
       draw() {
+        const { paddleW, paddleH, margin, ballR } = dims();
+
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, w, h);
 
-        // Mittellinie
-        ctx.strokeStyle = '#222';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([14, 14]);
+        // Mittellinie (gestrichelt, Akzent-Blau mit Glow-Transparenz)
+        ctx.save();
+        ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = ACCENT;
+        ctx.lineWidth = Math.max(2, Math.round(w * 0.003));
+        ctx.setLineDash([Math.round(h * 0.03), Math.round(h * 0.03)]);
         ctx.beginPath();
         ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h);
         ctx.stroke();
-        ctx.setLineDash([]);
+        ctx.restore();
 
         // Score
-        ctx.fillStyle = '#333';
+        ctx.fillStyle = ACCENT;
+        ctx.globalAlpha = 0.9;
         ctx.font = `bold ${Math.floor(h * 0.18)}px Courier New`;
         ctx.textAlign = 'center';
-        ctx.fillText(state.p1.score, w * 0.25, h * 0.22);
-        ctx.fillText(state.p2.score, w * 0.75, h * 0.22);
+        ctx.fillText(state.p1.score, w * 0.28, h * 0.22);
+        ctx.fillText(state.p2.score, w * 0.72, h * 0.22);
+        ctx.globalAlpha = 1;
 
-        // Paddles
-        ctx.fillStyle = '#4fc3f7';
-        ctx.fillRect(20, state.p1.y, PADDLE_W, PADDLE_H);
-        ctx.fillStyle = '#ef9a9a';
-        ctx.fillRect(w - 20 - PADDLE_W, state.p2.y, PADDLE_W, PADDLE_H);
+        // Paddles (beide Akzent-Blau, mit leichtem Glow)
+        ctx.fillStyle = ACCENT;
+        ctx.shadowColor = ACCENT;
+        ctx.shadowBlur = Math.round(w * 0.02);
+        ctx.fillRect(margin, state.p1.y, paddleW, paddleH);
+        ctx.fillRect(w - margin - paddleW, state.p2.y, paddleW, paddleH);
 
         // Ball
-        ctx.fillStyle = '#fff';
         ctx.beginPath();
-        ctx.arc(state.ball.x, state.ball.y, BALL_R, 0, Math.PI * 2);
+        ctx.arc(state.ball.x, state.ball.y, ballR, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
 
         // Countdown
         if (!state.running && !state.winner) {
