@@ -5,6 +5,7 @@ Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changel
 ## [Unreleased]
 
 ### Hinzugefügt
+- Neues Spiel: **Slime Volleyball** (1–2 Spieler, Joystick + A zum Springen, KI pro fehlendem Spieler)
 - SPA-Architektur: Boot + Setup + Menü + Game in einem Dokument — Audio-Gesture bleibt gültig
 - `services/audio.js`: globaler AudioContext, im Boot-Klick erzeugt, an Spiele via `api.audioCtx`
 - Console als ES-Module aufgeteilt (`services/` + `views/` + `app.js` + `style.css`)

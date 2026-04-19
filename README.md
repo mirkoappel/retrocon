@@ -37,6 +37,8 @@ controller/             Smartphone-Controller (Plugin-System)
 games/                  Spielmodule (je Spiel ein Ordner)
   pong/
     pong.js
+  volleyball/
+    volleyball.js
 docs/                   Ausführliche Dokumentation
 CHANGELOG.md            Versions-Historie
 ```
@@ -81,7 +83,7 @@ git push
 
 ## Ideen
 
-- Weitere Spiele: Breakout, Snake, Tetris
+- Weitere Spiele: Tron Light Cycles, Breakout, Snake, Tetris, Curve Fever
 - Weitere Controller-Varianten: D-Pad-only, SNES-Stil, Arcade-Stick, Minimalist
 - Spieler-Status im Hauptmenü (P1/P2 online/offline ohne QR-Screen)
 - Lautstärkeregler / Mute
