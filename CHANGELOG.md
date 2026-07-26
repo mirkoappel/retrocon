@@ -2,6 +2,17 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.16]
+
+### Hinzugefügt
+- **STREET SOCCER: Flaggen statt Farbklötze.** Die Mannschaftsauswahl und der Anpfiff-Screen zeigen jetzt gezeichnete Landesflaggen (Streifen, Kreuz, Scheibe, dazu Brasilien und USA als Sonderfälle)
+
+### Behoben
+- **STREET SOCCER: Trikotfarben waren auf dem Rasen teils unsichtbar.** Bisher diente die Landesfarbe zugleich als Trikot — **8 von 32 Trikots** lagen damit unter 3:1 Kontrast zum dunklen Grün, Deutschlands schwarzes Auswärtstrikot bei 1,0:1 also exakt auf Rasenniveau. Flaggen- und Trikotfarben sind jetzt getrennt; die Trikots sind durchweg hell gewählt, schlechtester Wert 3,4:1
+
+### Geändert
+- **STREET SOCCER:** Ländernamen im Anpfiff-Screen stehen neutral in Weiß statt in der Trikotfarbe; die Zuordnung übernimmt die Flagge daneben. Die Anzeige während des Spiels bleibt eingefärbt, dort unterscheidet die Farbe die Seiten
+
 ## [0.11.15]
 
 ### Behoben

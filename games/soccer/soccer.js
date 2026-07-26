@@ -78,23 +78,26 @@ window.RetroGames.soccer = {
       { role: 'FWD', x: 0.64, y: 0.60 }
     ];
 
+    // c/a = Trikotfarben, bewusst hell genug für den dunklen Rasen.
+    // f = Flagge fürs Menü, in den echten Landesfarben — die sind zum Teil
+    // dunkel (Schwarz, Marineblau) und taugen deshalb nicht als Trikot.
     const TEAMS = [
-      { n: 'DEUTSCHLAND', c: '#eceff1', a: '#212121' },
-      { n: 'BRASILIEN',   c: '#ffd54f', a: '#2e7d32' },
-      { n: 'ARGENTINIEN', c: '#81d4fa', a: '#0277bd' },
-      { n: 'FRANKREICH',  c: '#3949ab', a: '#e53935' },
-      { n: 'ITALIEN',     c: '#1e88e5', a: '#0d47a1' },
-      { n: 'ENGLAND',     c: '#fafafa', a: '#d32f2f' },
-      { n: 'SPANIEN',     c: '#c62828', a: '#ffca28' },
-      { n: 'NIEDERLANDE', c: '#f57c00', a: '#ffffff' },
-      { n: 'PORTUGAL',    c: '#b71c1c', a: '#2e7d32' },
-      { n: 'BELGIEN',     c: '#d84315', a: '#fdd835' },
-      { n: 'KROATIEN',    c: '#e53935', a: '#ffffff' },
-      { n: 'URUGUAY',     c: '#4fc3f7', a: '#263238' },
-      { n: 'MEXIKO',      c: '#2e7d32', a: '#ffffff' },
-      { n: 'JAPAN',       c: '#1a237e', a: '#e53935' },
-      { n: 'NIGERIA',     c: '#43a047', a: '#ffffff' },
-      { n: 'USA',         c: '#f5f5f5', a: '#1a237e' }
+      { n: 'DEUTSCHLAND', c: '#f5f5f5', a: '#9e9e9e', f: { t: 'h', c: ['#000000', '#dd0000', '#ffce00'] } },
+      { n: 'BRASILIEN',   c: '#ffd54f', a: '#26c6da', f: { t: 'br', c: ['#009b3a', '#fedf00', '#002776'] } },
+      { n: 'ARGENTINIEN', c: '#81d4fa', a: '#f5f5f5', f: { t: 'h', c: ['#74acdf', '#ffffff', '#74acdf'] } },
+      { n: 'FRANKREICH',  c: '#7986cb', a: '#ef5350', f: { t: 'v', c: ['#0055a4', '#ffffff', '#ef4135'] } },
+      { n: 'ITALIEN',     c: '#42a5f5', a: '#f5f5f5', f: { t: 'v', c: ['#008c45', '#f4f5f0', '#cd212a'] } },
+      { n: 'ENGLAND',     c: '#fafafa', a: '#ef5350', f: { t: 'cr', c: ['#ffffff', '#ce1124'] } },
+      { n: 'SPANIEN',     c: '#ef5350', a: '#ffca28', f: { t: 'h', c: ['#aa151b', '#f1bf00', '#aa151b'], w: [1, 2, 1] } },
+      { n: 'NIEDERLANDE', c: '#fb8c00', a: '#f5f5f5', f: { t: 'h', c: ['#ae1c28', '#ffffff', '#21468b'] } },
+      { n: 'PORTUGAL',    c: '#e53935', a: '#66bb6a', f: { t: 'v', c: ['#046a38', '#da291c'], w: [2, 3] } },
+      { n: 'BELGIEN',     c: '#ff7043', a: '#fdd835', f: { t: 'v', c: ['#000000', '#fdda24', '#ef3340'] } },
+      { n: 'KROATIEN',    c: '#ec407a', a: '#f5f5f5', f: { t: 'h', c: ['#ff0000', '#ffffff', '#171796'] } },
+      { n: 'URUGUAY',     c: '#4fc3f7', a: '#f5f5f5', f: { t: 'h', c: ['#ffffff', '#0038a8', '#ffffff', '#0038a8', '#ffffff'] } },
+      { n: 'MEXIKO',      c: '#66bb6a', a: '#f5f5f5', f: { t: 'v', c: ['#006847', '#ffffff', '#ce1126'] } },
+      { n: 'JAPAN',       c: '#9575cd', a: '#ef5350', f: { t: 'di', c: ['#ffffff', '#bc002d'] } },
+      { n: 'NIGERIA',     c: '#9ccc65', a: '#f5f5f5', f: { t: 'v', c: ['#008751', '#ffffff', '#008751'] } },
+      { n: 'USA',         c: '#f5f5f5', a: '#5c6bc0', f: { t: 'us', c: [] } }
     ];
 
     let w = W, h = H;
@@ -1302,6 +1305,55 @@ window.RetroGames.soccer = {
       hint('A · WEITER   B · ZURÜCK');
     }
 
+    // Flagge zeichnen. Bewusst schlicht: Streifen, Kreuz, Scheibe, plus zwei
+    // Sonderfälle. Wappen und Sterne wären in dieser Größe ohnehin Matsch.
+    function drawFlagIcon(x, y, fw, fh, fl) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(x, y, fw, fh); ctx.clip();
+      const c = fl.c;
+      if (fl.t === 'h' || fl.t === 'v') {
+        const wgt = fl.w || c.map(() => 1);
+        const tot = wgt.reduce((a, b) => a + b, 0);
+        let off = 0;
+        c.forEach((col, i) => {
+          const size = (fl.t === 'h' ? fh : fw) * wgt[i] / tot;
+          ctx.fillStyle = col;
+          if (fl.t === 'h') ctx.fillRect(x, y + off, fw, size + 1);
+          else              ctx.fillRect(x + off, y, size + 1, fh);
+          off += size;
+        });
+      } else if (fl.t === 'cr') {              // Kreuzflagge
+        ctx.fillStyle = c[0]; ctx.fillRect(x, y, fw, fh);
+        ctx.fillStyle = c[1];
+        ctx.fillRect(x, y + fh * 0.4, fw, fh * 0.2);
+        ctx.fillRect(x + fw * 0.42, y, fw * 0.16, fh);
+      } else if (fl.t === 'di') {              // Scheibe
+        ctx.fillStyle = c[0]; ctx.fillRect(x, y, fw, fh);
+        ctx.fillStyle = c[1];
+        ctx.beginPath(); ctx.arc(x + fw / 2, y + fh / 2, fh * 0.28, 0, Math.PI * 2); ctx.fill();
+      } else if (fl.t === 'br') {              // Raute mit Kreis
+        ctx.fillStyle = c[0]; ctx.fillRect(x, y, fw, fh);
+        ctx.fillStyle = c[1];
+        ctx.beginPath();
+        ctx.moveTo(x + fw / 2, y + fh * 0.14); ctx.lineTo(x + fw * 0.86, y + fh / 2);
+        ctx.lineTo(x + fw / 2, y + fh * 0.86); ctx.lineTo(x + fw * 0.14, y + fh / 2);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = c[2];
+        ctx.beginPath(); ctx.arc(x + fw / 2, y + fh / 2, fh * 0.19, 0, Math.PI * 2); ctx.fill();
+      } else if (fl.t === 'us') {              // Streifen mit Gösch
+        for (let i = 0; i < 7; i++) {
+          ctx.fillStyle = i % 2 ? '#ffffff' : '#b22234';
+          ctx.fillRect(x, y + i * fh / 7, fw, fh / 7 + 1);
+        }
+        ctx.fillStyle = '#3c3b6e';
+        ctx.fillRect(x, y, fw * 0.42, fh * 4 / 7);
+      }
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = Math.max(1, fw * 0.015);
+      ctx.strokeRect(x, y, fw, fh);
+    }
+
     function drawTeamMenu() {
       const pick = state.phase === 'team';
       ctx.fillStyle = '#fff';
@@ -1320,9 +1372,8 @@ window.RetroGames.soccer = {
         const sel = i === state.menuSel;
         const own = !pick && i === state.myTeam;
 
-        ctx.fillStyle = t.c;
-        ctx.globalAlpha = own ? 0.18 : sel ? 1 : 0.55;
-        ctx.fillRect(cx + cw * 0.1, cy + ch * 0.12, cw * 0.8, ch * 0.42);
+        ctx.globalAlpha = own ? 0.22 : sel ? 1 : 0.62;
+        drawFlagIcon(cx + cw * 0.22, cy + ch * 0.12, cw * 0.56, ch * 0.42, t.f);
         ctx.globalAlpha = 1;
         if (sel) {
           ctx.strokeStyle = '#4fc3f7';
@@ -1341,15 +1392,19 @@ window.RetroGames.soccer = {
     function drawIntro() {
       const title = state.mode === 'cup' ? ROUNDS[state.round] : 'FREUNDSCHAFTSSPIEL';
       panel(title, '');
+      // Namen bewusst neutral — die Zuordnung macht die Flagge, nicht die Farbe
+      const fw = uni() * 0.085, fh = fw * 0.62;
       ctx.font = font(uni() * 0.042);
-      ctx.fillStyle = kit(0);
+      ctx.fillStyle = '#fff';
       ctx.fillText(TEAMS[state.myTeam].n, w / 2, h * 0.46);
+      drawFlagIcon(w / 2 - fw / 2, h * 0.46 - uni() * 0.115, fw, fh, TEAMS[state.myTeam].f);
       ctx.fillStyle = '#555';
       ctx.font = font(uni() * 0.03);
-      ctx.fillText('GEGEN', w / 2, h * 0.54);
-      ctx.fillStyle = kit(1);
+      ctx.fillText('GEGEN', w / 2, h * 0.545);
+      ctx.fillStyle = '#fff';
       ctx.font = font(uni() * 0.042);
-      ctx.fillText(TEAMS[state.foeTeam].n, w / 2, h * 0.62);
+      ctx.fillText(TEAMS[state.foeTeam].n, w / 2, h * 0.68);
+      drawFlagIcon(w / 2 - fw / 2, h * 0.68 - uni() * 0.115, fw, fh, TEAMS[state.foeTeam].f);
       if (state.teamMode === 'versus') {
         ctx.fillStyle = P_COL[1];
         ctx.font = font(uni() * 0.021);

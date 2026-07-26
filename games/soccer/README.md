@@ -77,7 +77,16 @@ Zusätzlich ist der Anstoßball **dem vorgesehenen Abnehmer reserviert** (`kicko
 
 ## Mannschaften
 
-16 Nationen mit Trikotfarben. Sind sich die Farben zweier Mannschaften zu ähnlich (`colorClash`, RGB-Abstand < 110), weicht der Gegner automatisch auf sein Zweitset aus.
+16 Nationen. Jede hat **zwei getrennte Farbwelten**:
+
+- **Flagge** (`f`) in den echten Landesfarben — nur fürs Menü. Gezeichnet werden Streifen, Kreuz, Scheibe und zwei Sonderfälle (Brasilien, USA); Wappen und Sterne wären in dieser Größe ohnehin Matsch.
+- **Trikot** (`c` / `a`) in bewusst hellen Farben — nur fürs Spielfeld.
+
+Die Trennung ist nötig, weil viele Landesfarben dunkel sind. Vorher wurde die Flaggenfarbe als Trikot benutzt, und **8 von 32 Trikots** hatten auf dem dunklen Rasen einen Kontrast unter 3:1 — Deutschlands schwarzes Auswärtstrikot lag bei 1,0:1, war also nicht vom Grün zu unterscheiden. Jetzt liegt der schlechteste Wert bei 3,4:1.
+
+Sind sich die Trikots zweier Mannschaften zu ähnlich (`colorClash`, RGB-Abstand < 110), weicht der Gegner automatisch auf sein Zweitset aus.
+
+Im Menü stehen die Ländernamen **neutral in Weiß/Grau**, nicht in der Trikotfarbe — die Zuordnung macht die Flagge. Nur die Anzeige während des Spiels bleibt eingefärbt, dort dient die Farbe der Unterscheidung der Seiten.
 
 ## Maße
 
