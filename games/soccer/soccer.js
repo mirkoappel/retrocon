@@ -1175,12 +1175,21 @@ window.RetroGames.soccer = {
       const y = h * 0.055;
       ctx.font = font(uni() * 0.032);
 
+      // Flaggen neben die Namen. Breite wird gemessen, damit sie unabhängig
+      // von der Namenslänge direkt anliegen.
+      const fh = uni() * 0.030, fw = fh * 1.55, gap = uni() * 0.014;
+
       ctx.fillStyle = kit(0);
       ctx.textAlign = 'right';
       ctx.fillText(me.n, w * 0.36, y);
+      const wl = ctx.measureText(me.n).width;
+      drawFlagIcon(w * 0.36 - wl - gap - fw, y - fh * 0.82, fw, fh, me.f);
+
       ctx.fillStyle = kit(1);
       ctx.textAlign = 'left';
       ctx.fillText(foe.n, w * 0.64, y);
+      const wr = ctx.measureText(foe.n).width;
+      drawFlagIcon(w * 0.64 + wr + gap, y - fh * 0.82, fw, fh, foe.f);
 
       ctx.textAlign = 'center';
       ctx.fillStyle = '#fff';

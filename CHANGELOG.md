@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.17]
+
+### Hinzugefügt
+- **STREET SOCCER: Flaggen auch in der Anzeige während des Spiels.** Sie stehen links bzw. rechts neben den Ländernamen; die Position wird aus der gemessenen Textbreite berechnet, liegt also unabhängig von der Namenslänge sauber an
+
 ## [0.11.16]
 
 ### Hinzugefügt

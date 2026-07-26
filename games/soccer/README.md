@@ -86,7 +86,7 @@ Die Trennung ist nötig, weil viele Landesfarben dunkel sind. Vorher wurde die F
 
 Sind sich die Trikots zweier Mannschaften zu ähnlich (`colorClash`, RGB-Abstand < 110), weicht der Gegner automatisch auf sein Zweitset aus.
 
-Im Menü stehen die Ländernamen **neutral in Weiß/Grau**, nicht in der Trikotfarbe — die Zuordnung macht die Flagge. Nur die Anzeige während des Spiels bleibt eingefärbt, dort dient die Farbe der Unterscheidung der Seiten.
+Im Menü stehen die Ländernamen **neutral in Weiß/Grau**, nicht in der Trikotfarbe — die Zuordnung macht die Flagge. In der Anzeige während des Spiels stehen die Flaggen ebenfalls neben den Namen; dort bleiben die Namen zusätzlich in der Trikotfarbe, weil man so sofort sieht, welche Farbe auf dem Platz zu welcher Mannschaft gehört.
 
 ## Maße
 
