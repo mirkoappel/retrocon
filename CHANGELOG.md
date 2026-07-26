@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.22]
+
+### Geändert
+- **STREET SOCCER: kürzere Ballvorlagen.** Im Sprint lief der Ball zu weit voraus (0,129), beim Dribbeln zu locker. Jetzt 0,079 im Sprint und 0,049 beim langsamen Dribbeln — letzteres nur 0,014 über dem Ballkontakt am Fuß. Die Ballkontakte kamen dabei von 0,9/s auf bis zu 1,8/s hoch, was zusätzlich nach Dribbling aussieht. Wirksamster Hebel war die Rollreibung des gedribbelten Balls (`DRIBBLE_FRIC` 1,9 → 3,0), weil sie Vorlagen kürzt und Kontakte häufiger macht
+
 ## [0.11.21]
 
 ### Geändert

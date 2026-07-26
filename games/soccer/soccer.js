@@ -58,10 +58,11 @@ window.RetroGames.soccer = {
     // Dribbling: Der Ball wird angetippt und rollt frei weiter, der Spieler
     // läuft ihm nach. Die Stoßlänge ergibt sich dadurch von selbst aus dem
     // Tempo — langsam kurze Stöße, im Sprint lange.
-    const TOUCH_K_LOW  = 1.7;   // sanfter Stoß beim langsamen Dribbeln
-    const TOUCH_K_HIGH = 2.9;   // harter Stoß im Sprint
-    const DRIBBLE_FRIC = 1.9;   // Reibung des gedribbelten Balls
-    const CONTROL_R    = 0.16;  // darüber ist der Ball nicht mehr kontrolliert
+    const TOUCH_K_LOW  = 1.45;   // sanfter Stoß beim langsamen Dribbeln
+    const TOUCH_K_HIGH = 2.5;   // harter Stoß im Sprint
+    const DRIBBLE_FRIC = 3.0;   // Reibung des gedribbelten Balls — hoch, damit
+                                // die Vorlagen kurz und die Kontakte häufig sind
+    const CONTROL_R    = 0.115; // darüber ist der Ball nicht mehr kontrolliert
     const FRICTION   = 0.72;
     const PASS_SPEED = 0.50;
     const SHOT_SPEED = 0.70;
