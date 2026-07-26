@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.10]
+
+### Geändert
+- **STREET SOCCER: Die Grätsche ist jetzt sichtbar.** Vorher änderte sie nur Tempo und Zweikampfchance, man sah aber nichts davon. Der Spieler wird während der Grätsche in Laufrichtung gestreckt gezeichnet und zieht eine Schleifspur hinter sich her; die Dauer stieg von 0,28 s auf 0,4 s, damit es auch zu erkennen ist
+
 ## [0.11.9]
 
 ### Geändert

@@ -959,7 +959,7 @@ window.RetroGames.soccer = {
             if (!me) return;
             if (edge(gp, prev, 'a')) {
               if (state.ball.owner === me) shoot(me);
-              else { me.tackle = 0.28; sndKick(); }
+              else { me.tackle = 0.4; sndKick(); }
             }
             if (edge(gp, prev, 'b')) {
               if (state.ball.owner === me) pass(me);
@@ -1070,10 +1070,38 @@ window.RetroGames.soccer = {
           ctx.beginPath(); ctx.arc(q.X, q.Y, rad * 1.55, 0, Math.PI * 2); ctx.stroke();
         }
         ctx.fillStyle = kit(p.team);
-        ctx.beginPath(); ctx.arc(q.X, q.Y, rad, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = 'rgba(0,0,0,0.55)';
         ctx.lineWidth = Math.max(1, r.s * 0.002);
-        ctx.stroke();
+
+        if (p.tackle > 0) {
+          // Grätsche: Schleifspur plus in Laufrichtung gestreckter Körper.
+          // Bildschirm-y ist gespiegelt, deshalb -p.fy im Winkel.
+          const ang = Math.atan2(-p.fy, p.fx);
+          ctx.save();
+          ctx.globalAlpha = 0.3;
+          ctx.strokeStyle = kit(p.team);
+          ctx.lineWidth = rad * 1.2;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(q.X - Math.cos(ang) * rad * 2.8, q.Y - Math.sin(ang) * rad * 2.8);
+          ctx.lineTo(q.X, q.Y);
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.save();
+          ctx.translate(q.X, q.Y);
+          ctx.rotate(ang);
+          ctx.scale(1.75, 0.62);
+          ctx.beginPath(); ctx.arc(0, 0, rad, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+          ctx.lineWidth = Math.max(1, r.s * 0.002) / 0.62;
+          ctx.stroke();
+          ctx.restore();
+        } else {
+          ctx.beginPath(); ctx.arc(q.X, q.Y, rad, 0, Math.PI * 2); ctx.fill();
+          ctx.stroke();
+        }
         if (p.role === 'GK') {
           ctx.fillStyle = 'rgba(0,0,0,0.55)';
           ctx.beginPath(); ctx.arc(q.X, q.Y, rad * 0.45, 0, Math.PI * 2); ctx.fill();

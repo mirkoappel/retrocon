@@ -42,7 +42,7 @@ Früher wechselte die Steuerung zusätzlich laufend zum ballnächsten Mitspieler
 
 | Eingabe | Mit Ball | Ohne Ball |
 |---|---|---|
-| **A** (Enter / Leertaste) | Schuss aufs Tor | Grätsche — kurzer Antritt, deutlich höhere Chance auf Balleroberung |
+| **A** (Enter / Leertaste) | Schuss aufs Tor | Grätsche — 0,4 s Antritt mit deutlich höherer Chance auf Balleroberung. Sichtbar als in Laufrichtung gestreckter Körper mit Schleifspur |
 | **B** (Shift / Q) | Abspiel zum besten Mitspieler | Spieler wechseln |
 | **Richtung** | Laufen | Laufen |
 | **SELECT** | Zurück zum Menü | Zurück zum Menü |
