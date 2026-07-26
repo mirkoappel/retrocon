@@ -66,7 +66,7 @@ window.RetroGames.soccer = {
     const CONTACT      = PLAYER_R + BALL_R;   // Spielerrand berührt Ballrand
     const TURN_PULL    = 7.0;   // wie schnell der vorgelegte Ball der Laufrichtung folgt
     const BALL_DRAG    = 0.92;  // Ballführender ist langsamer als ein freier Spieler
-    const TACKLE_MAN   = PLAYER_R * 3.4;  // Grätsche erwischt auch den Mann, nicht nur den Ball
+    const TACKLE_MAN   = PLAYER_R * 2.6;  // Grätsche erwischt auch den Mann, nicht nur den Ball
     const SHOT_RANGE   = 0.36;  // ab hier denkt die KI überhaupt ans Abschließen
     const LANE_MIN     = 0.012; // so viel Luft braucht die Schussbahn am Gegner vorbei
     // Angriffswege, die sich die KI je Ballbesitz aussucht. Flügel doppelt
@@ -940,7 +940,7 @@ window.RetroGames.soccer = {
           const atMan  = q.tackle > 0 && dp < TACKLE_MAN;
           if (atBall || atMan) {
             const rate = (q.tackle > 0 ? 3.4 : 1.5) * (q.ctrl ? 1.15 : skill(q.team))
-                       * (atBall ? 1 : 0.95);    // von hinten etwas zäher
+                       * (atBall ? 1 : 0.85);    // von hinten etwas zäher
             q.steal += dt * rate;
             const d = Math.min(db, dp);
             if (q.steal >= 1 && d < sd) { sd = d; stealer = q; }

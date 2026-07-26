@@ -209,12 +209,14 @@ Nachgemessen:
 
 | | vorher | jetzt |
 |---|---|---|
-| Ballgewinn von hinten, 5 s (Abstand 0,05 / 0,08 / 0,12) | 0/40 · 0/40 · 0/40 | 9/40 · 16/40 · 17/40 |
+| Ballgewinn von hinten, 5 s (Abstand 0,05 / 0,08 / 0,12) | 0/40 · 0/40 · 0/40 | 10/40 · 3/40 · 5/40 |
 | Ballführender unter Druck von einem Gegner | 58 % | 73 % |
 | … von zwei Gegnern (2 gegen 1) | 5 % | 14 % |
 | Läufe direkt in den Torwart | 25,3 | 18,8 |
 
-Von hinten ist die Ballabnahme damit **möglich, aber nicht selbstverständlich** — sie verlangt eine getimte Grätsche. Die Torquote sinkt dadurch von 3,2 auf 2,8 pro Spiel; das ist der Preis für den höheren Druck.
+Von hinten ist die Ballabnahme damit **möglich, aber nicht selbstverständlich** — sie verlangt eine getimte Grätsche aus kurzer Distanz.
+
+Dosiert wird das über `TACKLE_MAN` (Reichweite), **nicht** über die Zweikampfrate am Mann: Die Rate ist ein Kippschalter. Der Zweikampf muss innerhalb der Grätsche von 0,55 s durchlaufen; bei Faktor 0,85 braucht er 0,35 s und gelingt, bei 0,55 braucht er 0,53 s und scheitert fast immer — dazwischen liegt kaum etwas. Die Reichweite dagegen wirkt weich: Bei `PLAYER_R * 3,4` gelangen 12/13/10 von je 40 Verfolgungen, bei `2,6` noch 10/3/5. Die Torquote sinkt dadurch von 3,2 auf 2,8 pro Spiel; das ist der Preis für den höheren Druck.
 
 ## Balance
 

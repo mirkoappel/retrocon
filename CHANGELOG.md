@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.28]
+
+### Geändert
+- **STREET SOCCER: Ballabnahme von hinten wieder schwerer.** Sie war nach v0.11.26 zu leicht geworden (rund 29 % der Verfolgungen führten binnen 5 s zum Ballgewinn), jetzt sind es rund 14 %: 10/40 · 3/40 · 5/40 bei Abstand 0,05 / 0,08 / 0,12
+- Dosiert über die Grätschenreichweite `TACKLE_MAN` (`PLAYER_R * 3,4` → `2,9` → `2,6`), **nicht** über die Zweikampfrate am Mann: Die Rate ist ein Kippschalter, weil der Zweikampf innerhalb der Grätsche von 0,55 s durchlaufen muss. Bei Faktor 0,85 braucht er 0,35 s und gelingt, bei 0,55 braucht er 0,53 s und scheitert fast immer — ein Zwischenwert existiert praktisch nicht. Der erste Versuch über die Rate landete prompt bei 0/40 · 0/40 · 3/40
+- 2 gegen 1 und Torquote unverändert (13 % der Ballbesitzzeit, 2,5 Tore pro Spiel)
+
 ## [0.11.27]
 
 ### Behoben
