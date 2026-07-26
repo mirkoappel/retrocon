@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.18]
+
+### Behoben
+- **STREET SOCCER: Flaggen im Spiel-HUD saßen zu tief.** Sie waren an der Textgrundlinie ausgerichtet, und die liegt unter den Buchstaben. Jetzt wird über `actualBoundingBoxAscent/Descent` die echte Glyphenhöhe gemessen und die Flagge auf die optische Mitte des Textes gesetzt
+
 ## [0.11.17]
 
 ### Hinzugefügt
