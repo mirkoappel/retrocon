@@ -41,7 +41,7 @@ window.RetroGames.catapult = {
     const SKY_TOP = '#0a0e14', SKY_BOT = '#141b24';
     const ROCK = '#1b2430', ROCK_EDGE = '#2c3a4c';
 
-    const MATCH_TIME = 180;     // Sekunden bis Zeitablauf
+    const MATCH_TIME = 300;     // Sekunden bis Zeitablauf
     const RELOAD     = 2.0;     // Nachladezeit nach dem Schuss
     const CHARGE_T   = 1.1;     // Sekunden von 0 auf volle Kraft
     const ANGLE_MIN  = 15, ANGLE_MAX = 75;
@@ -54,7 +54,7 @@ window.RetroGames.catapult = {
     const AI_THINK_MIN = 1.4, AI_THINK_VAR = 1.8;
 
     // Burg-Aufbau von unten nach oben. Jedes Segment fliegt beim ersten
-    // Treffer weg; ist der Kern zerstört, ist die Burg gefallen.
+    // Treffer weg; erst wenn alle vier abgeräumt sind, ist die Burg gefallen.
     const SEG_DEF = [
       { key: 'KERN',  wide: true,  hp: 1, hf: 1.0 },
       { key: 'MAUER', wide: true,  hp: 1, hf: 1.0 },
@@ -297,12 +297,12 @@ window.RetroGames.catapult = {
       if (shooter !== hit.pi) state.players[shooter].damage++;
 
       if (seg.hp <= 0) {
-        const wasCore = seg.def.key === 'KERN';
         segs.splice(hit.slot, 1);            // darüberliegende Segmente rutschen nach
         spawnBits(rc.x + rc.w / 2, rc.y + rc.h / 2, COL[hit.pi], 26, h * 0.62);
         state.shake = Math.max(state.shake, 0.6);
         sndBreak();
-        if (wasCore) endMatch(hit.pi === 0 ? 2 : 1);
+        // Erst die komplett abgeräumte Burg entscheidet das Spiel
+        if (segs.length === 0) endMatch(hit.pi === 0 ? 2 : 1);
       } else {
         spawnBits(rc.x + rc.w / 2, rc.y + rc.h / 2, COL[hit.pi], 7, h * 0.3);
         state.shake = Math.max(state.shake, 0.22);
@@ -643,54 +643,6 @@ window.RetroGames.catapult = {
       ctx.globalAlpha = 1;
     }
 
-    // Windskala: Balken wächst aus der Mitte in die Windrichtung,
-    // dahinter leuchten bis zu drei Chevrons je nach Stärke auf.
-    function drawWindGauge(cx, cy) {
-      const half = w * 0.075, trackH = h * 0.016;
-      const mag = Math.min(1, Math.abs(state.wind));
-      const dir = state.wind >= 0 ? 1 : -1;
-
-      ctx.fillStyle = '#1e2530';
-      ctx.fillRect(cx - half, cy, half * 2, trackH);
-
-      ctx.fillStyle = AMBER;
-      ctx.globalAlpha = 0.9;
-      ctx.fillRect(cx, cy, dir * half * mag, trackH);
-      ctx.globalAlpha = 1;
-
-      // Mittelmarke
-      ctx.fillStyle = '#8a9bb0';
-      ctx.fillRect(cx - w * 0.0012, cy - trackH * 0.35, w * 0.0024, trackH * 1.7);
-
-      ctx.strokeStyle = '#3a4756';
-      ctx.lineWidth = Math.max(1, w * 0.001);
-      ctx.strokeRect(cx - half, cy, half * 2, trackH);
-
-      // Chevrons hinter dem Balkenende
-      const chev = w * 0.011;
-      for (let i = 0; i < 3; i++) {
-        const lit = mag > 0.2 + i * 0.28;
-        const x = cx + dir * (half + chev * 0.6 + i * chev);
-        ctx.strokeStyle = AMBER;
-        ctx.globalAlpha = lit ? 0.95 : 0.15;
-        ctx.lineWidth = Math.max(2, w * 0.0028);
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(x - dir * chev * 0.35, cy - trackH * 0.5);
-        ctx.lineTo(x + dir * chev * 0.35, cy + trackH * 0.5);
-        ctx.lineTo(x - dir * chev * 0.35, cy + trackH * 1.5);
-        ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
-
-      ctx.fillStyle = AMBER;
-      ctx.globalAlpha = 0.7;
-      ctx.font = `${Math.floor(h * 0.022)}px "Press Start 2P", Courier New`;
-      ctx.textAlign = 'center';
-      ctx.fillText('WIND', cx, cy - h * 0.014);
-      ctx.globalAlpha = 1;
-    }
-
     function drawCastle(pi) {
       const segs = state.castles[pi];
       for (let s = 0; s < segs.length; s++) {
@@ -846,7 +798,6 @@ window.RetroGames.catapult = {
       ctx.textAlign = 'center';
       ctx.fillText(`${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`, w / 2, top + barH);
 
-      drawWindGauge(w / 2, top + barH + h * 0.052);
     }
 
     function drawGameOver() {

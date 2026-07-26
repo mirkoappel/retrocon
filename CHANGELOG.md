@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.8.2]
+
+### Geändert
+- **CATAPULT:** Matchzeit von 180 s auf **5 Minuten** erhöht
+- **CATAPULT:** Sieg erst, wenn **alle vier Segmente** der gegnerischen Burg abgeräumt sind — vorher beendete ein Treffer auf den Kern das Spiel sofort, auch wenn darüber noch Segmente standen
+
+### Entfernt
+- **CATAPULT:** Windskala unter der Zeitanzeige — die Flagge auf der Bergspitze allein genügt als Indikator, der HUD-Bereich unter dem Timer ist jetzt frei
+
 ## [0.8.1]
 
 ### Geändert
