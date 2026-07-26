@@ -40,6 +40,7 @@ Jedes Spiel hat eine eigene README im jeweiligen Ordner:
 - [VOLLEYBALL](../games/volleyball/README.md) — `games/volleyball/volleyball.js`
 - [DUST RUSH](../games/vacuum/README.md) — `games/vacuum/vacuum.js`
 - [CATAPULT](../games/catapult/README.md) — `games/catapult/catapult.js`
+- [STREET SOCCER](../games/soccer/README.md) — `games/soccer/soccer.js`
 
 ---
 

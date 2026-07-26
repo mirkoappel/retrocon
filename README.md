@@ -46,6 +46,8 @@ games/                  Spielmodule (je Spiel ein Ordner)
     vacuum.js
   catapult/
     catapult.js
+  soccer/
+    soccer.js
 docs/                   Ausführliche Dokumentation
 CHANGELOG.md            Versions-Historie
 ```
@@ -56,7 +58,7 @@ CHANGELOG.md            Versions-Historie
 
 - [console/](console/README.md) — Screen-Flow, Dateistruktur, Game-API
 - [controller/](controller/README.md) — Verbindungsablauf, Classic-Layout, PWA-Install
-- [games/pong/](games/pong/README.md) · [games/volleyball/](games/volleyball/README.md) · [games/vacuum/](games/vacuum/README.md) · [games/catapult/](games/catapult/README.md) — je Spiel Steuerung + Mechaniken
+- [games/pong/](games/pong/README.md) · [games/volleyball/](games/volleyball/README.md) · [games/vacuum/](games/vacuum/README.md) · [games/catapult/](games/catapult/README.md) · [games/soccer/](games/soccer/README.md) — je Spiel Steuerung + Mechaniken
 - [Architektur](docs/architecture.md) — WebRTC, Raum-System, Screen-Flow
 - [Spiele — Modul-Interface](docs/games.md) — Game-Modul-Interface, neues Spiel hinzufügen
 - [Controller-Varianten](docs/controller-variants.md) — Plugin-System, eigene Variante bauen
@@ -101,6 +103,7 @@ git push
 | **VOLLEYBALL** | 1–2 | Slime-Volleyball; Joystick bewegt Slime, A springt, erster auf 7 Punkte gewinnt |
 | **DUST RUSH** | 1–2 | Staubsauger-Roboter; Panzersteuerung, Sektoren sammeln, Ladestation anfahren, meiste Punkte in 90 s gewinnt |
 | **CATAPULT** | 1–2 | Burgen-Duell; Joystick stellt den Winkel, A halten lädt Kraft, Steine über den Berg auf die gegnerische Burg |
+| **STREET SOCCER** | 1–2 | Kleinfeld-Fußball von oben, 5 gegen 5; zwei Menschen in einer Mannschaft gegen die KI, World-Cup-Modus mit vier Runden |
 
 ---
 

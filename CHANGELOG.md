@@ -2,6 +2,27 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.10.0]
+
+### Hinzugefügt
+- Neues Spiel: **STREET SOCCER** (1–2 Spieler) — Kleinfeld-Fußball aus der Vogelperspektive, 5 gegen 5
+  - **Zwei Menschen in derselben Mannschaft.** Anders als in allen bisherigen Spielen sind P1 und P2 keine Gegner; die gegnerische Mannschaft ist immer KI. Jeder Mensch steuert einen eigenen Feldspieler, dieselbe Figur kann nie doppelt belegt werden
+  - **Automatischer Spielerwechsel** zum ballnächsten Mitspieler; hat die eigene Mannschaft den Ball, übernimmt man den Ballführenden. Der Torwart bleibt immer KI. Hysterese verhindert Flackern im Getümmel
+  - **Steuerung**: A schießt bzw. grätscht, B spielt ab bzw. wechselt den Spieler, Richtung läuft. Man greift immer nach oben an — deshalb gibt es zur Halbzeit bewusst **keinen Seitenwechsel**
+  - **WORLD CUP**: Achtelfinale → Viertelfinale → Halbfinale → Finale, vier Siege in Folge zum Titel, eine Niederlage beendet den Lauf. Unentschieden führt in die Verlängerung mit Golden Goal. Die KI wird pro Runde stärker
+  - **FREUNDSCHAFTSSPIEL**: einzelnes Spiel mit freier Gegnerwahl
+  - 16 Nationen mit Trikotfarben; bei zu ähnlichen Farben weicht der Gegner automatisch auf sein Zweitset aus
+  - Bewusst ohne Abseits, Fouls, Einwurf und Ecken — der Ball prallt von den Seitenlinien ab und bleibt im Spiel
+  - Spielzeit 2 × 3 Minuten
+
+### Behoben
+- **STREET SOCCER — die zweite Mannschaft war systematisch im Vorteil** (rund dreifache Torausbeute im Testlauf), allein weil sie im Spieler-Array weiter hinten stand. Drei Stellen liefen reihenfolgeabhängig und wurden getrennt:
+  - Bewegung: erst entscheiden alle aus demselben Weltzustand, dann bewegen sich alle
+  - Ballaktionen: Schuss und Abspiel werden vorgemerkt und erst nach dem Entscheidungsdurchgang ausgeführt — sonst reagierte die später verarbeitete Mannschaft einen Tick früher auf den freigegebenen Ball
+  - Zweikampf und Kollisionsauflösung: Ballführender wird festgehalten, höchstens ein Ballwechsel pro Frame, Abstoßungen werden gesammelt statt sofort angewandt
+- **STREET SOCCER:** Ein Tor zählt nur noch bei freiem Ball. Vorher genügte es, den Ball durch bloßes Vorwärtslaufen über die Linie zu tragen — der Ball liegt vor dem Spieler und überschritt die Torlinie von selbst
+- **STREET SOCCER:** Menütexte liefen im Hochformat seitlich aus dem Bild; Schriftgrößen hängen jetzt an der kleineren Bildschirmdimension
+
 ## [0.9.1]
 
 ### Behoben
