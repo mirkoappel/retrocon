@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.9.1]
+
+### Behoben
+- **Spiele-Karussell: aktive Karte saß links und wurde abgeschnitten.** `#carousel` war `justify-content: center`, wodurch der überbreite Track zusätzlich um den halben Überhang nach links rutschte. `menu.js` zentriert die aktive Karte aber über `offsetLeft`, das diese Verschiebung nicht enthält — beide Werte lagen in verschiedenen Koordinatensystemen, und die Karte saß konstant um `(Trackbreite − Karussellbreite) / 2` daneben (gemessen: 244 px bei 1080 px Track und 592 px Karussell), links vom `overflow: hidden` beschnitten. Mit `justify-content: flex-start` fallen beide Nullpunkte zusammen; alle vier Karten zentrieren jetzt exakt
+
 ## [0.9.0]
 
 ### Hinzugefügt

@@ -276,7 +276,11 @@ body::after {
   height: clamp(260px, 42vh, 400px);
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* Bewusst kein justify-content: center — die aktive Karte zentriert menu.js
+     per translateX auf Basis von offsetLeft. Zentrierte Flex-Ausrichtung würde
+     den überbreiten Track zusätzlich um den halben Überhang nach links schieben,
+     was in offsetLeft nicht auftaucht: die Karte säße konstant daneben. */
+  justify-content: flex-start;
   overflow: hidden;
 }
 
