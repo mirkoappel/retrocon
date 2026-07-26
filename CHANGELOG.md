@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.24]
+
+### Behoben
+- **STREET SOCCER: Mit Ball ließ sich die Richtung nicht mehr ändern.** Der vorgelegte Ball rollte stur geradeaus weiter, während der Spieler abbog — nach `CONTROL_R` war er weg. Über 240 Kurvenläufe gemessen: vorher überstand nur die langsame 45-Grad-Kurve den Richtungswechsel (20/20), jede andere Drehung kostete den Ball (0/20); jetzt bleibt er bei allen Winkeln bis 180 Grad am Fuß. Der Ball schwenkt jetzt in die Laufrichtung mit (`TURN_PULL`), bei gleichbleibendem Abstand — die Vorlage wird dadurch nicht kürzer, nur richtungstreu
+- **Tote Bälle.** Dieselbe Ursache: der beim Abbiegen verlorene Ball rollte aus und blieb liegen. Über vier Spiele lag der Ball 6,4 % der Spielzeit bewegungslos und herrenlos herum (533 Phasen), in v0.11.22 waren es 0,1 %. Mit der Kurvenführung sind es 0,0 %
+- Die Notbehelfe aus v0.11.23 sind damit hinfällig und zurückgenommen: Der Torwart greift wieder so weit wie vorher (`GK_REACH` 0,52 → 0,65) und die KI schießt nicht mehr im Akkord (Rate 2,8 → 2,2). Torquote 4,2 pro Spiel bei 2,0 : 2,2 Seitenverteilung
+
 ## [0.11.23]
 
 ### Behoben

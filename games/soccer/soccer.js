@@ -48,7 +48,7 @@ window.RetroGames.soccer = {
     const SPEED      = 0.155;    // Feldeinheiten/s
     const SPEED_HUM  = 0.20;    // Sprint; die Auslenkung regelt herunter
     const SPEED_GK   = 0.155;    // Torwart darf auf der Linie schneller sein als Feldspieler
-    const GK_REACH   = 0.52;     // Fangradius muss klar unter der halben Torbreite bleiben
+    const GK_REACH   = 0.65;     // Fangradius muss klar unter der halben Torbreite bleiben
     const KEEPER_SPACE = 0.17;  // Abstand, den Gegner zum ballhaltenden Torwart wahren
     const IDLE_TAKEOVER = 8;    // Sekunden ohne Eingabe, dann übernimmt die KI
     const GK_REACT   = 0.28;    // Reaktionszeit, bevor der Torwart dem Schuss folgt
@@ -64,6 +64,7 @@ window.RetroGames.soccer = {
                                 // die Vorlagen kurz und die Kontakte häufig sind
     const CONTROL_R    = 0.115; // darüber ist der Ball nicht mehr kontrolliert
     const CONTACT      = PLAYER_R + BALL_R;   // Spielerrand berührt Ballrand
+    const TURN_PULL    = 7.0;   // wie schnell der vorgelegte Ball der Laufrichtung folgt
     const REACH_EPS    = 0.002; // winzige Toleranz gegen Rundungslücken
     const INTENT_TIME  = 1.1;   // so lange wartet eine Schuss-/Passabsicht auf Kontakt
     const FRICTION   = 0.72;
@@ -584,7 +585,7 @@ window.RetroGames.soccer = {
         if (dist(p, o) > 0.10) continue;
         if ((o.y - p.y) * (gy - p.y) > 0) { blocked = true; break; }   // steht im Weg zum Tor
       }
-      if (!blocked && gdist < 0.21 + 0.04 * skill() && Math.random() < dt * 2.8 * skill()) { shoot(p); return; }
+      if (!blocked && gdist < 0.21 + 0.04 * skill() && Math.random() < dt * 2.2 * skill()) { shoot(p); return; }
       if (press < 0.075 && Math.random() < dt * 2.0) { pass(p); return; }
       if (gdist > 0.55 && press < 0.11 && Math.random() < dt * 0.9) { pass(p); return; }
       // Dribbeln Richtung Tor, dabei etwas ausweichen
@@ -764,6 +765,18 @@ window.RetroGames.soccer = {
             const k = TOUCH_K_LOW +
               Math.min(1, spd / SPEED_HUM) * (TOUCH_K_HIGH - TOUCH_K_LOW);
             b.vx = o.vx * k; b.vy = o.vy * k;
+          } else if (d > 1e-5) {
+            // Der vorgelegte Ball schwenkt in die Laufrichtung mit, statt stur
+            // geradeaus weiterzurollen. Ohne das verliert man den Ball bei
+            // jeder Kurve: er liefe nach vorn, während der Spieler abbiegt,
+            // und wäre nach CONTROL_R weg. Der Abstand bleibt dabei gleich —
+            // die Vorlage wird also nicht kürzer, nur richtungstreu.
+            const ax = o.vx / spd, ay = o.vy / spd;
+            const f = Math.min(1, TURN_PULL * dt);
+            b.x += (o.x + ax * d - b.x) * f;
+            b.y += (o.y + ay * d - b.y) * f;
+            const bs = Math.hypot(b.vx, b.vy);
+            b.vx = ax * bs; b.vy = ay * bs;
           }
         } else {
           // Spieler steht: Ball beruhigen und am Fuß halten

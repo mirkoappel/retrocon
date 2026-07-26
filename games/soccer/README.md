@@ -54,14 +54,18 @@ Am **Analogstick bestimmt die Auslenkung das Tempo**, von langsamem Gehen bis zu
 
 **Dribbling.** Der Ball klebt nicht am Spieler, sondern wird **angetippt und rollt frei weiter**; der Spieler läuft ihm nach und tippt erneut, sobald er ihn wieder am Fuß hat. Die Stoßhärte wächst mit dem Lauftempo (`TOUCH_K_LOW` … `TOUCH_K_HIGH`), die Vorlagen werden dadurch überproportional länger:
 
-| Auslenkung | Tempo | Größte Vorlage |
-|---|---|---|
-| 0,20 | 0,059 | 0,036 |
-| 0,45 | 0,106 | 0,040 |
-| 0,70 | 0,153 | 0,048 |
-| 1,00 | 0,200 | 0,064 |
+| Auslenkung | Tempo | Größte Vorlage | Ballkontakte |
+|---|---|---|---|
+| 0,20 | 0,059 | 0,038 | 2,1/s |
+| 0,45 | 0,106 | 0,045 | 1,8/s |
+| 0,70 | 0,153 | 0,056 | 1,2/s |
+| 1,00 | 0,200 | 0,074 | 1,2/s |
 
-**Getreten wird nur bei Berührung.** Schuss, Pass und Dribbelstoß lösen erst aus, wenn der Spielerrand den Ballrand wirklich berührt (`CONTACT` = 0,0335) — vorher reichte der Fuß unsichtbar bis 0,046 weit, und Schüsse gingen sogar, während der Ball beim Dribbeln weit vorauslief. Damit sich das nicht träge anfühlt, wird die Absicht bis zu `INTENT_TIME` (1,1 s) gemerkt und im Moment des Kontakts ausgeführt. Nachgemessen über 402 Schüsse und Pässe: kein einziger ohne Berührung.
+**Getreten wird nur bei Berührung.** Schuss, Pass und Dribbelstoß lösen erst aus, wenn der Spielerrand den Ballrand wirklich berührt (`CONTACT` = 0,0335) — vorher reichte der Fuß unsichtbar bis 0,046 weit, und Schüsse gingen sogar, während der Ball beim Dribbeln weit vorauslief. Damit sich das nicht träge anfühlt, wird die Absicht bis zu `INTENT_TIME` (1,1 s) gemerkt und im Moment des Kontakts ausgeführt. Nachgemessen über 1325 Schüsse und Pässe: kein einziger ohne Berührung.
+
+**Der vorgelegte Ball folgt der Laufrichtung** (`TURN_PULL`). Ohne das rollte er stur geradeaus weiter, während der Spieler abbog — nach `CONTROL_R` war er weg. Gemessen an 240 Kurvenläufen: vorher überstand nur die langsame 45-Grad-Kurve den Richtungswechsel, jede andere Drehung kostete den Ball; jetzt bleibt er bei allen Winkeln bis 180 Grad am Fuß. Der Abstand zum Spieler bleibt beim Mitschwenken gleich, die Vorlage wird also nicht kürzer, nur richtungstreu.
+
+Nebenwirkung des alten Verhaltens waren **tote Bälle**: der beim Abbiegen verlorene Ball rollte aus und blieb liegen. Über vier Spiele gemessen lag der Ball 6,4 % der Spielzeit bewegungslos und herrenlos herum (533 Phasen); mit der Kurvenführung sind es 0,0 % (keine einzige).
 
 Zum Vergleich: Ballkontakt am Fuß ist 0,0335 — beim langsamen Dribbeln liegt der Ball also kaum weiter als eine Ballbreite vorn, und die Kontakte kommen fast doppelt so oft wie im Sprint. Der wirksamste Regler dafür ist `DRIBBLE_FRIC`: mehr Reibung heißt kürzere Vorlagen *und* häufigere Kontakte.
 
