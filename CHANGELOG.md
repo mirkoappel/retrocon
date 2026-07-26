@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.6]
+
+### Hinzugefügt
+- **STREET SOCCER: Anstoß-Pause.** Vor dem Anpfiff, nach der Halbzeit und nach jedem Tor steht das Spiel jetzt kurz still (1,6 s bzw. 2,4 s nach einem Tor) und zeigt „ANSTOSS" bzw. „TOR!". Vorher wurde der Torjubel zwar eingeblendet, darunter lief das Spiel aber sofort weiter — den Neubeginn bekam man gar nicht mit. Die Uhr steht während der Pause ebenfalls, es geht also keine Spielzeit verloren
+
 ## [0.11.5]
 
 ### Hinzugefügt

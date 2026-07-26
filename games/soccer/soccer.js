@@ -55,6 +55,8 @@ window.RetroGames.soccer = {
     const PASS_SPEED = 0.50;
     const SHOT_SPEED = 0.70;
 
+    const RESTART_KICK = 1.6;   // Standbild vor dem Anstoß
+    const RESTART_GOAL = 2.4;   // …und nach einem Tor, etwas länger zum Jubeln
     const HALF_TIME = 180;      // Sekunden je Halbzeit
     const HALVES    = 2;
     const ROUNDS    = ['ACHTELFINALE', 'VIERTELFINALE', 'HALBFINALE', 'FINALE'];
@@ -108,7 +110,7 @@ window.RetroGames.soccer = {
       half: 1, clock: HALF_TIME,
       golden: false, goldenT: 0,
       msg: '', msgTimer: 0,
-      kickoffFor: 0, kickoffLock: 0,
+      kickoffFor: 0, kickoffLock: 0, restart: 0,
       shake: 0, t: 0,
       lastResult: ''
     };
@@ -205,7 +207,7 @@ window.RetroGames.soccer = {
       state.ball = { x: FIELD_W / 2, y: 0.5, vx: 0, vy: 0, owner: null };
     }
 
-    function kickoff(forTeam) {
+    function kickoff(forTeam, delay = RESTART_KICK) {
       for (const p of state.players) {
         const hp = homePos(p.team, p.i);
         p.x = hp.x; p.y = hp.y; p.vx = 0; p.vy = 0;
@@ -217,6 +219,7 @@ window.RetroGames.soccer = {
       const b = state.ball;
       b.x = FIELD_W / 2; b.y = 0.5; b.vx = 0; b.vy = 0; b.owner = fwd || null;
       state.kickoffLock = 0.6;
+      state.restart = delay;
       assignControl(true);
     }
 
@@ -229,6 +232,7 @@ window.RetroGames.soccer = {
       buildTeams();
       state.kickoffFor = 0;
       kickoff(0);
+      state.msg = 'ANSTOSS'; state.msgTimer = RESTART_KICK;
       state.phase = 'play';
       sndWhistle();
     }
@@ -548,6 +552,14 @@ window.RetroGames.soccer = {
       ctrlCooldown = Math.max(0, ctrlCooldown - dt);
       assignControl();
 
+      // Anstoß-Pause: Spieler und Ball stehen still, damit man den Neubeginn
+      // überhaupt mitbekommt. Die Uhr läuft solange ebenfalls nicht.
+      if (state.restart > 0) {
+        state.restart -= dt;
+        if (state.msgTimer > 0) state.msgTimer -= dt;
+        return;
+      }
+
       // Zwei Durchgänge: erst entscheiden alle aus demselben Weltzustand,
       // dann bewegen sich alle. Würde beides in einer Schleife passieren,
       // sähe die zweite Mannschaft bereits die neuen Positionen der ersten
@@ -686,12 +698,12 @@ window.RetroGames.soccer = {
     function scoreGoal(team) {
       state.score[team]++;
       state.msg = 'TOR!';
-      state.msgTimer = 2.0;
+      state.msgTimer = RESTART_GOAL;
       state.shake = 0.7;
       sndGoal();
       if (state.golden) { finishMatch(); return; }
       state.kickoffFor = 1 - team;
-      kickoff(1 - team);
+      kickoff(1 - team, RESTART_GOAL);
     }
 
     function finishMatch() {
@@ -781,6 +793,7 @@ window.RetroGames.soccer = {
           state.clock = HALF_TIME;
           state.kickoffFor = 1;
           kickoff(1);
+          state.msg = 'ANSTOSS'; state.msgTimer = RESTART_KICK;
           state.phase = 'play';
           sndWhistle(); return;
 

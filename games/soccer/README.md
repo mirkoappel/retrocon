@@ -65,6 +65,8 @@ Die **Torprüfung läuft vor der Ballaufnahme**. Der Fangradius des Torwarts rei
 
 Spielzeit: 2 × 3 Minuten (`HALF_TIME`).
 
+**Anstoß-Pause.** Vor dem Anpfiff, nach der Halbzeit und nach jedem Tor steht das Spiel kurz still (`RESTART_KICK` 1,6 s bzw. `RESTART_GOAL` 2,4 s) und zeigt „ANSTOSS" beziehungsweise „TOR!". Ohne diese Pause lief das Spiel unter dem Torjubel sofort weiter und man bekam den Neubeginn nicht mit. Die Uhr steht während der Pause ebenfalls, es geht also keine Spielzeit verloren.
+
 ## Mannschaften
 
 16 Nationen mit Trikotfarben. Sind sich die Farben zweier Mannschaften zu ähnlich (`colorClash`, RGB-Abstand < 110), weicht der Gegner automatisch auf sein Zweitset aus.
