@@ -261,7 +261,7 @@ window.RetroGames.soccer = {
       // Der Anstoßpass gehört dem Abnehmer. Ohne diese Reservierung ging der
       // erste Ball oft direkt verloren — abgefangen oder am Mitspieler vorbei.
       state.kickoffTo = mate;
-      state.kickoffToT = 1.6;
+      state.kickoffToT = 3.5;
       sndPass();
     }
 
@@ -567,6 +567,12 @@ window.RetroGames.soccer = {
       const owner = b.owner;
 
       if (owner === p) { aiWithBall(p, dt); return; }
+
+      // Anstoßpass: der vorgesehene Abnehmer geht auf jeden Fall zum Ball
+      if (state.kickoffTo === p && !owner) {
+        moveToward(p, b.x, b.y, SPEED, dt);
+        return;
+      }
 
       // Hat der gegnerische Torwart den Ball in der Hand, Abstand halten.
       // Sonst steht man ihm im Abschlag und fängt den Ball sofort wieder ab.
@@ -957,13 +963,15 @@ window.RetroGames.soccer = {
             inputs.set(player, mv);
             const me = state.players.find(p => p.ctrl === player);
             if (!me) return;
+            // A: mit Ball schießen, ohne Ball den Spieler wechseln
             if (edge(gp, prev, 'a')) {
               if (state.ball.owner === me) shoot(me);
-              else { me.tackle = 0.4; sndKick(); }
+              else cycleControl(player);
             }
+            // B: mit Ball abspielen, ohne Ball grätschen — beides „an den Ball"
             if (edge(gp, prev, 'b')) {
               if (state.ball.owner === me) pass(me);
-              else cycleControl(player);
+              else { me.tackle = 0.4; sndKick(); }
             }
             return;
           }
@@ -1074,20 +1082,9 @@ window.RetroGames.soccer = {
         ctx.lineWidth = Math.max(1, r.s * 0.002);
 
         if (p.tackle > 0) {
-          // Grätsche: Schleifspur plus in Laufrichtung gestreckter Körper.
+          // Grätsche: der Körper wird in Laufrichtung gestreckt.
           // Bildschirm-y ist gespiegelt, deshalb -p.fy im Winkel.
           const ang = Math.atan2(-p.fy, p.fx);
-          ctx.save();
-          ctx.globalAlpha = 0.3;
-          ctx.strokeStyle = kit(p.team);
-          ctx.lineWidth = rad * 1.2;
-          ctx.lineCap = 'round';
-          ctx.beginPath();
-          ctx.moveTo(q.X - Math.cos(ang) * rad * 2.8, q.Y - Math.sin(ang) * rad * 2.8);
-          ctx.lineTo(q.X, q.Y);
-          ctx.stroke();
-          ctx.restore();
-
           ctx.save();
           ctx.translate(q.X, q.Y);
           ctx.rotate(ang);

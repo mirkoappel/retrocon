@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.11]
+
+### Behoben
+- **STREET SOCCER: Der Anstoß ging weiterhin verloren.** Die Reservierung des Balls allein reichte nicht — der vorgesehene Abnehmer lief dem Pass gar nicht entgegen. Die KI bestimmt den Balljäger als „nächster zum Ball", und das ist direkt nach dem Anstoß noch der Schütze; der darf den Ball aber wegen der Reservierung nicht aufnehmen. Also rollte der Ball durch, die Reservierung lief ab und der Gegner holte ihn. Der Abnehmer läuft dem Ball jetzt gezielt entgegen, die Reservierung hält bis zu 3,5 s. Nachgemessen über **240 Anstöße** in vier Varianten (reine KI, Mensch still, Mensch läuft weg, Mensch läuft mit): 240 von 240 kommen an
+
+### Geändert
+- **STREET SOCCER: Grätsche liegt jetzt auf der Abspieltaste B**, der Spielerwechsel auf A. Beide B-Aktionen gehen damit „an den Ball": mit Ball abspielen, ohne Ball grätschen
+- Die Schleifspur der Grätsche ist wieder weg, der in Laufrichtung gestreckte Körper bleibt
+
 ## [0.11.10]
 
 ### Geändert

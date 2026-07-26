@@ -42,8 +42,8 @@ Früher wechselte die Steuerung zusätzlich laufend zum ballnächsten Mitspieler
 
 | Eingabe | Mit Ball | Ohne Ball |
 |---|---|---|
-| **A** (Enter / Leertaste) | Schuss aufs Tor | Grätsche — 0,4 s Antritt mit deutlich höherer Chance auf Balleroberung. Sichtbar als in Laufrichtung gestreckter Körper mit Schleifspur |
-| **B** (Shift / Q) | Abspiel zum besten Mitspieler | Spieler wechseln |
+| **A** (Enter / Leertaste) | Schuss aufs Tor | Spieler wechseln |
+| **B** (Shift / Q) | Abspiel zum besten Mitspieler | Grätsche — 0,4 s Antritt mit deutlich höherer Chance auf Balleroberung, sichtbar als in Laufrichtung gestreckter Körper |
 | **Richtung** | Laufen | Laufen |
 | **SELECT** | Zurück zum Menü | Zurück zum Menü |
 
@@ -67,7 +67,7 @@ Spielzeit: 2 × 3 Minuten (`HALF_TIME`).
 
 **Anstoß.** Der Ball liegt auf dem Mittelpunkt, ein Spieler legt ihn nach der Pause kurz zum Mitspieler ab — er dribbelt nicht einfach los. Wie im echten Fußball bleibt die andere Mannschaft dabei in ihrer eigenen Hälfte; sonst stünde ihr Stürmer genau auf dem Abnehmer und finge den Anstoßpass sofort ab.
 
-Zusätzlich ist der Anstoßball für **1,6 s dem vorgesehenen Abnehmer reserviert** (`kickoffTo`): nur er kann ihn aufnehmen. Ohne diese Reservierung ging der erste Ball regelmäßig verloren — abgefangen oder am Mitspieler vorbeigerollt, wenn der sich wegbewegt hatte. Den Anstoß gleich wieder zu verlieren fühlt sich schlicht unfair an.
+Zusätzlich ist der Anstoßball **dem vorgesehenen Abnehmer reserviert** (`kickoffTo`, bis zu 3,5 s): nur er kann ihn aufnehmen, und er läuft ihm gezielt entgegen. Letzteres ist entscheidend — ohne das gilt der Schütze weiter als „nächster zum Ball", der Abnehmer bleibt stehen, und der reservierte Ball rollt ungenutzt durch, bis die Reservierung abläuft und der Gegner ihn holt. Ohne diese Reservierung ging der erste Ball regelmäßig verloren — abgefangen oder am Mitspieler vorbeigerollt, wenn der sich wegbewegt hatte. Den Anstoß gleich wieder zu verlieren fühlt sich schlicht unfair an.
 
 **Anstoß-Pause.** Vor dem Anpfiff, nach der Halbzeit und nach jedem Tor steht das Spiel kurz still (`RESTART_KICK` 1,6 s bzw. `RESTART_GOAL` 2,4 s) und zeigt „ANSTOSS" beziehungsweise „TOR!". Ohne diese Pause lief das Spiel unter dem Torjubel sofort weiter und man bekam den Neubeginn nicht mit. Die Uhr steht während der Pause ebenfalls, es geht also keine Spielzeit verloren.
 
