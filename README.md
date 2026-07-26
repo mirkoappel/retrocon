@@ -44,6 +44,8 @@ games/                  Spielmodule (je Spiel ein Ordner)
     volleyball.js
   vacuum/
     vacuum.js
+  catapult/
+    catapult.js
 docs/                   Ausführliche Dokumentation
 CHANGELOG.md            Versions-Historie
 ```
@@ -54,7 +56,7 @@ CHANGELOG.md            Versions-Historie
 
 - [console/](console/README.md) — Screen-Flow, Dateistruktur, Game-API
 - [controller/](controller/README.md) — Verbindungsablauf, Classic-Layout, PWA-Install
-- [games/pong/](games/pong/README.md) · [games/volleyball/](games/volleyball/README.md) · [games/vacuum/](games/vacuum/README.md) — je Spiel Steuerung + Mechaniken
+- [games/pong/](games/pong/README.md) · [games/volleyball/](games/volleyball/README.md) · [games/vacuum/](games/vacuum/README.md) · [games/catapult/](games/catapult/README.md) — je Spiel Steuerung + Mechaniken
 - [Architektur](docs/architecture.md) — WebRTC, Raum-System, Screen-Flow
 - [Spiele — Modul-Interface](docs/games.md) — Game-Modul-Interface, neues Spiel hinzufügen
 - [Controller-Varianten](docs/controller-variants.md) — Plugin-System, eigene Variante bauen
@@ -98,6 +100,7 @@ git push
 | **PONG** | 1–2 | Klassisches Paddlespiel; Joystick steuert Paddle, erster auf 10 Punkte gewinnt |
 | **VOLLEYBALL** | 1–2 | Slime-Volleyball; Joystick bewegt Slime, A springt, erster auf 7 Punkte gewinnt |
 | **DUST RUSH** | 1–2 | Staubsauger-Roboter; Panzersteuerung, Sektoren sammeln, Ladestation anfahren, meiste Punkte in 90 s gewinnt |
+| **CATAPULT** | 1–2 | Burgen-Duell; Joystick stellt den Winkel, A halten lädt Kraft, Steine über den Berg auf die gegnerische Burg |
 
 ---
 

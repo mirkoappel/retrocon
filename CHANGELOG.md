@@ -2,6 +2,21 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.8.0]
+
+### Hinzugefügt
+- Neues Spiel: **CATAPULT** (1–2 Spieler) — Burgen-Duell in Echtzeit, angelehnt an Castle Crush
+  - **Steuerung**: Joystick stellt den Abschusswinkel (15°–75°) absolut ein, A halten lädt die Kraft (1,1 s auf Maximum), Loslassen feuert; 2 s Nachladezeit nach jedem Schuss
+  - **Echtzeit statt Zügen**: beide Spieler zielen, laden und feuern unabhängig voneinander
+  - **Zerstörbare Burg** aus vier gestapelten Segmenten (ZINNE 2 HP · TURM 3 HP · MAUER 3 HP · KERN 4 HP); jeder Treffer zeichnet einen Riss, bei 0 HP bricht das Segment weg und die darüberliegenden rutschen nach
+  - **Sieg** durch Zerstörung des gegnerischen Kerns — oder nach 90 s durch die höhere Trefferzahl
+  - **Wind** driftet alle ~7 s weich auf einen neuen Wert und lenkt jede Flugbahn ab (Anzeige mit Richtung + Stärke oben mittig)
+  - **Berg** in der Bildmitte blockiert flache Schüsse und erzwingt hohe Bögen
+  - **KI-Gegner** mit AIM→CHARGE→FIRE-Zustandsautomat: bestimmt Winkel und Kraft per Vorwärts-Simulation der echten Spielphysik (Binärsuche über die Kraft), berücksichtigt dadurch Wind und Berg automatisch; Unschärfe auf Winkel (±3°) und Kraft (±5 %) hält sie schlagbar
+  - **Sounds**: Ratschen beim Laden, Abschuss-Sweep, dumpfe Einschläge, Knack bei Segmenttreffern, Grollen beim Einsturz, 5-Ton-Siegfanfare
+  - Trümmerpartikel und Screenshake bei Einschlägen
+- Boot-Terminal: Game-Module-Counter von 3 auf 4 aktualisiert
+
 ## [0.7.0]
 
 ### Hinzugefügt
