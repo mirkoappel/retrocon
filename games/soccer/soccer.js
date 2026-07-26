@@ -65,6 +65,8 @@ window.RetroGames.soccer = {
     const CONTROL_R    = 0.115; // darüber ist der Ball nicht mehr kontrolliert
     const CONTACT      = PLAYER_R + BALL_R;   // Spielerrand berührt Ballrand
     const TURN_PULL    = 7.0;   // wie schnell der vorgelegte Ball der Laufrichtung folgt
+    const BALL_DRAG    = 0.92;  // Ballführender ist langsamer als ein freier Spieler
+    const TACKLE_MAN   = PLAYER_R * 3.4;  // Grätsche erwischt auch den Mann, nicht nur den Ball
     const SHOT_RANGE   = 0.36;  // ab hier denkt die KI überhaupt ans Abschließen
     const LANE_MIN     = 0.012; // so viel Luft braucht die Schussbahn am Gegner vorbei
     // Angriffswege, die sich die KI je Ballbesitz aussucht. Flügel doppelt
@@ -647,7 +649,7 @@ window.RetroGames.soccer = {
         const d = dist(p, o);
         if (d < 0.12) { tx += (p.x - o.x) * 0.8; ty += (p.y - o.y) * 0.3; }
       }
-      moveToward(p, tx, ty, SPEED * (0.94 + 0.06 * skill()), dt);
+      moveToward(p, tx, ty, SPEED * (0.94 + 0.06 * skill()) * BALL_DRAG, dt);
     }
 
     function aiOutfield(p, dt) {
@@ -705,19 +707,38 @@ window.RetroGames.soccer = {
           // Nah genug dran: auch die KI grätscht — sonst sieht man die
           // Aktion nur beim Menschen und Zweikämpfe wirken zahnlos
           if (p.tackle <= 0 && dist(p, owner) < PLAYER_R * 4.5
-              && Math.random() < dt * 1.3 * skill()) {
-            p.tackle = 0.4;
+              && Math.random() < dt * 1.0 * skill()) {
+            p.tackle = 0.55;
             sndKick();
           }
         }
         else {
-          tx = hp.x * 0.6 + b.x * 0.4;
-          ty = hp.y * 0.65 + (b.y + (gy === 1 ? -0.12 : 0.12)) * 0.35;
+          const ownGoal = gy === 1 ? 0 : 1;
+          if (Math.abs(owner.y - ownGoal) < 0.42) {
+            // Im eigenen Drittel verdoppeln. Seitlich versetzt und einen
+            // Schritt näher am eigenen Tor — stünden beide hintereinander,
+            // liefe der Gegner an einem vorbei und wäre den anderen gleich mit los.
+            const side = owner.x < FIELD_W / 2 ? 1 : -1;
+            tx = owner.x + side * PLAYER_R * 3;
+            ty = owner.y + (ownGoal === 0 ? -1 : 1) * PLAYER_R * 1.6;
+            // Auch der zweite Verteidiger darf grätschen, wenn er dran ist
+            if (p.tackle <= 0 && dist(p, owner) < PLAYER_R * 4.5
+                && Math.random() < dt * 0.6 * skill()) {
+              p.tackle = 0.55;
+              sndKick();
+            }
+          } else {
+            tx = hp.x * 0.6 + b.x * 0.4;
+            ty = hp.y * 0.65 + (b.y + (gy === 1 ? -0.12 : 0.12)) * 0.35;
+          }
         }
       }
       tx = clamp(tx, PLAYER_R, FIELD_W - PLAYER_R);
       ty = clamp(ty, PLAYER_R, 1 - PLAYER_R);
-      moveToward(p, tx, ty, SPEED * (0.9 + 0.1 * skill()), dt);
+      // Auch die KI macht bei der Grätsche einen Ausfallschritt. Ohne den war
+      // ihre Grätsche nur Anzeige: sie setzte das Flag, kam dem Ball aber
+      // keinen Zentimeter näher.
+      moveToward(p, tx, ty, SPEED * (0.9 + 0.1 * skill()) * (p.tackle > 0 ? 1.35 : 1), dt);
     }
 
     // ── Match-Update ─────────────────────────────────────
@@ -760,7 +781,10 @@ window.RetroGames.soccer = {
             ? STICK_MIN + (1 - STICK_MIN) *
               clamp((len - STICK_DEAD) / (STICK_FULL - STICK_DEAD), 0, 1)
             : 1;
-          const sp = SPEED_HUM * (p.tackle > 0 ? 1.35 : 1) * push;
+          // Mit Ball am Fuß läuft man langsamer — sonst ist ein Ballführender
+          // nicht einzuholen und jeder Zweikampf entschieden, bevor er beginnt
+          const sp = SPEED_HUM * (p.tackle > 0 ? 1.35 : 1) * push
+                   * (state.ball.owner === p ? BALL_DRAG : 1);
           if (len > (mv.analog ? STICK_DEAD : 0.15)) {
             // Bildschirmeingabe in Feldrichtung umrechnen. Im Querformat wird
             // nach rechts angegriffen, dort entspricht rechts also +y.
@@ -900,12 +924,19 @@ window.RetroGames.soccer = {
         let stealer = null, sd = Infinity;
         for (const q of state.players) {
           if (q.team === carrier.team || q.lockout > 0) continue;
-          // Gegen den BALL prüfen, nicht gegen den Körper: Wer sprintet,
-          // schiebt den Ball vor sich her und wird dadurch angreifbar.
-          const d = dist(q, b);
-          if (d < CONTACT + 0.018) {          // kurzer Ausfallschritt zum Ball
-            const rate = (q.tackle > 0 ? 3.4 : 1.5) * (q.ctrl ? 1.15 : skill());
+          // Am Ball zählt der Ball: wer sprintet, schiebt ihn vor sich her
+          // und wird dadurch angreifbar. Die Grätsche zählt zusätzlich gegen
+          // den MANN — ohne das ist eine Ballabnahme von hinten geometrisch
+          // unmöglich, weil der Ball dann immer auf der abgewandten Seite
+          // liegt: Körperabstand plus Vorlage übersteigt die Zweikampfgrenze.
+          const db = dist(q, b), dp = dist(q, carrier);
+          const atBall = db < CONTACT + 0.018;   // kurzer Ausfallschritt zum Ball
+          const atMan  = q.tackle > 0 && dp < TACKLE_MAN;
+          if (atBall || atMan) {
+            const rate = (q.tackle > 0 ? 3.4 : 1.5) * (q.ctrl ? 1.15 : skill())
+                       * (atBall ? 1 : 0.95);    // von hinten etwas zäher
             q.steal += dt * rate;
+            const d = Math.min(db, dp);
             if (q.steal >= 1 && d < sd) { sd = d; stealer = q; }
           } else {
             q.steal = Math.max(0, q.steal - dt * 1.5);

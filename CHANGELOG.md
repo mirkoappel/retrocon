@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.26]
+
+### Geändert
+- **STREET SOCCER: Mit Ball am Fuß läuft man langsamer** (`BALL_DRAG` = 0,92). Ohne das ist ein Ballführender nicht einzuholen und jeder Zweikampf entschieden, bevor er beginnt
+- **Ballabnahme von hinten ist jetzt möglich.** Sie war vorher *geometrisch unmöglich*: Der Ball liegt beim Dribbeln vorn, die Körper werden auf `PLAYER_R * 2` auseinandergehalten — Körperabstand 0,042 plus Vorlage 0,038 ergibt mindestens 0,080, die Zweikampfgrenze lag bei 0,052. Gemessen: 0 von 120 Verfolgungen führten zum Ballgewinn. Die Grätsche zählt jetzt zusätzlich gegen den Mann (`TACKLE_MAN`), etwas zäher als der Zweikampf am Ball
+- **Auch die KI macht bei der Grätsche einen Ausfallschritt.** Der Tempobonus galt bisher nur für Menschen — die KI-Grätsche setzte das Flag, kam dem Ball aber keinen Zentimeter näher
+- **Der zweite Verteidiger verdoppelt** im eigenen Drittel, seitlich versetzt und einen Schritt näher am eigenen Tor. Hintereinander stehend wären beide auf einmal ausgespielt
+- Nachgemessen: Ballgewinn von hinten binnen 5 s (Abstand 0,05 / 0,08 / 0,12) von 0/40 · 0/40 · 0/40 auf 9/40 · 16/40 · 17/40. Ballführender unter Druck von einem Gegner 58 % → 73 %, von zweien 5 % → 14 %. Läufe direkt in den Torwart 25,3 → 18,8 pro Spiel
+- Torquote dadurch 3,2 → 2,8 pro Spiel — der Preis für den höheren Druck
+
 ## [0.11.25]
 
 ### Geändert

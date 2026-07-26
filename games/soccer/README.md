@@ -167,9 +167,30 @@ Nachgemessen, je vier volle Spiele:
 
 Es wird also **seltener, aber aus deutlich verschiedeneren Lagen** geschossen — der schmale Ring vor dem Tor ist weg.
 
+## Zweikampf
+
+**Mit Ball am Fuß läuft man langsamer** (`BALL_DRAG` = 0,92). Ohne das ist ein Ballführender schlicht nicht einzuholen und jeder Zweikampf entschieden, bevor er beginnt.
+
+**Die Grätsche zählt gegen den Mann, nicht nur gegen den Ball** (`TACKLE_MAN`). Vorher war eine Ballabnahme von hinten *geometrisch unmöglich*: Der Ball liegt beim Dribbeln vorn, die Körper werden auf `PLAYER_R * 2` auseinandergehalten — Körperabstand 0,042 plus Vorlage 0,038 ergibt mindestens 0,080, die Zweikampfgrenze liegt aber bei 0,052. Gemessen: **0 von 120** Verfolgungen führten zum Ballgewinn. Der Zweikampf am Mann läuft etwas zäher als der am Ball (Faktor 0,95).
+
+**Auch die KI macht bei der Grätsche einen Ausfallschritt.** Der Tempobonus von 1,35 galt vorher nur für Menschen — die KI-Grätsche setzte das Flag, kam dem Ball aber keinen Zentimeter näher. Das war der Grund für einen bis dahin unerklärlichen Einbruch mitten in der Messreihe (bei 0,08 Abstand 2/40, bei 0,05 und 0,12 dagegen 19/40 und 11/40).
+
+**Der zweite Verteidiger verdoppelt** im eigenen Drittel — seitlich versetzt und einen Schritt näher am eigenen Tor. Stünden beide hintereinander, liefe der Gegner an einem vorbei und wäre den anderen gleich mit los.
+
+Nachgemessen:
+
+| | vorher | jetzt |
+|---|---|---|
+| Ballgewinn von hinten, 5 s (Abstand 0,05 / 0,08 / 0,12) | 0/40 · 0/40 · 0/40 | 9/40 · 16/40 · 17/40 |
+| Ballführender unter Druck von einem Gegner | 58 % | 73 % |
+| … von zwei Gegnern (2 gegen 1) | 5 % | 14 % |
+| Läufe direkt in den Torwart | 25,3 | 18,8 |
+
+Von hinten ist die Ballabnahme damit **möglich, aber nicht selbstverständlich** — sie verlangt eine getimte Grätsche. Die Torquote sinkt dadurch von 3,2 auf 2,8 pro Spiel; das ist der Preis für den höheren Druck.
+
 ## Balance
 
-Ein KI-gegen-KI-Spiel endet im Schnitt bei **rund 3 Toren gesamt** (über 48 Spiele gemessen: 3,2 und 3,0 pro Spiel in zwei Stichproben, Seitenverteilung 1,9 : 1,3 und 1,4 : 1,5 — der Unterschied der ersten Stichprobe war Rauschen). Menschen treffen besser: ihre Schussstreuung ist mit dem Faktor 0,7 deutlich enger als die der KI.
+Ein KI-gegen-KI-Spiel endet im Schnitt bei **rund 3 Toren gesamt** (2,8 über 12 Spiele; davor 3,2 und 3,0 in zwei Stichproben à 24 Spielen — die Seitenverteilung schwankt zwischen 1,9 : 1,3 und 1,4 : 1,5 und ist damit Rauschen). Menschen treffen besser: ihre Schussstreuung ist mit dem Faktor 0,7 deutlich enger als die der KI.
 
 Das Grundtempo ist bewusst gemächlich — ein Feldspieler braucht rund 6,5 Sekunden für die Feldlänge. Wer daran dreht, muss **Spieler- und Balltempo zusammen** verstellen: verlangsamt man nur die Spieler, wird der Torwart gegenüber dem Schuss wehrlos.
 
