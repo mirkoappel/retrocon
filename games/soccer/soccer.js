@@ -248,7 +248,7 @@ window.RetroGames.soccer = {
     }
     function assignControl(force = false) {
       if (!force && ctrlCooldown > 0) return;
-      ctrlCooldown = 0.25;
+      ctrlCooldown = 0.4;
       const slots = humanSlots();
       const outfield = state.players.filter(p => p.role !== 'GK');
 
@@ -264,6 +264,21 @@ window.RetroGames.soccer = {
         const mine = slots.filter(s => teamOfSlot(s) === team);
         if (!mine.length) continue;
         const cands = outfield.filter(p => p.team === team);
+
+        // Sind ohnehin alle Feldspieler von Menschen besetzt, bleibt die
+        // Zuordnung fest. Ein Wechsel nach Ballnähe brächte dann nichts —
+        // er würde den Spielern nur gegenseitig die Figur wegtauschen.
+        if (mine.length >= cands.length) {
+          for (const slot of mine) {
+            const prev = prevOf.get(slot);
+            const pick = (prev && prev.team === team && !taken.has(prev))
+              ? prev
+              : cands.find(c => !taken.has(c));
+            if (pick) { pick.ctrl = slot; taken.add(pick); }
+          }
+          continue;
+        }
+
         const owner = (b.owner && b.owner.team === team && b.owner.role !== 'GK') ? b.owner : null;
 
         // Wer den Ball hat, wird übernommen — möglichst von dem Slot, der ihn schon steuerte
@@ -283,7 +298,7 @@ window.RetroGames.soccer = {
           // Hysterese: den bisherigen Spieler behalten, solange er nicht deutlich
           // weiter weg ist — sonst springt die Steuerung im Getümmel hin und her
           const prev = prevOf.get(slot);
-          if (prev && prev.team === team && !taken.has(prev) && dist(prev, b) < bd * 1.35) best = prev;
+          if (prev && prev.team === team && !taken.has(prev) && dist(prev, b) < bd * 1.9) best = prev;
           if (best) { best.ctrl = slot; taken.add(best); }
         }
       }

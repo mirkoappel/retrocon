@@ -28,6 +28,10 @@ Damit die Verlängerung nicht endlos läuft, lassen beide Torhüter dort gleichm
 
 Der aktive Spieler wechselt **automatisch** zum ballnächsten Mitspieler; hat deine Mannschaft den Ball, übernimmst du den Ballführenden. Der Torwart bleibt immer KI.
 
+**Zu zweit in einer Mannschaft steht die Zuordnung fest.** Sind ohnehin alle Feldspieler von Menschen besetzt, bringt ein Wechsel nach Ballnähe nichts — er würde den beiden nur gegenseitig die Figur wegtauschen. Jeder behält deshalb seine Figur das ganze Spiel über.
+
+Allein greift der automatische Wechsel weiter, aber gedämpft: eine Sperre von 0,4 s und eine Hysterese von 1,9 verhindern, dass die Steuerung im Getümmel hin und her springt (gemessen: rund ein Wechsel alle 6 Sekunden statt alle 2,5).
+
 | Eingabe | Mit Ball | Ohne Ball |
 |---|---|---|
 | **A** (Enter / Leertaste) | Schuss aufs Tor | Grätsche — kurzer Antritt, deutlich höhere Chance auf Balleroberung |

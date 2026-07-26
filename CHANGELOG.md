@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.2]
+
+### Behoben
+- **STREET SOCCER: Die Zuordnung der Figuren zu Spieler 1 und 2 sprang.** Zu zweit in einer Mannschaft sind beide Feldspieler ohnehin besetzt — die Zuweisung nach Ballnähe tauschte den beiden dann nur gegenseitig die Figur weg. Sind alle Feldspieler von Menschen besetzt, bleibt die Zuordnung jetzt fest (nachgemessen: 0 Wechsel über 2 Minuten, vorher sprang sie regelmäßig)
+
+### Geändert
+- **STREET SOCCER:** Auch im Alleingang ist der automatische Spielerwechsel ruhiger — Sperre 0,25 → 0,4 s, Hysterese 1,35 → 1,9. Statt alle 2,4 s wechselt die Steuerung jetzt rund alle 6 s
+
 ## [0.11.1]
 
 ### Geändert
