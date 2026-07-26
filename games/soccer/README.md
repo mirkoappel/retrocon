@@ -54,14 +54,16 @@ Am **Analogstick bestimmt die Auslenkung das Tempo**, von langsamem Gehen bis zu
 
 **Dribbling.** Der Ball klebt nicht am Spieler, sondern wird **angetippt und rollt frei weiter**; der Spieler läuft ihm nach und tippt erneut, sobald er ihn wieder am Fuß hat. Die Stoßhärte wächst mit dem Lauftempo (`TOUCH_K_LOW` … `TOUCH_K_HIGH`), die Vorlagen werden dadurch überproportional länger:
 
-| Auslenkung | Tempo | Größte Vorlage | Ballkontakte |
-|---|---|---|---|
-| 0,20 | 0,059 | 0,049 | 1,8/s |
-| 0,45 | 0,106 | 0,055 | 1,5/s |
-| 0,70 | 0,153 | 0,066 | 1,2/s |
-| 1,00 | 0,200 | 0,079 | 0,9/s |
+| Auslenkung | Tempo | Größte Vorlage |
+|---|---|---|
+| 0,20 | 0,059 | 0,036 |
+| 0,45 | 0,106 | 0,040 |
+| 0,70 | 0,153 | 0,048 |
+| 1,00 | 0,200 | 0,064 |
 
-Zum Vergleich: Ballkontakt am Fuß wäre 0,036 — beim langsamen Dribbeln liegt der Ball also kaum weiter als eine Ballbreite vorn, und die Kontakte kommen fast doppelt so oft wie im Sprint. Der wirksamste Regler dafür ist `DRIBBLE_FRIC`: mehr Reibung heißt kürzere Vorlagen *und* häufigere Kontakte.
+**Getreten wird nur bei Berührung.** Schuss, Pass und Dribbelstoß lösen erst aus, wenn der Spielerrand den Ballrand wirklich berührt (`CONTACT` = 0,0335) — vorher reichte der Fuß unsichtbar bis 0,046 weit, und Schüsse gingen sogar, während der Ball beim Dribbeln weit vorauslief. Damit sich das nicht träge anfühlt, wird die Absicht bis zu `INTENT_TIME` (1,1 s) gemerkt und im Moment des Kontakts ausgeführt. Nachgemessen über 402 Schüsse und Pässe: kein einziger ohne Berührung.
+
+Zum Vergleich: Ballkontakt am Fuß ist 0,0335 — beim langsamen Dribbeln liegt der Ball also kaum weiter als eine Ballbreite vorn, und die Kontakte kommen fast doppelt so oft wie im Sprint. Der wirksamste Regler dafür ist `DRIBBLE_FRIC`: mehr Reibung heißt kürzere Vorlagen *und* häufigere Kontakte.
 
 Läuft der Ball weiter als `CONTROL_R` (0,115) voraus — etwa bei einer scharfen Richtungsänderung im Sprint — ist er frei, und wer zuerst dran ist bekommt ihn.
 

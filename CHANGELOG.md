@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.23]
+
+### Behoben
+- **STREET SOCCER: Spieler traten den Ball, ohne ihn zu berühren.** Der Dribbelstoß löste schon aus 0,046 Entfernung aus (Berührung wäre 0,0335), und Schuss und Pass gingen sogar, während der Ball beim Dribbeln weit vorauslief — es sah aus, als hätten die Spieler unsichtbare Füße. Alle drei Aktionen setzen jetzt echten Kontakt voraus. Damit es sich nicht träge anfühlt, wird die Absicht bis zu 1,1 s gemerkt und im Moment der Berührung ausgeführt. Nachgemessen über 402 Schüsse und Pässe: kein einziger ohne Berührung
+- Nebenwirkung: Die Ballvorlagen wurden dadurch nochmals kürzer (Sprint 0,079 → 0,064, Dribbeln 0,049 → 0,036, also praktisch am Fuß). Weil Abschlüsse jetzt seltener zustande kommen, schließt die KI häufiger ab und der Torwart greift etwas kürzer — die Torquote liegt wieder bei rund 3,9 pro Spiel, gleichmäßig über beide Halbzeiten
+
 ## [0.11.22]
 
 ### Geändert

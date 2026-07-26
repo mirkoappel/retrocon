@@ -48,7 +48,7 @@ window.RetroGames.soccer = {
     const SPEED      = 0.155;    // Feldeinheiten/s
     const SPEED_HUM  = 0.20;    // Sprint; die Auslenkung regelt herunter
     const SPEED_GK   = 0.155;    // Torwart darf auf der Linie schneller sein als Feldspieler
-    const GK_REACH   = 0.65;     // Fangradius muss klar unter der halben Torbreite bleiben
+    const GK_REACH   = 0.52;     // Fangradius muss klar unter der halben Torbreite bleiben
     const KEEPER_SPACE = 0.17;  // Abstand, den Gegner zum ballhaltenden Torwart wahren
     const IDLE_TAKEOVER = 8;    // Sekunden ohne Eingabe, dann übernimmt die KI
     const GK_REACT   = 0.28;    // Reaktionszeit, bevor der Torwart dem Schuss folgt
@@ -63,6 +63,9 @@ window.RetroGames.soccer = {
     const DRIBBLE_FRIC = 3.0;   // Reibung des gedribbelten Balls — hoch, damit
                                 // die Vorlagen kurz und die Kontakte häufig sind
     const CONTROL_R    = 0.115; // darüber ist der Ball nicht mehr kontrolliert
+    const CONTACT      = PLAYER_R + BALL_R;   // Spielerrand berührt Ballrand
+    const REACH_EPS    = 0.002; // winzige Toleranz gegen Rundungslücken
+    const INTENT_TIME  = 1.1;   // so lange wartet eine Schuss-/Passabsicht auf Kontakt
     const FRICTION   = 0.72;
     const PASS_SPEED = 0.50;
     const SHOT_SPEED = 0.70;
@@ -408,13 +411,24 @@ window.RetroGames.soccer = {
     // durchgang ausgeführt. Sonst sähe eine später verarbeitete Mannschaft den
     // freigegebenen Ball noch im selben Frame und reagierte einen Tick früher.
     let pending = null;
-    function shoot(p) { if (state.ball.owner === p) pending = { kind: 'shoot', p }; }
-    function pass(p)  { if (state.ball.owner === p) pending = { kind: 'pass',  p }; }
-    function applyPending() {
+    function shoot(p) { if (state.ball.owner === p) pending = { kind: 'shoot', p, t: INTENT_TIME }; }
+    function pass(p)  { if (state.ball.owner === p) pending = { kind: 'pass',  p, t: INTENT_TIME }; }
+
+    // Getreten wird erst, wenn der Spieler den Ball auch berührt. Bis dahin
+    // bleibt die Absicht kurz gemerkt — sonst liefe der Schuss ins Leere,
+    // während der Ball beim Dribbeln gerade vorausrollt.
+    function applyPending(dt) {
       if (!pending) return;
       const { kind, p } = pending;
-      pending = null;
-      if (kind === 'shoot') doShoot(p); else doPass(p);
+      const b = state.ball;
+      if (b.owner !== p) { pending = null; return; }
+      if (Math.hypot(b.x - p.x, b.y - p.y) <= CONTACT + REACH_EPS) {
+        pending = null;
+        if (kind === 'shoot') doShoot(p); else doPass(p);
+        return;
+      }
+      pending.t -= dt;
+      if (pending.t <= 0) pending = null;
     }
 
     function doShoot(p) {
@@ -570,7 +584,7 @@ window.RetroGames.soccer = {
         if (dist(p, o) > 0.10) continue;
         if ((o.y - p.y) * (gy - p.y) > 0) { blocked = true; break; }   // steht im Weg zum Tor
       }
-      if (!blocked && gdist < 0.21 + 0.04 * skill() && Math.random() < dt * 1.6 * skill()) { shoot(p); return; }
+      if (!blocked && gdist < 0.21 + 0.04 * skill() && Math.random() < dt * 2.8 * skill()) { shoot(p); return; }
       if (press < 0.075 && Math.random() < dt * 2.0) { pass(p); return; }
       if (gdist > 0.55 && press < 0.11 && Math.random() < dt * 0.9) { pass(p); return; }
       // Dribbeln Richtung Tor, dabei etwas ausweichen
@@ -703,7 +717,7 @@ window.RetroGames.soccer = {
         if (l > 1e-3) { p.fx = p.vx / l; p.fy = p.vy / l; }
       }
 
-      applyPending();
+      applyPending(dt);
 
       // Spieler drücken sich gegenseitig weg. Die Verschiebungen werden erst
       // gesammelt und dann angewandt — sonst hinge das Ergebnis davon ab,
@@ -732,7 +746,7 @@ window.RetroGames.soccer = {
       if (b.owner) {
         const o = b.owner;
         const spd = Math.hypot(o.vx, o.vy);
-        const near = PLAYER_R + BALL_R + 0.004;
+        const near = CONTACT;
 
         // Der Ball rollt auch beim Dribbeln eigenständig weiter
         b.x += b.vx * dt; b.y += b.vy * dt;
@@ -744,7 +758,7 @@ window.RetroGames.soccer = {
 
         if (spd > 0.015) {
           // Ball wieder am Fuß: nächster Stoß, Länge folgt dem Lauftempo
-          if (d < near * 1.3) {
+          if (d <= CONTACT + REACH_EPS) {
             // Je schneller gelaufen wird, desto härter der Stoß — dadurch
             // wachsen die Vorlagen überproportional mit dem Tempo
             const k = TOUCH_K_LOW +
@@ -816,7 +830,7 @@ window.RetroGames.soccer = {
           // Gegen den BALL prüfen, nicht gegen den Körper: Wer sprintet,
           // schiebt den Ball vor sich her und wird dadurch angreifbar.
           const d = dist(q, b);
-          if (d < PLAYER_R * 2.4) {
+          if (d < CONTACT + 0.018) {          // kurzer Ausfallschritt zum Ball
             const rate = (q.tackle > 0 ? 3.4 : 1.5) * (q.ctrl ? 1.15 : skill());
             q.steal += dt * rate;
             if (q.steal >= 1 && d < sd) { sd = d; stealer = q; }
