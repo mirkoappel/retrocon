@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.8]
+
+### Behoben
+- **STREET SOCCER: Der Anstoßpass ging oft daneben** und die Mannschaft verlor den Ball sofort wieder — abgefangen oder am Mitspieler vorbeigerollt, wenn der sich schon wegbewegt hatte. Der Anstoßball ist jetzt 1,6 s lang dem vorgesehenen Abnehmer reserviert; nur er kann ihn aufnehmen. Nachgemessen über 120 Anstöße (reine KI, mit Mensch, und mit einem Menschen der bewusst wegläuft): **120 von 120** kommen bei der eigenen Mannschaft an, vorher ging der erste Ball regelmäßig an den Gegner
+
 ## [0.11.7]
 
 ### Hinzugefügt

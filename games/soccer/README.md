@@ -67,6 +67,8 @@ Spielzeit: 2 × 3 Minuten (`HALF_TIME`).
 
 **Anstoß.** Der Ball liegt auf dem Mittelpunkt, ein Spieler legt ihn nach der Pause kurz zum Mitspieler ab — er dribbelt nicht einfach los. Wie im echten Fußball bleibt die andere Mannschaft dabei in ihrer eigenen Hälfte; sonst stünde ihr Stürmer genau auf dem Abnehmer und finge den Anstoßpass sofort ab.
 
+Zusätzlich ist der Anstoßball für **1,6 s dem vorgesehenen Abnehmer reserviert** (`kickoffTo`): nur er kann ihn aufnehmen. Ohne diese Reservierung ging der erste Ball regelmäßig verloren — abgefangen oder am Mitspieler vorbeigerollt, wenn der sich wegbewegt hatte. Den Anstoß gleich wieder zu verlieren fühlt sich schlicht unfair an.
+
 **Anstoß-Pause.** Vor dem Anpfiff, nach der Halbzeit und nach jedem Tor steht das Spiel kurz still (`RESTART_KICK` 1,6 s bzw. `RESTART_GOAL` 2,4 s) und zeigt „ANSTOSS" beziehungsweise „TOR!". Ohne diese Pause lief das Spiel unter dem Torjubel sofort weiter und man bekam den Neubeginn nicht mit. Die Uhr steht während der Pause ebenfalls, es geht also keine Spielzeit verloren.
 
 ## Mannschaften

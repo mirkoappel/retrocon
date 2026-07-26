@@ -111,6 +111,7 @@ window.RetroGames.soccer = {
       golden: false, goldenT: 0,
       msg: '', msgTimer: 0,
       kickoffFor: 0, kickoffLock: 0, restart: 0,
+      kickoffTo: null, kickoffToT: 0,   // Anstoßpass ist für diesen Spieler reserviert
       shake: 0, t: 0,
       lastResult: ''
     };
@@ -239,6 +240,7 @@ window.RetroGames.soccer = {
       b.x = FIELD_W / 2; b.y = 0.5; b.vx = 0; b.vy = 0; b.owner = fwd || null;
       state.kickoffLock = 0.6;
       state.restart = delay;
+      state.kickoffTo = null; state.kickoffToT = 0;
       assignControl(true);
     }
 
@@ -256,6 +258,10 @@ window.RetroGames.soccer = {
       b.vx = dx / len * PASS_SPEED * 0.75;
       b.vy = dy / len * PASS_SPEED * 0.75;
       taker.lockout = 0.35;
+      // Der Anstoßpass gehört dem Abnehmer. Ohne diese Reservierung ging der
+      // erste Ball oft direkt verloren — abgefangen oder am Mitspieler vorbei.
+      state.kickoffTo = mate;
+      state.kickoffToT = 1.6;
       sndPass();
     }
 
@@ -590,6 +596,11 @@ window.RetroGames.soccer = {
 
       // Anstoß-Pause: Spieler und Ball stehen still, damit man den Neubeginn
       // überhaupt mitbekommt. Die Uhr läuft solange ebenfalls nicht.
+      if (state.kickoffToT > 0) {
+        state.kickoffToT -= dt;
+        if (state.kickoffToT <= 0) state.kickoffTo = null;
+      }
+
       if (state.restart > 0) {
         state.restart -= dt;
         if (state.msgTimer > 0) state.msgTimer -= dt;
@@ -684,12 +695,14 @@ window.RetroGames.soccer = {
           let take = null, td = Infinity;
           for (const p of state.players) {
             if (p.lockout > 0) continue;
+            if (state.kickoffTo && p !== state.kickoffTo) continue;
             const reach = (p.role === 'GK' ? PLAYER_R * GK_REACH * gkFatigue() : PLAYER_R) + BALL_R + 0.006;
             const d = dist(p, b);
             if (d < reach && d < td) { td = d; take = p; }
           }
           if (take) {
             if (take.role === 'GK') { take.gkHold = 0.9; sndSave(); }
+            if (take === state.kickoffTo) { state.kickoffTo = null; state.kickoffToT = 0; }
             giveBall(take);
           }
         }
