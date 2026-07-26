@@ -55,7 +55,13 @@ window.RetroGames.soccer = {
     const STICK_DEAD = 0.12;    // Totzone des Analogsticks
     const STICK_FULL = 0.95;    // ab dieser Auslenkung volles Tempo
     const STICK_MIN  = 0.22;    // Tempo bei minimaler Auslenkung (Anteil)
-    const DRIBBLE_PUSH = 0.032; // wie weit der Ball im Sprint vorausläuft
+    // Dribbling: Der Ball wird angetippt und rollt frei weiter, der Spieler
+    // läuft ihm nach. Die Stoßlänge ergibt sich dadurch von selbst aus dem
+    // Tempo — langsam kurze Stöße, im Sprint lange.
+    const TOUCH_K_LOW  = 1.7;   // sanfter Stoß beim langsamen Dribbeln
+    const TOUCH_K_HIGH = 2.9;   // harter Stoß im Sprint
+    const DRIBBLE_FRIC = 1.9;   // Reibung des gedribbelten Balls
+    const CONTROL_R    = 0.16;  // darüber ist der Ball nicht mehr kontrolliert
     const FRICTION   = 0.72;
     const PASS_SPEED = 0.50;
     const SHOT_SPEED = 0.70;
@@ -724,16 +730,39 @@ window.RetroGames.soccer = {
       // Ball
       if (b.owner) {
         const o = b.owner;
-        // Ballkontrolle: Je schneller der Ballführende läuft, desto weiter
-        // schiebt er den Ball vor sich her. Langsam bleibt er am Fuß.
         const spd = Math.hypot(o.vx, o.vy);
-        const off = PLAYER_R + BALL_R + 0.004
-                  + Math.min(1, spd / SPEED_HUM) * DRIBBLE_PUSH;
-        // Auf dem Feld halten: sonst schöbe ein Angreifer den Ball allein durchs
-        // Vorwärtslaufen über die Torlinie
-        b.x = clamp(o.x + o.fx * off, BALL_R, FIELD_W - BALL_R);
-        b.y = clamp(o.y + o.fy * off, BALL_R, 1 - BALL_R);
-        b.vx = 0; b.vy = 0;
+        const near = PLAYER_R + BALL_R + 0.004;
+
+        // Der Ball rollt auch beim Dribbeln eigenständig weiter
+        b.x += b.vx * dt; b.y += b.vy * dt;
+        const damp = Math.exp(-DRIBBLE_FRIC * dt);
+        b.vx *= damp; b.vy *= damp;
+
+        const dx = b.x - o.x, dy = b.y - o.y;
+        const d = Math.hypot(dx, dy);
+
+        if (spd > 0.015) {
+          // Ball wieder am Fuß: nächster Stoß, Länge folgt dem Lauftempo
+          if (d < near * 1.3) {
+            // Je schneller gelaufen wird, desto härter der Stoß — dadurch
+            // wachsen die Vorlagen überproportional mit dem Tempo
+            const k = TOUCH_K_LOW +
+              Math.min(1, spd / SPEED_HUM) * (TOUCH_K_HIGH - TOUCH_K_LOW);
+            b.vx = o.vx * k; b.vy = o.vy * k;
+          }
+        } else {
+          // Spieler steht: Ball beruhigen und am Fuß halten
+          b.vx *= 0.82; b.vy *= 0.82;
+          if (d > near) { b.x = o.x + dx / d * near; b.y = o.y + dy / d * near; }
+        }
+
+        // Zu weit vorgelegt — der Ball ist frei, wer zuerst da ist bekommt ihn
+        if (d > CONTROL_R) { b.owner = null; o.lockout = 0.12; }
+
+        // Auf dem Feld halten: ein geführter Ball zählt nie als Tor, sonst
+        // liefe man ihn einfach hinein
+        b.x = clamp(b.x, BALL_R, FIELD_W - BALL_R);
+        b.y = clamp(b.y, BALL_R, 1 - BALL_R);
       } else {
         b.x += b.vx * dt; b.y += b.vy * dt;
         const damp = Math.exp(-FRICTION * dt);

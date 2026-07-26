@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.21]
+
+### Geändert
+- **STREET SOCCER: echtes Dribbling statt starrem Ballabstand.** Vorher hing der Ball in festem Abstand am Spieler, was aussah, als schöbe er ihn mit einer unsichtbaren Stange vor sich her. Jetzt wird der Ball angetippt und rollt frei weiter, der Spieler läuft ihm nach und tippt erneut. Die Stoßhärte wächst mit dem Tempo, die Vorlagen reichen dadurch von 0,055 beim langsamen Dribbeln bis 0,129 im Sprint (2,4-fach), bei rund einem Ballkontakt pro Sekunde
+- Läuft der Ball weiter als 0,16 voraus, etwa bei einer scharfen Richtungsänderung im Sprint, ist er frei
+
 ## [0.11.20]
 
 ### Geändert

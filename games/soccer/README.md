@@ -52,13 +52,16 @@ Früher wechselte die Steuerung zusätzlich laufend zum ballnächsten Mitspieler
 
 Am **Analogstick bestimmt die Auslenkung das Tempo**, von langsamem Gehen bis zum Sprint (Totzone 0,12, volles Tempo ab 0,95, minimal 22 % — gut vierfache Spanne). Tastatur und Dpad bleiben digital; dort gibt es nur ganz oder gar nicht, und zwar volles Tempo.
 
-**Ballkontrolle hängt am Tempo.** Der Ballführende schiebt den Ball umso weiter vor sich her, je schneller er läuft (`DRIBBLE_PUSH`):
+**Dribbling.** Der Ball klebt nicht am Spieler, sondern wird **angetippt und rollt frei weiter**; der Spieler läuft ihm nach und tippt erneut, sobald er ihn wieder am Fuß hat. Die Stoßhärte wächst mit dem Lauftempo (`TOUCH_K_LOW` … `TOUCH_K_HIGH`), die Vorlagen werden dadurch überproportional länger:
 
-| Auslenkung | Tempo | Ballabstand |
+| Auslenkung | Tempo | Größte Vorlage |
 |---|---|---|
-| 0,15 | 0,050 | 0,043 |
-| 0,50 | 0,115 | 0,054 |
-| 1,00 | 0,200 | 0,068 |
+| 0,20 | 0,059 | 0,055 |
+| 0,45 | 0,106 | 0,070 |
+| 0,70 | 0,153 | 0,094 |
+| 1,00 | 0,200 | 0,129 |
+
+Rund ein Ballkontakt pro Sekunde. Läuft der Ball weiter als `CONTROL_R` (0,16) voraus — etwa bei einer scharfen Richtungsänderung im Sprint — ist er frei, und wer zuerst dran ist bekommt ihn.
 
 Weil der Zweikampf gegen die **Ballposition** geht und nicht gegen den Körper, wird man im Sprint angreifbar: der Ball läuft voraus und ein Verteidiger kommt eher dran. Langsam dribbeln hält ihn am Fuß.
 | **SELECT** | Zurück zum Menü | Zurück zum Menü |
