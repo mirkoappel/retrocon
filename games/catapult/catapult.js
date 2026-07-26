@@ -41,20 +41,25 @@ window.RetroGames.catapult = {
     const SKY_TOP = '#0a0e14', SKY_BOT = '#141b24';
     const ROCK = '#1b2430', ROCK_EDGE = '#2c3a4c';
 
-    const MATCH_TIME = 90;      // Sekunden bis Zeitablauf
+    const MATCH_TIME = 180;     // Sekunden bis Zeitablauf
     const RELOAD     = 2.0;     // Nachladezeit nach dem Schuss
     const CHARGE_T   = 1.1;     // Sekunden von 0 auf volle Kraft
     const ANGLE_MIN  = 15, ANGLE_MAX = 75;
     const ANGLE_RATE = 48;      // Grad/s bei Dpad-/Tastatur-Steuerung
     const WIND_EVERY = 7;       // Sekunden bis ein neuer Zielwind gewürfelt wird
+    const AI_ANGLE_ERR = 7;     // Grad Streuung auf den KI-Zielwinkel
+    const AI_POWER_ERR = 0.11;  // relative Streuung auf die KI-Kraft
+    // Denkpause vor jedem KI-Schuss. Wirksamster Hebel für die Spiellänge:
+    // eine bedächtige KI lässt dem Menschen Zeit, ohne schlecht zu zielen.
+    const AI_THINK_MIN = 1.4, AI_THINK_VAR = 1.8;
 
-    // Burg-Aufbau von unten nach oben. Der Kern trägt das Spiel:
-    // ist er zerstört, ist die Burg gefallen.
+    // Burg-Aufbau von unten nach oben. Jedes Segment fliegt beim ersten
+    // Treffer weg; ist der Kern zerstört, ist die Burg gefallen.
     const SEG_DEF = [
-      { key: 'KERN',  wide: true,  hp: 4, hf: 1.0 },
-      { key: 'MAUER', wide: true,  hp: 3, hf: 1.0 },
-      { key: 'TURM',  wide: false, hp: 3, hf: 1.0 },
-      { key: 'ZINNE', wide: false, hp: 2, hf: 0.8 }
+      { key: 'KERN',  wide: true,  hp: 1, hf: 1.0 },
+      { key: 'MAUER', wide: true,  hp: 1, hf: 1.0 },
+      { key: 'TURM',  wide: false, hp: 1, hf: 1.0 },
+      { key: 'ZINNE', wide: false, hp: 1, hf: 0.8 }
     ];
 
     let w = W, h = H;
@@ -97,7 +102,8 @@ window.RetroGames.catapult = {
       wind: 0, windTarget: 0, windTimer: WIND_EVERY,
       players: [], castles: [], shots: [], bits: [],
       winner: 0,          // 0 = offen, 1/2 = Spieler, -1 = unentschieden
-      shake: 0
+      shake: 0,
+      t: 0                // Laufzeit, treibt die Flaggen-Animation
     };
 
     function init() {
@@ -110,6 +116,7 @@ window.RetroGames.catapult = {
       state.bits = [];
       state.winner = 0;
       state.shake = 0;
+      state.t = 0;
       state.players = [0, 1].map(() => ({
         angle: 45, power: 0, charging: false, reload: 0,
         angleDir: 0, arm: 0, damage: 0,
@@ -292,8 +299,8 @@ window.RetroGames.catapult = {
       if (seg.hp <= 0) {
         const wasCore = seg.def.key === 'KERN';
         segs.splice(hit.slot, 1);            // darüberliegende Segmente rutschen nach
-        spawnBits(rc.x + rc.w / 2, rc.y + rc.h / 2, COL[hit.pi], 18, h * 0.5);
-        state.shake = Math.max(state.shake, 0.5);
+        spawnBits(rc.x + rc.w / 2, rc.y + rc.h / 2, COL[hit.pi], 26, h * 0.62);
+        state.shake = Math.max(state.shake, 0.6);
         sndBreak();
         if (wasCore) endMatch(hit.pi === 0 ? 2 : 1);
       } else {
@@ -359,10 +366,11 @@ window.RetroGames.catapult = {
       }
       if (!best) return null;
 
-      // Unschärfe, damit die KI schlagbar bleibt
+      // Unschärfe, damit die KI schlagbar bleibt. Weil jedes Segment schon
+      // beim ersten Treffer wegfliegt, entscheidet dieser Wert die Spiellänge.
       return {
-        angle: Math.max(ANGLE_MIN, Math.min(ANGLE_MAX, best.angle + (Math.random() * 2 - 1) * 3)),
-        power: Math.max(0.05, Math.min(1, best.power * (1 + (Math.random() * 2 - 1) * 0.05)))
+        angle: Math.max(ANGLE_MIN, Math.min(ANGLE_MAX, best.angle + (Math.random() * 2 - 1) * AI_ANGLE_ERR)),
+        power: Math.max(0.05, Math.min(1, best.power * (1 + (Math.random() * 2 - 1) * AI_POWER_ERR)))
       };
     }
 
@@ -379,7 +387,7 @@ window.RetroGames.catapult = {
       if (!sol) { p.aiWait = 0.6; return; }
       p.angle = sol.angle;
       p.aiPower = sol.power;
-      p.aiWait = 0.4 + Math.random() * 0.7;   // Denkpause vor dem nächsten Schuss
+      p.aiWait = AI_THINK_MIN + Math.random() * AI_THINK_VAR;
       startCharge(pi);
     }
 
@@ -427,6 +435,8 @@ window.RetroGames.catapult = {
       },
 
       update(dt) {
+        state.t += dt;
+
         // Partikel und Screenshake laufen auch im Sieger-Screen weiter
         for (let i = state.bits.length - 1; i >= 0; i--) {
           const b = state.bits[i];
@@ -534,6 +544,8 @@ window.RetroGames.catapult = {
         ctx.fill();
         ctx.stroke();
 
+        drawFlag();
+
         // Boden
         ctx.fillStyle = '#161d26';
         ctx.fillRect(-w * 0.05, d.groundY, w * 1.1, h - d.groundY + h * 0.05);
@@ -583,6 +595,102 @@ window.RetroGames.catapult = {
     };
 
     // ── Rendering-Helfer ─────────────────────────────────
+    // Flagge auf der Bergspitze: zeigt Windrichtung und -stärke dort an,
+    // wo die Flugbahnen vorbeikommen. Bei Flaute hängt sie schlaff herunter.
+    function drawFlag() {
+      const d = dims();
+      const px = d.mtnX, py = d.groundY - d.mtnH;
+      const poleH = h * 0.1;
+      const top = py - poleH;
+
+      ctx.strokeStyle = '#5a6b80';
+      ctx.lineWidth = Math.max(2, w * 0.0025);
+      ctx.lineCap = 'butt';
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px, top);
+      ctx.stroke();
+
+      const mag = Math.min(1, Math.abs(state.wind));
+      const dir = state.wind >= 0 ? 1 : -1;
+      const len = h * 0.022 + mag * h * 0.085;   // Tuch streckt sich mit dem Wind
+      const droop = (1 - mag) * h * 0.06;        // …und sackt bei Flaute durch
+      const cloth = h * 0.032;
+      const amp = mag * h * 0.014;
+      const phase = state.t * (3 + mag * 7);
+
+      const edge = (off) => {
+        const pts = [];
+        for (let i = 0; i <= 10; i++) {
+          const t = i / 10;
+          pts.push({
+            x: px + dir * len * t,
+            y: top + off + droop * t * t + Math.sin(t * 4 - phase) * amp * t
+          });
+        }
+        return pts;
+      };
+      const upper = edge(0), lower = edge(cloth).reverse();
+
+      ctx.beginPath();
+      ctx.moveTo(upper[0].x, upper[0].y);
+      upper.forEach(p => ctx.lineTo(p.x, p.y));
+      lower.forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.closePath();
+      ctx.fillStyle = AMBER;
+      ctx.globalAlpha = 0.55 + mag * 0.4;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // Windskala: Balken wächst aus der Mitte in die Windrichtung,
+    // dahinter leuchten bis zu drei Chevrons je nach Stärke auf.
+    function drawWindGauge(cx, cy) {
+      const half = w * 0.075, trackH = h * 0.016;
+      const mag = Math.min(1, Math.abs(state.wind));
+      const dir = state.wind >= 0 ? 1 : -1;
+
+      ctx.fillStyle = '#1e2530';
+      ctx.fillRect(cx - half, cy, half * 2, trackH);
+
+      ctx.fillStyle = AMBER;
+      ctx.globalAlpha = 0.9;
+      ctx.fillRect(cx, cy, dir * half * mag, trackH);
+      ctx.globalAlpha = 1;
+
+      // Mittelmarke
+      ctx.fillStyle = '#8a9bb0';
+      ctx.fillRect(cx - w * 0.0012, cy - trackH * 0.35, w * 0.0024, trackH * 1.7);
+
+      ctx.strokeStyle = '#3a4756';
+      ctx.lineWidth = Math.max(1, w * 0.001);
+      ctx.strokeRect(cx - half, cy, half * 2, trackH);
+
+      // Chevrons hinter dem Balkenende
+      const chev = w * 0.011;
+      for (let i = 0; i < 3; i++) {
+        const lit = mag > 0.2 + i * 0.28;
+        const x = cx + dir * (half + chev * 0.6 + i * chev);
+        ctx.strokeStyle = AMBER;
+        ctx.globalAlpha = lit ? 0.95 : 0.15;
+        ctx.lineWidth = Math.max(2, w * 0.0028);
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x - dir * chev * 0.35, cy - trackH * 0.5);
+        ctx.lineTo(x + dir * chev * 0.35, cy + trackH * 0.5);
+        ctx.lineTo(x - dir * chev * 0.35, cy + trackH * 1.5);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      ctx.fillStyle = AMBER;
+      ctx.globalAlpha = 0.7;
+      ctx.font = `${Math.floor(h * 0.022)}px "Press Start 2P", Courier New`;
+      ctx.textAlign = 'center';
+      ctx.fillText('WIND', cx, cy - h * 0.014);
+      ctx.globalAlpha = 1;
+    }
+
     function drawCastle(pi) {
       const segs = state.castles[pi];
       for (let s = 0; s < segs.length; s++) {
@@ -738,14 +846,7 @@ window.RetroGames.catapult = {
       ctx.textAlign = 'center';
       ctx.fillText(`${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`, w / 2, top + barH);
 
-      // Windanzeige
-      const wind = state.wind;
-      const arrow = wind >= 0 ? '→' : '←';
-      ctx.fillStyle = AMBER;
-      ctx.globalAlpha = 0.85;
-      ctx.font = `${Math.floor(h * 0.026)}px "Press Start 2P", Courier New`;
-      ctx.fillText(`${arrow} WIND ${Math.abs(wind).toFixed(1)}`, w / 2, top + barH + h * 0.055);
-      ctx.globalAlpha = 1;
+      drawWindGauge(w / 2, top + barH + h * 0.052);
     }
 
     function drawGameOver() {

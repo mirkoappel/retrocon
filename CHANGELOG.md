@@ -2,6 +2,18 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.8.1]
+
+### Geändert
+- **CATAPULT — Balancing nach dem ersten Playtest:**
+  - Segmente fliegen jetzt **beim ersten Treffer** weg (vorher 2–4 HP): vier Treffer legen eine Burg, jeder Treffer ist sofort sichtbar
+  - Matchdauer von 90 s auf **180 s** erhöht — Matches liefen vorher regelmäßig in den Timer
+  - KI schießt bedächtiger (Denkpause 1,4–3,2 s statt 0,4–1,1 s) und streut etwas mehr (±7° / ±11 %). Da jedes Segment beim ersten Treffer fällt, ist die Denkpause der wirksamste Hebel für die Spiellänge; ein KI-gegen-KI-Match dauert damit ~28–56 s statt ~13 s
+  - Mehr Trümmer und stärkerer Screenshake beim Einsturz
+- **CATAPULT — Windanzeige ohne Zahlenwert**, weil sich „WIND 0.5" schlecht vorstellen ließ:
+  - **Flagge auf der Bergspitze** — streckt sich in Windrichtung, weht schneller bei starkem Wind, hängt bei Flaute schlaff herunter
+  - **Skala unter dem Timer** — Balken wächst aus der Mitte in die Windrichtung, dahinter leuchten bis zu drei Chevrons je nach Stärke auf
+
 ## [0.8.0]
 
 ### Hinzugefügt
