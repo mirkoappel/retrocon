@@ -222,10 +222,19 @@ export function startGame(name) {
   (function loop(now) {
     const dt = Math.min(50, now - last) / 1000; last = now;
     if (!paused) {
+      // Tastatur bleibt immer bedienbar, auch wenn für den Platz ein Controller
+      // verbunden ist. Bei verbundenem Controller wird sie aber nur
+      // durchgereicht, solange wirklich eine Taste liegt — ein leeres
+      // Tastatur-Gamepad würde sonst jeden Frame die Controller-Eingabe
+      // überschreiben. Der Loslass-Frame geht mit durch, damit Flanken
+      // (Taste loslassen = schießen) nicht verlorengehen.
       for (const p of localPlayers) {
-        if (!conns.has(p)) {
-          const kbGp = makeKbGamepad(p);
-          currentGame.input?.(p, kbGp, prevKbGp[p] || null);
+        const kbGp = makeKbGamepad(p);
+        const prevGp = prevKbGp[p] || null;
+        const busy = kbGp.joystick.active || kbGp.a || kbGp.b;
+        const wasBusy = prevGp && (prevGp.joystick.active || prevGp.a || prevGp.b);
+        if (!conns.has(p) || busy || wasBusy) {
+          currentGame.input?.(p, kbGp, prevGp);
           prevKbGp[p] = kbGp;
         }
       }

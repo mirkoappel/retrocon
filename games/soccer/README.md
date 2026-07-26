@@ -47,6 +47,8 @@ Früher wechselte die Steuerung zusätzlich laufend zum ballnächsten Mitspieler
 | **A** (Enter / Leertaste) | Schuss aufs Tor | Spieler wechseln |
 | **B** (Shift / Q) | Abspiel zum besten Mitspieler | Grätsche — 0,4 s Antritt mit deutlich höherer Chance auf Balleroberung, sichtbar als in Laufrichtung gestreckter Körper |
 | **Richtung** | Laufen | Laufen |
+
+Am **Analogstick bestimmt die Auslenkung das Tempo** (Totzone 0,18, volles Tempo ab 0,90, minimal 40 %). Tastatur und Dpad bleiben digital — dort gibt es nur ganz oder gar nicht.
 | **SELECT** | Zurück zum Menü | Zurück zum Menü |
 
 Die Menüs sind zusätzlich **mit der Maus bedienbar**: Ein Klick auf einen Eintrag oder eine Mannschaftskachel wählt ihn direkt aus, auf den Panel-Screens (Anpfiff, Halbzeit, Ergebnis) bestätigt ein Klick irgendwohin. Weil die Menüs auf dem Canvas gezeichnet werden und es keine DOM-Elemente zum Anklicken gibt, registriert jede Zeichenfunktion ihre Klickflächen (`hotspot`); Tastatur, Controller und Maus laufen über dieselben Funktionen `activate()` und `goBack()`.

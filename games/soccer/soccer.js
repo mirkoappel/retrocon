@@ -51,6 +51,9 @@ window.RetroGames.soccer = {
     const GK_REACH   = 0.65;     // Fangradius muss klar unter der halben Torbreite bleiben
     const KEEPER_SPACE = 0.17;  // Abstand, den Gegner zum ballhaltenden Torwart wahren
     const GK_REACT   = 0.28;    // Reaktionszeit, bevor der Torwart dem Schuss folgt
+    const STICK_DEAD = 0.18;    // Totzone des Analogsticks
+    const STICK_FULL = 0.90;    // ab dieser Auslenkung volles Tempo
+    const STICK_MIN  = 0.40;    // Tempo bei minimaler Auslenkung (Anteil)
     const FRICTION   = 0.72;
     const PASS_SPEED = 0.50;
     const SHOT_SPEED = 0.70;
@@ -465,12 +468,13 @@ window.RetroGames.soccer = {
         // deshalb hier ausschließlich das Dpad auswerten.
         const x = (gp.dpad?.right ? 1 : 0) - (gp.dpad?.left ? 1 : 0);
         const y = (gp.dpad?.down ? 1 : 0) - (gp.dpad?.up ? 1 : 0);
-        return { x, y };
+        return { x, y, analog: false };
       }
-      if (gp.joystick?.active) return { x: gp.joystick.x, y: gp.joystick.y };
+      // analog: true merkt sich, dass das Tempo der Auslenkung folgen soll
+      if (gp.joystick?.active) return { x: gp.joystick.x, y: gp.joystick.y, analog: true };
       const x = (gp.dpad?.right ? 1 : 0) - (gp.dpad?.left ? 1 : 0);
       const y = (gp.dpad?.down ? 1 : 0) - (gp.dpad?.up ? 1 : 0);
-      return { x, y };
+      return { x, y, analog: false };
     }
 
     const inputs = new Map();   // Spieler-Slot → letzter Bewegungsvektor
@@ -653,8 +657,15 @@ window.RetroGames.soccer = {
         else if (p.ctrl) {
           const mv = inputs.get(p.ctrl) || { x: 0, y: 0 };
           const len = Math.hypot(mv.x, mv.y);
-          const sp = SPEED_HUM * (p.tackle > 0 ? 1.35 : 1);
-          if (len > 0.15) {
+          // Am Analogstick bestimmt die Auslenkung das Tempo — vorher wurde der
+          // Vektor normalisiert und man lief immer mit Volltempo. Tastatur und
+          // Dpad bleiben digital, dort gibt es nur ganz oder gar nicht.
+          const push = mv.analog
+            ? STICK_MIN + (1 - STICK_MIN) *
+              clamp((len - STICK_DEAD) / (STICK_FULL - STICK_DEAD), 0, 1)
+            : 1;
+          const sp = SPEED_HUM * (p.tackle > 0 ? 1.35 : 1) * push;
+          if (len > (mv.analog ? STICK_DEAD : 0.15)) {
             // Bildschirmeingabe in Feldrichtung umrechnen. Im Querformat wird
             // nach rechts angegriffen, dort entspricht rechts also +y.
             if (isLandscape()) { p.vx = mv.y / len * sp; p.vy = mv.x / len * sp; }
