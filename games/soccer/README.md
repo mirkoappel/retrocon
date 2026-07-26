@@ -140,9 +140,36 @@ Damit keine Mannschaft allein dadurch im Vorteil ist, dass sie im Array weiter h
 
 Ohne diese Trennung gewann die zweite Mannschaft im Testlauf rund **dreimal so viele Tore**.
 
+## Angriffsverhalten der KI
+
+Die KI lief früher jeden Angriff durch die Mitte und dribbelte dem Torwart in die Arme, ohne abzuschließen. Gemessen über vier Spiele: **97 % aller Vorstöße ins letzte Viertel kamen zentral**, und es gab 38 Läufe pro Spiel direkt in den Torwart.
+
+Ursache war der Abschluss-Test: Er wertete *jeden* Gegner im Weg als Block — **auch den Torwart**. Genau in Schussdistanz stand der aber immer davor, also fiel die Entscheidung dauerhaft gegen den Schuss.
+
+Drei Bausteine ersetzen das:
+
+| Baustein | Wirkung |
+|---|---|
+| `shotLane(p)` | Prüft sieben Zielpunkte über die Torbreite und misst, wie viel Luft die Schussbahn am nächsten Gegner lässt. Der Torwart zählt breiter mit (`PLAYER_R * 1,5`) — an ihm muss man **vorbeizielen**, er darf den Abschluss nicht verhindern. Geschossen wird auf die freieste Ecke, mit einer Bereitschaft, die mit Nähe und freier Bahn steigt |
+| `state.route` | Je Ballgewinn wird ein Angriffsweg gewürfelt (`ROUTES`, Flügel doppelt gewichtet). Der Ballführende zieht erst auf diese Bahn und stößt dann vor; erst auf Strafraumhöhe schneidet er nach innen |
+| Einlaufen | Liegt der Ball im letzten Drittel, läuft der zweite Angreifer auf der **ballabgewandten** Seite in den Strafraum. Vorher hing er immer hinter dem Ballführenden |
+
+Nachgemessen, je vier volle Spiele:
+
+| | vorher | jetzt |
+|---|---|---|
+| Vorstöße durch die Mitte | 97 % | 52 % |
+| über den Halbraum | 2 % | 34 % |
+| über den Flügel | 1 % | 14 % |
+| Schüsse pro Spiel | 34,3 | 22,8 |
+| Schussentfernung (10 %–90 %) | 0,156–0,224 | 0,163–0,333 |
+| Läufe direkt in den Torwart | 38,3 | 25,3 |
+
+Es wird also **seltener, aber aus deutlich verschiedeneren Lagen** geschossen — der schmale Ring vor dem Tor ist weg.
+
 ## Balance
 
-Ein KI-gegen-KI-Spiel endet im Schnitt bei **rund 4 Toren gesamt** (typisch 5:2, 1:3, 2:3). Menschen treffen besser: ihre Schussstreuung ist mit dem Faktor 0,7 deutlich enger als die der KI.
+Ein KI-gegen-KI-Spiel endet im Schnitt bei **rund 3 Toren gesamt** (über 48 Spiele gemessen: 3,2 und 3,0 pro Spiel in zwei Stichproben, Seitenverteilung 1,9 : 1,3 und 1,4 : 1,5 — der Unterschied der ersten Stichprobe war Rauschen). Menschen treffen besser: ihre Schussstreuung ist mit dem Faktor 0,7 deutlich enger als die der KI.
 
 Das Grundtempo ist bewusst gemächlich — ein Feldspieler braucht rund 6,5 Sekunden für die Feldlänge. Wer daran dreht, muss **Spieler- und Balltempo zusammen** verstellen: verlangsamt man nur die Spieler, wird der Torwart gegenüber dem Schuss wehrlos.
 

@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.25]
+
+### Geändert
+- **STREET SOCCER: Die KI greift strategischer und abwechslungsreicher an.** Sie lief bisher jeden Angriff durch die Mitte und dribbelte dem Torwart in die Arme, ohne abzuschließen — gemessen über vier Spiele: 97 % aller Vorstöße ins letzte Viertel kamen zentral, 38 Läufe pro Spiel endeten direkt im Torwart. Ursache war der Abschluss-Test: Er wertete jeden Gegner im Weg als Block, **auch den Torwart** — und der stand in Schussdistanz immer davor
+- Neu: `shotLane()` prüft sieben Zielpunkte über die Torbreite und misst die Luft am nächsten Gegner. Der Torwart zählt breiter mit, an ihm wird vorbeigezielt statt vor ihm abgebrochen. Geschossen wird auf die freieste Ecke
+- Neu: Je Ballgewinn würfelt die KI einen Angriffsweg (links / Mitte / rechts, Flügel doppelt gewichtet), zieht erst auf diese Bahn und schneidet erst auf Strafraumhöhe nach innen
+- Neu: Liegt der Ball im letzten Drittel, läuft der zweite Angreifer auf der ballabgewandten Seite in den Strafraum ein — vorher hing er immer hinter dem Ballführenden
+- Ergebnis, je vier Spiele nachgemessen: Vorstöße durch die Mitte 97 % → 52 %, über den Halbraum 2 % → 34 %, über den Flügel 1 % → 14 %. Läufe direkt in den Torwart 38,3 → 25,3 pro Spiel. Geschossen wird seltener (34,3 → 22,8), aber aus viel verschiedeneren Lagen: Entfernung 0,156–0,224 → 0,163–0,333
+- Torquote über 48 Spiele: 3,2 und 3,0 pro Spiel in zwei Stichproben, Halbzeiten gleichmäßig
+
 ## [0.11.24]
 
 ### Behoben

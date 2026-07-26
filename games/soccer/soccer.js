@@ -65,6 +65,11 @@ window.RetroGames.soccer = {
     const CONTROL_R    = 0.115; // darüber ist der Ball nicht mehr kontrolliert
     const CONTACT      = PLAYER_R + BALL_R;   // Spielerrand berührt Ballrand
     const TURN_PULL    = 7.0;   // wie schnell der vorgelegte Ball der Laufrichtung folgt
+    const SHOT_RANGE   = 0.36;  // ab hier denkt die KI überhaupt ans Abschließen
+    const LANE_MIN     = 0.012; // so viel Luft braucht die Schussbahn am Gegner vorbei
+    // Angriffswege, die sich die KI je Ballbesitz aussucht. Flügel doppelt
+    // gewichtet — sonst läuft jeder Angriff wieder durch die Mitte.
+    const ROUTES = [-1, -1, 0, 1, 1];
     const REACH_EPS    = 0.002; // winzige Toleranz gegen Rundungslücken
     const INTENT_TIME  = 1.1;   // so lange wartet eine Schuss-/Passabsicht auf Kontakt
     const FRICTION   = 0.72;
@@ -117,6 +122,7 @@ window.RetroGames.soccer = {
 
     // ── Zustand ──────────────────────────────────────────
     const state = {
+      route: 0,             // Angriffsweg: -1 links, 0 Mitte, 1 rechts
       phase: 'mode',        // mode|count|side|team|foe|intro|play|half|result|champion|out
       twoPlayers: false,    // zu zweit gewählt? Die Seiten-Frage hat sonst keinen Sinn
       teamMode: 'coop',     // coop = beide Menschen in einer Mannschaft, versus = gegeneinander
@@ -401,6 +407,10 @@ window.RetroGames.soccer = {
     function giveBall(p) {
       const prev = state.ball.owner;
       if (prev && prev !== p) prev.lockout = 0.45;
+      // Bei jedem Ballgewinn einen neuen Angriffsweg wählen: mal über links,
+      // mal durch die Mitte, mal über rechts. Ohne das lief die KI jedes Mal
+      // dieselbe Bahn schnurstracks auf den Torwart zu.
+      if (!prev || prev.team !== p.team) state.route = ROUTES[(Math.random() * ROUTES.length) | 0];
       state.ball.owner = p;
       state.ball.vx = 0; state.ball.vy = 0;
       // Jeder Zweikampf beginnt bei null, damit keine alten Druckwerte
@@ -412,7 +422,7 @@ window.RetroGames.soccer = {
     // durchgang ausgeführt. Sonst sähe eine später verarbeitete Mannschaft den
     // freigegebenen Ball noch im selben Frame und reagierte einen Tick früher.
     let pending = null;
-    function shoot(p) { if (state.ball.owner === p) pending = { kind: 'shoot', p, t: INTENT_TIME }; }
+    function shoot(p, aim) { if (state.ball.owner === p) pending = { kind: 'shoot', p, t: INTENT_TIME, aim }; }
     function pass(p)  { if (state.ball.owner === p) pending = { kind: 'pass',  p, t: INTENT_TIME }; }
 
     // Getreten wird erst, wenn der Spieler den Ball auch berührt. Bis dahin
@@ -421,26 +431,31 @@ window.RetroGames.soccer = {
     function applyPending(dt) {
       if (!pending) return;
       const { kind, p } = pending;
+      const pending2 = pending;
       const b = state.ball;
       if (b.owner !== p) { pending = null; return; }
       if (Math.hypot(b.x - p.x, b.y - p.y) <= CONTACT + REACH_EPS) {
         pending = null;
-        if (kind === 'shoot') doShoot(p); else doPass(p);
+        if (kind === 'shoot') doShoot(p, pending2.aim); else doPass(p);
         return;
       }
       pending.t -= dt;
       if (pending.t <= 0) pending = null;
     }
 
-    function doShoot(p) {
+    function doShoot(p, aim) {
       const b = state.ball;
       if (b.owner !== p) return;
       const gy = goalY(p.team);
       // Zielpunkt im Tor leicht streuen; Genauigkeit sinkt mit der Distanz
       const d = Math.abs(gy - p.y);
       const spread = GOAL_W * (0.55 + d * 1.7) * (p.ctrl ? 0.7 : 1 / skill());
+      // Mit Zielpunkt (KI) wird auf die freie Ecke gezielt, ohne (Mensch)
+      // weiterhin auf eine zufällige Ecke
       const corner = (Math.random() < 0.5 ? -1 : 1) * GOAL_W * 0.36;
-      const tx = FIELD_W / 2 + corner + (Math.random() - 0.5) * spread;
+      const tx = aim !== undefined
+        ? aim + (Math.random() - 0.5) * spread
+        : FIELD_W / 2 + corner + (Math.random() - 0.5) * spread;
       const dx = tx - p.x, dy = gy - p.y;
       const len = Math.hypot(dx, dy) || 1;
       const sp = SHOT_SPEED * (0.82 + Math.min(0.35, d * 0.5));
@@ -570,6 +585,32 @@ window.RetroGames.soccer = {
       }
     }
 
+    // Bester Zielpunkt im Tor. Geprüft wird für mehrere Punkte über die
+    // Torbreite, wie viel Luft die Schussbahn am nächsten Gegner lässt.
+    // Der Torwart zählt mit, aber breiter — an ihm muss man vorbeizielen,
+    // er darf den Abschluss nicht ganz verhindern. Vorher galt jeder Gegner
+    // im Weg pauschal als Block, wodurch die KI vor dem Tor nie abschloss.
+    function shotLane(p) {
+      const gy = goalY(p.team);
+      let best = null;
+      for (let i = 0; i < 7; i++) {
+        const tx = FIELD_W / 2 + (i / 6 - 0.5) * GOAL_W * 0.8;
+        const dx = tx - p.x, dy = gy - p.y;
+        const len = Math.hypot(dx, dy) || 1;
+        let clear = Infinity;
+        for (const o of state.players) {
+          if (o.team === p.team) continue;
+          const t = ((o.x - p.x) * dx + (o.y - p.y) * dy) / (len * len);
+          if (t <= 0.05 || t > 1) continue;              // nur was wirklich davor steht
+          const d = Math.hypot(o.x - (p.x + dx * t), o.y - (p.y + dy * t))
+                  - PLAYER_R * (o.role === 'GK' ? 1.5 : 1);
+          if (d < clear) clear = d;
+        }
+        if (!best || clear > best.clear) best = { tx, clear, len };
+      }
+      return best;
+    }
+
     function aiWithBall(p, dt) {
       const gy = goalY(p.team);
       const gdist = Math.hypot(FIELD_W / 2 - p.x, gy - p.y);
@@ -579,19 +620,28 @@ window.RetroGames.soccer = {
         if (o.team === p.team) continue;
         press = Math.min(press, dist(p, o));
       }
-      let blocked = false;
-      for (const o of state.players) {
-        if (o.team === p.team) continue;
-        if (dist(p, o) > 0.10) continue;
-        if ((o.y - p.y) * (gy - p.y) > 0) { blocked = true; break; }   // steht im Weg zum Tor
+      // Abschluss: je näher am Tor und je freier die Bahn, desto eher.
+      // Dadurch fallen sowohl Distanzschüsse bei freier Bahn als auch
+      // Abschlüsse aus kurzer Distanz, wo vorher nur weitergedribbelt wurde.
+      const lane = shotLane(p);
+      if (lane.len < SHOT_RANGE + 0.06 * skill() && lane.clear > LANE_MIN) {
+        const urge = (1 - lane.len / SHOT_RANGE) * Math.min(1, lane.clear / 0.05);
+        if (Math.random() < dt * (0.3 + 1.7 * urge) * skill()) { shoot(p, lane.tx); return; }
       }
-      if (!blocked && gdist < 0.21 + 0.04 * skill() && Math.random() < dt * 2.2 * skill()) { shoot(p); return; }
       if (press < 0.075 && Math.random() < dt * 2.0) { pass(p); return; }
       if (gdist > 0.55 && press < 0.11 && Math.random() < dt * 0.9) { pass(p); return; }
-      // Dribbeln Richtung Tor, dabei etwas ausweichen
-      const dx = FIELD_W / 2 - p.x, dy = gy - p.y;
-      const len = Math.hypot(dx, dy) || 1;
-      let tx = p.x + dx / len * 0.3, ty = p.y + dy / len * 0.3;
+
+      // Laufweg nach gewähltem Angriffsweg. Über den Flügel bis auf Höhe des
+      // Strafraums, dort nach innen ziehen — statt immer geradeaus aufs Tor.
+      const lead = Math.abs(gy - p.y);
+      const wing = FIELD_W / 2 + state.route * FIELD_W * 0.36;
+      // Erst auf die Bahn ziehen, dann vorstoßen. Ein bloß schräger Kurs
+      // reichte nicht — der Spieler kam vorn trotzdem in der Mitte an, weil
+      // er nach vorn viel mehr Strecke macht als zur Seite.
+      const nearGoal = lead < BOX_D * 1.6;
+      const goalX = nearGoal ? FIELD_W / 2 + state.route * GOAL_W * 0.45 : wing;
+      let tx = nearGoal ? goalX : p.x + clamp(goalX - p.x, -0.3, 0.3);
+      let ty = p.y + (gy > p.y ? 1 : -1) * (nearGoal ? 0.3 : 0.22);
       for (const o of state.players) {
         if (o.team === p.team) continue;
         const d = dist(p, o);
@@ -634,10 +684,20 @@ window.RetroGames.soccer = {
         if (chaser === p) { tx = b.x; ty = b.y; }
         else { tx = hp.x * 0.6 + b.x * 0.4; ty = hp.y * 0.7 + b.y * 0.3; }
       } else if (owner.team === p.team) {
-        // Anbieten: Position Richtung gegnerisches Tor verschieben
-        const push = gy === 1 ? 0.16 : -0.16;
-        tx = hp.x * 0.65 + b.x * 0.35;
-        ty = hp.y + push + (b.y - 0.5) * 0.25;
+        if (Math.abs(gy - b.y) < 0.30) {
+          // Ball im letzten Drittel: auf die ballabgewandte Seite in den
+          // Strafraum einlaufen. Damit gibt es überhaupt ein Ziel für Flanke
+          // und Abstauber — vorher blieb der zweite Angreifer immer hinter
+          // dem Ballführenden hängen.
+          const side = b.x < FIELD_W / 2 ? 1 : -1;
+          tx = FIELD_W / 2 + side * GOAL_W * 0.6;
+          ty = gy === 1 ? 1 - BOX_D * 0.7 : BOX_D * 0.7;
+        } else {
+          // Anbieten: Position Richtung gegnerisches Tor verschieben
+          const push = gy === 1 ? 0.16 : -0.16;
+          tx = hp.x * 0.65 + b.x * 0.35;
+          ty = hp.y + push + (b.y - 0.5) * 0.25;
+        }
       } else {
         // Verteidigen: einer presst, der Rest deckt den Raum zum eigenen Tor
         if (chaser === p) {
