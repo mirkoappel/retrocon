@@ -2,6 +2,23 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.0]
+
+### Hinzugefügt
+- **STREET SOCCER — miteinander oder gegeneinander wählbar.** Neuer Auswahlschritt nach der Modus-Wahl: bei MITEINANDER spielen beide Menschen in derselben Mannschaft gegen die KI, bei GEGENEINANDER steuert Spieler 2 die gegnerische Mannschaft. Im World Cup bleibt es der Turnierlauf von Spieler 1
+- **STREET SOCCER — Torwart-Schutz.** Hat der Torwart den Ball in der Hand, weichen gegnerische Feldspieler auf 0,17 Feldeinheiten zurück, statt ihm im Abschlag zu stehen und den Ball sofort wieder abzufangen. Erobern konnte man ihm den Ball schon vorher nicht
+- **STREET SOCCER — Verlängerung endet garantiert.** Im Golden Goal schrumpft der Fangradius beider Torhüter gleichmäßig über 90 Sekunden auf 35 %. Vorher konnte ein torloses Turnierspiel unbegrenzt weiterlaufen
+
+### Geändert
+- **STREET SOCCER: 3 gegen 3** statt 5 gegen 5 (Torwart + zwei Feldspieler). Die Aufstellung wird für die zweite Mannschaft jetzt auch in x gespiegelt
+- **STREET SOCCER:** Die KI schießt nur noch bei freier Schussbahn und dribbelt weiter, statt ohne Anspielpartner blind aufs Tor zu dreschen. Das halbierte die Zahl der Schüsse auf ein realistisches Maß
+- **STREET SOCCER:** Torhüter reagieren mit Verzögerung (`GK_REACT`) statt den Kreuzungspunkt sofort vorauszuberechnen, und bleiben näher an der Tormitte; die KI zielt auf die Ecken statt in die Mitte
+
+### Behoben
+- **STREET SOCCER: In 3 gegen 3 fiel überhaupt kein Tor mehr.** Zwei Ursachen, beide durch Simulation eingekreist:
+  - Der Fangradius des Torwarts (0,0795) war größer als die halbe Torbreite (0,0775) — er deckte das komplette Tor ab. In 5 gegen 5 fiel das nicht auf, weil im Gewühl mehr Abpraller entstanden
+  - Die Ballaufnahme lief vor der Torprüfung, sodass der Torwart auch Bälle herausfischte, die die Linie bereits überquert hatten
+
 ## [0.10.0]
 
 ### Hinzugefügt

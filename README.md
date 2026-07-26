@@ -103,7 +103,7 @@ git push
 | **VOLLEYBALL** | 1–2 | Slime-Volleyball; Joystick bewegt Slime, A springt, erster auf 7 Punkte gewinnt |
 | **DUST RUSH** | 1–2 | Staubsauger-Roboter; Panzersteuerung, Sektoren sammeln, Ladestation anfahren, meiste Punkte in 90 s gewinnt |
 | **CATAPULT** | 1–2 | Burgen-Duell; Joystick stellt den Winkel, A halten lädt Kraft, Steine über den Berg auf die gegnerische Burg |
-| **STREET SOCCER** | 1–2 | Kleinfeld-Fußball von oben, 5 gegen 5; zwei Menschen in einer Mannschaft gegen die KI, World-Cup-Modus mit vier Runden |
+| **STREET SOCCER** | 1–2 | Kleinfeld-Fußball von oben, 3 gegen 3; miteinander oder gegeneinander spielbar, World-Cup-Modus mit vier Runden |
 
 ---
 

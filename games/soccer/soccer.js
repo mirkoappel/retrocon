@@ -40,15 +40,17 @@ window.RetroGames.soccer = {
     // Beide Achsen im selben Maßstab, dadurch ist Bewegung richtungsunabhängig
     // und resize() muss nichts umrechnen.
     const FIELD_W   = 0.66;
-    const GOAL_W    = 0.155;
+    const GOAL_W    = 0.215;
     const BOX_W     = 0.38, BOX_D = 0.13;   // Strafraum
     const PLAYER_R  = 0.021;
     const BALL_R    = 0.0105;
 
     const SPEED      = 0.30;    // Feldeinheiten/s
     const SPEED_HUM  = 0.325;
-    const SPEED_GK   = 0.40;    // Torwart darf auf der Linie schneller sein als Feldspieler
-    const GK_REACH   = 3.0;     // Fangradius als Vielfaches des Spielerradius
+    const SPEED_GK   = 0.28;    // Torwart darf auf der Linie schneller sein als Feldspieler
+    const GK_REACH   = 1.15;     // Fangradius muss klar unter der halben Torbreite bleiben
+    const KEEPER_SPACE = 0.17;  // Abstand, den Gegner zum ballhaltenden Torwart wahren
+    const GK_REACT   = 0.28;    // Reaktionszeit, bevor der Torwart dem Schuss folgt
     const FRICTION   = 1.25;
     const PASS_SPEED = 0.88;
     const SHOT_SPEED = 1.20;
@@ -63,12 +65,12 @@ window.RetroGames.soccer = {
 
     // Aufstellung für die nach +y angreifende Mannschaft.
     // x als Anteil der Feldbreite, y als Anteil der Feldlänge.
+    // 3 gegen 3: Torwart + zwei Feldspieler. x wird für die zweite Mannschaft
+    // mitgespiegelt, damit beide Seiten wirklich gleich aufgestellt sind.
     const FORMATION = [
-      { role: 'GK',  x: 0.50, y: 0.045 },
-      { role: 'DEF', x: 0.50, y: 0.24 },
-      { role: 'MID', x: 0.24, y: 0.45 },
-      { role: 'MID', x: 0.76, y: 0.45 },
-      { role: 'FWD', x: 0.50, y: 0.66 }
+      { role: 'GK',  x: 0.50, y: 0.05 },
+      { role: 'DEF', x: 0.36, y: 0.30 },
+      { role: 'FWD', x: 0.64, y: 0.60 }
     ];
 
     const TEAMS = [
@@ -94,7 +96,8 @@ window.RetroGames.soccer = {
 
     // ── Zustand ──────────────────────────────────────────
     const state = {
-      phase: 'mode',        // mode|team|foe|intro|play|half|result|champion|out
+      phase: 'mode',        // mode|side|team|foe|intro|play|half|result|champion|out
+      teamMode: 'coop',     // coop = beide Menschen in einer Mannschaft, versus = gegeneinander
       menuSel: 0,
       mode: 'cup',
       myTeam: 0, foeTeam: 1,
@@ -102,7 +105,7 @@ window.RetroGames.soccer = {
       players: [], ball: null,
       score: [0, 0],
       half: 1, clock: HALF_TIME,
-      golden: false,
+      golden: false, goldenT: 0,
       msg: '', msgTimer: 0,
       kickoffFor: 0, kickoffLock: 0,
       shake: 0, t: 0,
@@ -170,9 +173,18 @@ window.RetroGames.soccer = {
       return Math.hypot(r1 - r2, g1 - g2, b1 - b2) < 110;
     }
 
+    // In der Verlängerung lassen beide Torhüter gleichmäßig nach, damit die
+    // Partie sicher endet statt endlos zu laufen
+    function gkFatigue() {
+      return state.golden ? Math.max(0.35, 1 - state.goldenT / 90) : 1;
+    }
+
     function homePos(team, i) {
       const f = FORMATION[i];
-      return { x: f.x * FIELD_W, y: team === 0 ? f.y : 1 - f.y };
+      return {
+        x: (team === 0 ? f.x : 1 - f.x) * FIELD_W,
+        y: team === 0 ? f.y : 1 - f.y
+      };
     }
 
     // ── Aufstellung ──────────────────────────────────────
@@ -211,7 +223,7 @@ window.RetroGames.soccer = {
       state.score = [0, 0];
       state.half = 1;
       state.clock = HALF_TIME;
-      state.golden = false;
+      state.golden = false; state.goldenT = 0;
       state.msg = ''; state.msgTimer = 0;
       buildTeams();
       state.kickoffFor = 0;
@@ -229,40 +241,51 @@ window.RetroGames.soccer = {
       const conns = api.getConns();
       return [1, 2].filter(p => conns.has(p));
     }
+    // Welche Mannschaft steuert ein Spieler-Slot? Im Modus „gegeneinander"
+    // übernimmt Spieler 2 die gegnerische Mannschaft, sonst spielen beide zusammen.
+    function teamOfSlot(slot) {
+      return (state.teamMode === 'versus' && slot === 2) ? 1 : 0;
+    }
     function assignControl(force = false) {
       if (!force && ctrlCooldown > 0) return;
       ctrlCooldown = 0.25;
       const slots = humanSlots();
-      const cands = state.players.filter(p => p.team === 0 && p.role !== 'GK');
-      if (!slots.length) { cands.forEach(c => c.ctrl = 0); return; }
+      const outfield = state.players.filter(p => p.role !== 'GK');
 
       const prevOf = new Map();
-      for (const c of cands) if (c.ctrl) prevOf.set(c.ctrl, c);
-      cands.forEach(c => c.ctrl = 0);
+      for (const c of outfield) if (c.ctrl) prevOf.set(c.ctrl, c);
+      outfield.forEach(c => c.ctrl = 0);
+      if (!slots.length) return;
 
       const b = state.ball;
       const taken = new Set();
-      const owner = (b.owner && b.owner.team === 0 && b.owner.role !== 'GK') ? b.owner : null;
 
-      // Wer den Ball hat, wird übernommen — möglichst von dem Slot, der ihn schon steuerte
-      if (owner) {
-        const slot = slots.find(s => prevOf.get(s) === owner) ?? slots[0];
-        owner.ctrl = slot;
-        taken.add(owner);
-      }
-      for (const slot of slots) {
-        if (owner && owner.ctrl === slot) continue;
-        let best = null, bd = Infinity;
-        for (const c of cands) {
-          if (taken.has(c)) continue;
-          const d = dist(c, b);
-          if (d < bd) { bd = d; best = c; }
+      for (const team of [0, 1]) {
+        const mine = slots.filter(s => teamOfSlot(s) === team);
+        if (!mine.length) continue;
+        const cands = outfield.filter(p => p.team === team);
+        const owner = (b.owner && b.owner.team === team && b.owner.role !== 'GK') ? b.owner : null;
+
+        // Wer den Ball hat, wird übernommen — möglichst von dem Slot, der ihn schon steuerte
+        if (owner) {
+          const slot = mine.find(s => prevOf.get(s) === owner) ?? mine[0];
+          owner.ctrl = slot;
+          taken.add(owner);
         }
-        // Hysterese: den bisherigen Spieler behalten, solange er nicht deutlich
-        // weiter weg ist — sonst springt die Steuerung im Getümmel hin und her
-        const prev = prevOf.get(slot);
-        if (prev && !taken.has(prev) && dist(prev, b) < bd * 1.35) best = prev;
-        if (best) { best.ctrl = slot; taken.add(best); }
+        for (const slot of mine) {
+          if (owner && owner.ctrl === slot) continue;
+          let best = null, bd = Infinity;
+          for (const c of cands) {
+            if (taken.has(c)) continue;
+            const d = dist(c, b);
+            if (d < bd) { bd = d; best = c; }
+          }
+          // Hysterese: den bisherigen Spieler behalten, solange er nicht deutlich
+          // weiter weg ist — sonst springt die Steuerung im Getümmel hin und her
+          const prev = prevOf.get(slot);
+          if (prev && prev.team === team && !taken.has(prev) && dist(prev, b) < bd * 1.35) best = prev;
+          if (best) { best.ctrl = slot; taken.add(best); }
+        }
       }
     }
 
@@ -296,8 +319,9 @@ window.RetroGames.soccer = {
       const gy = goalY(p.team);
       // Zielpunkt im Tor leicht streuen; Genauigkeit sinkt mit der Distanz
       const d = Math.abs(gy - p.y);
-      const spread = GOAL_W * (0.95 + d * 2.6) * (p.ctrl ? 0.7 : 1 / skill());
-      const tx = FIELD_W / 2 + (Math.random() - 0.5) * spread;
+      const spread = GOAL_W * (0.55 + d * 1.7) * (p.ctrl ? 0.7 : 1 / skill());
+      const corner = (Math.random() < 0.5 ? -1 : 1) * GOAL_W * 0.36;
+      const tx = FIELD_W / 2 + corner + (Math.random() - 0.5) * spread;
       const dx = tx - p.x, dy = gy - p.y;
       const len = Math.hypot(dx, dy) || 1;
       const sp = SHOT_SPEED * (0.82 + Math.min(0.35, d * 0.5));
@@ -313,7 +337,7 @@ window.RetroGames.soccer = {
       for (const q of state.players) {
         if (q.team !== p.team || q === p || q.role === 'GK') continue;
         const d = dist(p, q);
-        if (d > 0.55) continue;
+        if (d > 0.78) continue;
         // Fortschritt Richtung Tor belohnen, weite und gedeckte Bälle abwerten
         const progress = (gy === 1 ? q.y - p.y : p.y - q.y);
         const cover = state.players.reduce((s, o) =>
@@ -328,7 +352,10 @@ window.RetroGames.soccer = {
       const b = state.ball;
       if (b.owner !== p) return;
       const t = bestPassTarget(p);
-      if (!t) { doShoot(p); return; }
+      if (!t) {
+        if (p.role === 'GK') doShoot(p);   // Abschlag nach vorn
+        return;                            // Feldspieler dribbeln weiter
+      }
       // Auf den laufenden Mitspieler vorlegen
       const lx = t.x + t.vx * 0.18, ly = t.y + t.vy * 0.18;
       const dx = lx - p.x, dy = ly - p.y;
@@ -393,14 +420,19 @@ window.RetroGames.soccer = {
       const line = gy === 0 ? 0.035 : 0.965;
       // Auf der Linie mit dem Ball mitgehen, im Strafraum aktiv herauslaufen
       const inBox = Math.abs(b.y - gy) < BOX_D && Math.abs(b.x - FIELD_W / 2) < BOX_W / 2;
-      let tx = b.x, ty = line;
+      let tx = FIELD_W / 2 + (b.x - FIELD_W / 2) * 0.55, ty = line;
 
       // Fliegt der Ball aufs Tor, den Kreuzungspunkt vorausberechnen statt
       // dem Ball hinterherzulaufen — sonst kommt der Torwart nie rechtzeitig an
       const toward = !b.owner && ((gy === 0 && b.vy < -0.02) || (gy === 1 && b.vy > 0.02));
       if (toward) {
-        const tt = (line - b.y) / b.vy;
-        if (tt > 0 && tt < 1.5) tx = b.x + b.vx * tt;
+        p.react = (p.react || 0) + dt;
+        if (p.react >= GK_REACT) {
+          const tt = (line - b.y) / b.vy;
+          if (tt > 0 && tt < 1.5) tx = b.x + b.vx * tt;
+        }
+      } else {
+        p.react = 0;
       }
       tx = clamp(tx, FIELD_W / 2 - GOAL_W / 2 - 0.03, FIELD_W / 2 + GOAL_W / 2 + 0.03);
 
@@ -427,7 +459,13 @@ window.RetroGames.soccer = {
         if (o.team === p.team) continue;
         press = Math.min(press, dist(p, o));
       }
-      if (gdist < 0.16 + 0.03 * skill() && Math.random() < dt * 0.8 * skill()) { shoot(p); return; }
+      let blocked = false;
+      for (const o of state.players) {
+        if (o.team === p.team) continue;
+        if (dist(p, o) > 0.10) continue;
+        if ((o.y - p.y) * (gy - p.y) > 0) { blocked = true; break; }   // steht im Weg zum Tor
+      }
+      if (!blocked && gdist < 0.21 + 0.04 * skill() && Math.random() < dt * 1.6 * skill()) { shoot(p); return; }
       if (press < 0.075 && Math.random() < dt * 2.0) { pass(p); return; }
       if (gdist > 0.55 && press < 0.11 && Math.random() < dt * 0.9) { pass(p); return; }
       // Dribbeln Richtung Tor, dabei etwas ausweichen
@@ -449,6 +487,19 @@ window.RetroGames.soccer = {
       const owner = b.owner;
 
       if (owner === p) { aiWithBall(p, dt); return; }
+
+      // Hat der gegnerische Torwart den Ball in der Hand, Abstand halten.
+      // Sonst steht man ihm im Abschlag und fängt den Ball sofort wieder ab.
+      if (owner && owner.role === 'GK' && owner.team !== p.team) {
+        const ax = p.x - owner.x, ay = p.y - owner.y;
+        const len = Math.hypot(ax, ay);
+        if (len < KEEPER_SPACE) {
+          const nx = len < 1e-4 ? 0 : ax / len;
+          const ny = len < 1e-4 ? (owner.team === 0 ? 1 : -1) : ay / len;
+          moveToward(p, owner.x + nx * KEEPER_SPACE, owner.y + ny * KEEPER_SPACE, SPEED, dt);
+          return;
+        }
+      }
 
       const chaser = nearestOfTeam(p.team, b);
       let tx = hp.x, ty = hp.y;
@@ -555,6 +606,12 @@ window.RetroGames.soccer = {
         if (b.y < BALL_R && !inGoalMouth)       { b.y = BALL_R;       b.vy = Math.abs(b.vy) * 0.8; sndPost(); }
         if (b.y > 1 - BALL_R && !inGoalMouth)   { b.y = 1 - BALL_R;   b.vy = -Math.abs(b.vy) * 0.8; sndPost(); }
 
+        // Tor VOR der Ballaufnahme prüfen. Der Fangradius des Torwarts reicht
+        // tiefer als das Tor — sonst fischt er Bälle heraus, die die Linie
+        // längst überquert haben, und es fällt überhaupt kein Tor mehr.
+        if (inGoalMouth && b.y > 1) { scoreGoal(0); return; }
+        if (inGoalMouth && b.y < 0) { scoreGoal(1); return; }
+
         // Aufnehmen: der am nächsten stehende Spieler bekommt den Ball.
         // (Nicht der erste passende — das bevorzugte sonst systematisch die
         // Mannschaft, die im Array vorne steht.)
@@ -562,7 +619,7 @@ window.RetroGames.soccer = {
           let take = null, td = Infinity;
           for (const p of state.players) {
             if (p.lockout > 0) continue;
-            const reach = (p.role === 'GK' ? PLAYER_R * GK_REACH : PLAYER_R) + BALL_R + 0.006;
+            const reach = (p.role === 'GK' ? PLAYER_R * GK_REACH * gkFatigue() : PLAYER_R) + BALL_R + 0.006;
             const d = dist(p, b);
             if (d < reach && d < td) { td = d; take = p; }
           }
@@ -594,17 +651,15 @@ window.RetroGames.soccer = {
         if (stealer) { giveBall(stealer); sndSteal(); state.shake = 0.2; }
       }
 
-      // Tor zählt nur bei freiem Ball — hineingetragene Bälle gelten nicht,
-      // sonst würde bloßes Vorwärtslaufen zum sicheren Treffer
-      const mouth = !b.owner && Math.abs(b.x - FIELD_W / 2) < GOAL_W / 2;
-      if (mouth && b.y > 1)  { scoreGoal(0); return; }
-      if (mouth && b.y < 0)  { scoreGoal(1); return; }
+      // Die Torprüfung selbst steht oben im Zweig für den freien Ball — dort
+      // vor der Ballaufnahme. Ein geführter Ball zählt bewusst nie als Tor,
+      // sonst würde bloßes Vorwärtslaufen zum sicheren Treffer.
 
       // Uhr
       state.clock -= dt;
       if (state.msgTimer > 0) state.msgTimer -= dt;
 
-      if (state.golden) return;                 // Verlängerung läuft ohne Uhr
+      if (state.golden) { state.goldenT += dt; return; }   // Verlängerung läuft ohne Uhr
       if (state.clock <= 0) {
         state.clock = 0;
         if (state.half < HALVES) { state.phase = 'half'; sndWhistle(); }
@@ -628,7 +683,7 @@ window.RetroGames.soccer = {
       const [a, b] = state.score;
       if (state.mode === 'cup' && a === b) {
         // Im Turnier muss ein Sieger her
-        state.golden = true;
+        state.golden = true; state.goldenT = 0;
         state.msg = 'VERLÄNGERUNG · GOLDEN GOAL';
         state.msgTimer = 3;
         state.half = HALVES;
@@ -676,6 +731,16 @@ window.RetroGames.soccer = {
             if (m.a || m.start) {
               state.mode = state.menuSel === 0 ? 'cup' : 'friendly';
               state.round = 0;
+              state.menuSel = state.teamMode === 'coop' ? 0 : 1;
+              state.phase = 'side'; sndMenu();
+            }
+            return;
+
+          case 'side':
+            if (m.dy) { state.menuSel = (state.menuSel + m.dy + 2) % 2; sndMenu(); }
+            if (m.b) { state.phase = 'mode'; state.menuSel = state.mode === 'cup' ? 0 : 1; sndMenu(); return; }
+            if (m.a || m.start) {
+              state.teamMode = state.menuSel === 0 ? 'coop' : 'versus';
               state.menuSel = state.myTeam;
               state.phase = 'team'; sndMenu();
             }
@@ -688,7 +753,7 @@ window.RetroGames.soccer = {
             if (m.dx) s = clamp(s + m.dx, 0, TEAMS.length - 1);
             if (m.dy) s = clamp(s + m.dy * cols, 0, TEAMS.length - 1);
             if (s !== state.menuSel) { state.menuSel = s; sndMenu(); }
-            if (m.b) { state.phase = state.phase === 'team' ? 'mode' : 'team'; state.menuSel = 0; sndMenu(); return; }
+            if (m.b) { state.phase = state.phase === 'team' ? 'side' : 'team'; state.menuSel = 0; sndMenu(); return; }
             if (m.a || m.start) {
               if (state.phase === 'team') {
                 state.myTeam = state.menuSel;
@@ -772,6 +837,7 @@ window.RetroGames.soccer = {
 
         switch (state.phase) {
           case 'mode':     drawModeMenu(); break;
+          case 'side':     drawSideMenu(); break;
           case 'team':
           case 'foe':      drawTeamMenu(); break;
           case 'intro':    drawIntro(); break;
@@ -950,6 +1016,30 @@ window.RetroGames.soccer = {
         ctx.fillText(subs[i], w / 2, y + h * 0.045);
       });
       hint('A · AUSWÄHLEN');
+    }
+
+    function drawSideMenu() {
+      ctx.fillStyle = '#fff';
+      ctx.font = font(uni() * 0.045);
+      ctx.fillText('ZU ZWEIT SPIELEN', w / 2, h * 0.16);
+
+      const items = ['MITEINANDER', 'GEGENEINANDER'];
+      const subs  = ['BEIDE IN EINER MANNSCHAFT GEGEN DIE KI',
+                     'SPIELER 2 STEUERT DIE GEGNERISCHE MANNSCHAFT'];
+      items.forEach((it, i) => {
+        const sel = i === state.menuSel;
+        const y = h * (0.4 + i * 0.14);
+        ctx.fillStyle = sel ? '#4fc3f7' : '#555';
+        ctx.font = font(uni() * 0.042);
+        ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
+        ctx.fillStyle = sel ? '#8a9bb0' : '#333';
+        ctx.font = font(uni() * 0.019);
+        ctx.fillText(subs[i], w / 2, y + h * 0.042);
+      });
+      ctx.fillStyle = '#555';
+      ctx.font = font(uni() * 0.019);
+      ctx.fillText('MIT NUR EINEM SPIELER OHNE WIRKUNG', w / 2, h * 0.72);
+      hint('A · WEITER   B · ZURÜCK');
     }
 
     function drawTeamMenu() {

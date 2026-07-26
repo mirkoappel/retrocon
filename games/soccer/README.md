@@ -2,7 +2,16 @@
 
 **Spieler:** 1–2 · **Modi:** WORLD CUP · FREUNDSCHAFTSSPIEL
 
-Kleinfeld-Fußball aus der Vogelperspektive, 5 gegen 5. Du greifst immer **nach oben** an, dein Tor liegt unten. Zwei Menschen spielen in **derselben** Mannschaft — die gegnerische Mannschaft ist immer KI.
+Kleinfeld-Fußball aus der Vogelperspektive, **3 gegen 3** (Torwart + zwei Feldspieler). Du greifst immer **nach oben** an, dein Tor liegt unten.
+
+Zu zweit lässt sich wählen, ob man **miteinander** oder **gegeneinander** spielt:
+
+| Auswahl | Bedeutung |
+|---|---|
+| **MITEINANDER** | Beide Menschen in derselben Mannschaft, Gegner ist KI |
+| **GEGENEINANDER** | Spieler 2 steuert die gegnerische Mannschaft. Im World Cup bleibt es der Turnierlauf von Spieler 1 |
+
+Mit nur einem verbundenen Spieler hat die Auswahl keine Wirkung.
 
 ## Modi
 
@@ -12,6 +21,8 @@ Kleinfeld-Fußball aus der Vogelperspektive, 5 gegen 5. Du greifst immer **nach 
 | **FREUNDSCHAFTSSPIEL** | Ein einzelnes Spiel, Gegner frei wählbar. Unentschieden bleibt Unentschieden |
 
 Die KI wird pro Turnierrunde stärker (`skill()`): schnellere Spieler, präzisere Schüsse, härtere Zweikämpfe.
+
+Damit die Verlängerung nicht endlos läuft, lassen beide Torhüter dort gleichmäßig nach (`gkFatigue`): ihr Fangradius schrumpft über 90 Sekunden auf 35 %, ein Tor fällt also zuverlässig.
 
 ## Steuerung
 
@@ -31,6 +42,10 @@ Bei zwei Menschen bekommt jeder seinen eigenen Spieler — dieselbe Figur kann n
 Bewusst weggelassen: **Abseits, Fouls, Einwurf, Ecken**. Der Ball prallt stattdessen von den Seitenlinien ab. Das hält das Spiel durchgehend in Bewegung und passt zum Arcade-Charakter der anderen RETROCON-Spiele.
 
 Ein Tor zählt nur bei **freiem Ball** — der Ball muss geschossen oder gepasst über die Linie gehen. Sonst könnte man ihn einfach ins Tor tragen, indem man vorwärts läuft.
+
+**Der Torwart darf nicht bedrängt werden.** Hat er den Ball in der Hand, kann ihn niemand erobern (die Zweikampf-Schleife überspringt Torhüter), und gegnerische Feldspieler weichen aktiv auf `KEEPER_SPACE` (0,17) zurück. Ohne das Zurückweichen stünden sie ihm im Abschlag und fingen den Ball sofort wieder ab.
+
+Die **Torprüfung läuft vor der Ballaufnahme**. Der Fangradius des Torwarts reicht tiefer als das Tor — stünde die Aufnahme vorn, fischte er auch Bälle heraus, die die Linie längst überquert haben, und es fiele überhaupt kein Tor mehr.
 
 **Kein Seitenwechsel zur Halbzeit.** Es gibt eine Pause mit Zwischenstand, aber die Blickrichtung bleibt: sonst würde „hoch" in der zweiten Halbzeit rückwärts bedeuten.
 
@@ -58,12 +73,12 @@ Ohne diese Trennung gewann die zweite Mannschaft im Testlauf rund **dreimal so v
 
 ## Balance
 
-Ein KI-gegen-KI-Spiel endet im Schnitt bei **rund 8 Toren gesamt** (typisch 3:5, 4:6, 1:4). Stellschrauben:
+Ein KI-gegen-KI-Spiel endet im Schnitt bei **rund 1,6 Toren gesamt** (typisch 1:0, 0:1, 2:1) — fußballtypisch, für Arcade eher trocken. Menschen treffen besser: ihre Schussstreuung ist mit dem Faktor 0,7 deutlich enger als die der KI. Stellschrauben:
 
 | Konstante | Wirkung |
 |---|---|
-| `GOAL_W` | Torbreite — der stärkste Hebel für die Torquote |
-| `GK_REACH`, `SPEED_GK` | Reichweite und Tempo des Torwarts |
+| `GK_REACH`, `SPEED_GK`, `GK_REACT` | Reichweite, Tempo und Reaktionszeit des Torwarts — in dieser Größenordnung der **stärkste** Hebel |
+| `GOAL_W` | Torbreite. Wirkt nur, solange der Fangradius des Torwarts klar darunter liegt — sonst deckt er das ganze Tor ab |
 | `spread` in `doShoot` | Schussstreuung; wächst mit der Distanz |
 | `PLAYER_R * 2.9`, `rate` im Zweikampf | Wie leicht der Ball erobert wird |
 | `HALF_TIME` | Halbzeitlänge |
