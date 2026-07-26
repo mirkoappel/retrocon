@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.12]
+
+### Hinzugefügt
+- **STREET SOCCER: Das Feld dreht sich im Querformat.** Auf breiten Bildschirmen liegt es jetzt waagerecht und man greift nach rechts an, statt dass links und rechts viel Platz ungenutzt bleibt. Die Steuerung dreht sich mit; Feldlinien, Strafräume und Tore werden aus Feld-Eckpunkten gezeichnet und folgen der Ausrichtung automatisch
+- **STREET SOCCER: Die KI grätscht jetzt auch.** Bisher wurde `tackle` ausschließlich durch menschliche Eingaben gesetzt — Zweikämpfe der KI blieben unsichtbar und zahnlos. Gemessen: rund 54 KI-Grätschen in drei Minuten
+
 ## [0.11.11]
 
 ### Behoben

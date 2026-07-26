@@ -600,7 +600,16 @@ window.RetroGames.soccer = {
         ty = hp.y + push + (b.y - 0.5) * 0.25;
       } else {
         // Verteidigen: einer presst, der Rest deckt den Raum zum eigenen Tor
-        if (chaser === p) { tx = owner.x; ty = owner.y; }
+        if (chaser === p) {
+          tx = owner.x; ty = owner.y;
+          // Nah genug dran: auch die KI grätscht — sonst sieht man die
+          // Aktion nur beim Menschen und Zweikämpfe wirken zahnlos
+          if (p.tackle <= 0 && dist(p, owner) < PLAYER_R * 4.5
+              && Math.random() < dt * 1.3 * skill()) {
+            p.tackle = 0.4;
+            sndKick();
+          }
+        }
         else {
           tx = hp.x * 0.6 + b.x * 0.4;
           ty = hp.y * 0.65 + (b.y + (gy === 1 ? -0.12 : 0.12)) * 0.35;
@@ -645,8 +654,12 @@ window.RetroGames.soccer = {
           const mv = inputs.get(p.ctrl) || { x: 0, y: 0 };
           const len = Math.hypot(mv.x, mv.y);
           const sp = SPEED_HUM * (p.tackle > 0 ? 1.35 : 1);
-          if (len > 0.15) { p.vx = mv.x / len * sp; p.vy = -mv.y / len * sp; }
-          else { p.vx = 0; p.vy = 0; }
+          if (len > 0.15) {
+            // Bildschirmeingabe in Feldrichtung umrechnen. Im Querformat wird
+            // nach rechts angegriffen, dort entspricht rechts also +y.
+            if (isLandscape()) { p.vx = mv.y / len * sp; p.vy = mv.x / len * sp; }
+            else               { p.vx = mv.x / len * sp; p.vy = -mv.y / len * sp; }
+          } else { p.vx = 0; p.vy = 0; }
         } else {
           aiOutfield(p, dt);
         }
@@ -1026,43 +1039,75 @@ window.RetroGames.soccer = {
     function uni() { return Math.min(h, w * 0.6); }
     function font(px) { return `${Math.floor(px)}px "Press Start 2P", Courier New`; }
 
+    // Im Querformat liegt die Feldlänge waagerecht — sonst bliebe links und
+    // rechts viel Bildschirm ungenutzt. Angegriffen wird dann nach rechts.
+    function isLandscape() { return w / h > 1.15; }
+
     function pitchRect() {
       const top = h * 0.11;
-      const ph = h - top - h * 0.03;
-      const pw = ph * FIELD_W;
-      return { x: (w - pw) / 2, y: top, w: pw, h: ph, s: ph };
+      const availH = h - top - h * 0.03;
+      const availW = w * 0.96;
+      if (isLandscape()) {
+        const s = Math.min(availW, availH / FIELD_W);          // Pixel je Feldlänge
+        const pw = s, ph = s * FIELD_W;
+        return { x: (w - pw) / 2, y: top + (availH - ph) / 2, w: pw, h: ph, s, rot: true };
+      }
+      const s = Math.min(availH, availW / FIELD_W);
+      const pw = s * FIELD_W, ph = s;
+      return { x: (w - pw) / 2, y: top + (availH - ph) / 2, w: pw, h: ph, s, rot: false };
     }
-    // Feldeinheiten → Pixel. y = 0 liegt unten (eigenes Tor).
-    function px(r, x, y) { return { X: r.x + x * r.s, Y: r.y + (1 - y) * r.s }; }
+
+    // Feldeinheiten → Pixel.
+    // Hochformat: y = 0 unten (eigenes Tor). Querformat: y = 0 links.
+    function px(r, x, y) {
+      return r.rot
+        ? { X: r.x + y * r.s,           Y: r.y + x * r.s }
+        : { X: r.x + x * r.s,           Y: r.y + (1 - y) * r.s };
+    }
+    // Rechteck aus zwei Feld-Eckpunkten, unabhängig von der Ausrichtung
+    function fieldRect(r, x1, y1, x2, y2) {
+      const a = px(r, x1, y1), b = px(r, x2, y2);
+      return { x: Math.min(a.X, b.X), y: Math.min(a.Y, b.Y),
+               w: Math.abs(a.X - b.X), h: Math.abs(a.Y - b.Y) };
+    }
+    // Bildschirmwinkel einer Feldrichtung
+    function screenAngle(r, fx, fy) {
+      return r.rot ? Math.atan2(fx, fy) : Math.atan2(-fy, fx);
+    }
 
     function drawPitch(r) {
       ctx.fillStyle = TURF;
       ctx.fillRect(r.x, r.y, r.w, r.h);
-      // Streifen für die Rasenoptik
+      // Streifen für die Rasenoptik, quer zur Spielrichtung
       ctx.fillStyle = TURF_ALT;
       const bands = 8;
-      for (let i = 0; i < bands; i += 2) ctx.fillRect(r.x, r.y + i * r.h / bands, r.w, r.h / bands);
+      for (let i = 0; i < bands; i += 2) {
+        const bd = fieldRect(r, 0, i / bands, FIELD_W, (i + 1) / bands);
+        ctx.fillRect(bd.x, bd.y, bd.w, bd.h);
+      }
 
       ctx.strokeStyle = LINE;
       ctx.lineWidth = Math.max(1.5, r.s * 0.004);
       ctx.strokeRect(r.x, r.y, r.w, r.h);
-      // Mittellinie + Kreis
-      ctx.beginPath();
-      ctx.moveTo(r.x, r.y + r.h / 2); ctx.lineTo(r.x + r.w, r.y + r.h / 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(r.x + r.w / 2, r.y + r.h / 2, r.s * 0.10, 0, Math.PI * 2);
-      ctx.stroke();
-      // Strafräume: jeweils an der Torlinie ansetzen und ins Feld reichen
-      const boxX = px(r, FIELD_W / 2 - BOX_W / 2, 0).X;
-      ctx.strokeRect(boxX, px(r, 0, BOX_D).Y, BOX_W * r.s, BOX_D * r.s);   // unten
-      ctx.strokeRect(boxX, r.y,               BOX_W * r.s, BOX_D * r.s);   // oben
-      // Tore
+
+      // Mittellinie + Anstoßkreis
+      const m1 = px(r, 0, 0.5), m2 = px(r, FIELD_W, 0.5), mc = px(r, FIELD_W / 2, 0.5);
+      ctx.beginPath(); ctx.moveTo(m1.X, m1.Y); ctx.lineTo(m2.X, m2.Y); ctx.stroke();
+      ctx.beginPath(); ctx.arc(mc.X, mc.Y, r.s * 0.10, 0, Math.PI * 2); ctx.stroke();
+
+      // Strafräume, jeweils an der Torlinie
+      for (const [ya, yb] of [[0, BOX_D], [1, 1 - BOX_D]]) {
+        const bx = fieldRect(r, FIELD_W / 2 - BOX_W / 2, ya, FIELD_W / 2 + BOX_W / 2, yb);
+        ctx.strokeRect(bx.x, bx.y, bx.w, bx.h);
+      }
+
+      // Tore, knapp hinter der Linie
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      const d = r.s * 0.022;
       for (const gy of [0, 1]) {
-        const g = px(r, FIELD_W / 2 - GOAL_W / 2, gy);
-        const d = r.s * 0.022;
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        ctx.fillRect(g.X, gy === 0 ? g.Y : g.Y - d, GOAL_W * r.s, d);
+        const g = fieldRect(r, FIELD_W / 2 - GOAL_W / 2, gy, FIELD_W / 2 + GOAL_W / 2, gy);
+        if (r.rot) ctx.fillRect(gy === 0 ? g.x - d : g.x, g.y, d, g.h);
+        else       ctx.fillRect(g.x, gy === 0 ? g.y : g.y - d, g.w, d);
       }
     }
 
@@ -1084,7 +1129,7 @@ window.RetroGames.soccer = {
         if (p.tackle > 0) {
           // Grätsche: der Körper wird in Laufrichtung gestreckt.
           // Bildschirm-y ist gespiegelt, deshalb -p.fy im Winkel.
-          const ang = Math.atan2(-p.fy, p.fx);
+          const ang = screenAngle(r, p.fx, p.fy);
           ctx.save();
           ctx.translate(q.X, q.Y);
           ctx.rotate(ang);

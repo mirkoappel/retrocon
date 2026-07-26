@@ -2,7 +2,9 @@
 
 **Spieler:** 1–2 · **Modi:** WORLD CUP · FREUNDSCHAFTSSPIEL
 
-Kleinfeld-Fußball aus der Vogelperspektive, **3 gegen 3** (Torwart + zwei Feldspieler). Du greifst immer **nach oben** an, dein Tor liegt unten.
+Kleinfeld-Fußball aus der Vogelperspektive, **3 gegen 3** (Torwart + zwei Feldspieler).
+
+Das Feld richtet sich nach dem Bildschirm: im **Hochformat** liegt es senkrecht und du greifst nach oben an, im **Querformat** liegt es waagerecht und du greifst nach rechts an (`isLandscape()`, ab Seitenverhältnis 1,15). Sonst bliebe auf einem breiten Bildschirm links und rechts viel Platz ungenutzt. Die Steuerung dreht sich mit — im Querformat ist „rechts" vorwärts.
 
 Der Menüablauf ist: **Modus → Spielerzahl → (zu zweit) Seiten → Mannschaft**.
 
@@ -79,7 +81,7 @@ Zusätzlich ist der Anstoßball **dem vorgesehenen Abnehmer reserviert** (`kicko
 
 Positionen liegen in **Feldeinheiten**: Feldlänge = 1,0, Breite = `FIELD_W` (0,66), beide Achsen im selben Maßstab. Dadurch ist Bewegung richtungsunabhängig und `resize()` muss nichts umrechnen — es merkt sich nur die neue Canvas-Größe.
 
-`y = 0` ist die eigene Torlinie (unten im Bild), `y = 1` die gegnerische.
+`y = 0` ist die eigene Torlinie, `y = 1` die gegnerische. Wo das auf dem Bildschirm liegt, entscheidet allein `px()` — im Hochformat unten/oben, im Querformat links/rechts. Alle Feldlinien werden über `fieldRect()` aus Feld-Eckpunkten gezeichnet und drehen dadurch automatisch mit.
 
 ## Reihenfolge-Unabhängigkeit
 
