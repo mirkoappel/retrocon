@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.13]
+
+### Geändert
+- **STREET SOCCER: Feld auf Futsal-Proportionen umgestellt** — Breite zu Länge von 0,66 auf **0,50** (40 × 20 m). Das passt zum Kleinfeld-Charakter und nutzt im Querformat den Bildschirm deutlich besser aus. Tor und Strafraum wurden mitskaliert, damit ihr Anteil an der Feldbreite gleich bleibt
+- Der Torwart musste nachgezogen werden: Bei gleicher Reichweite deckte er im schmaleren Tor 42 % statt 32 % ab, die Torquote brach von 2,8 auf 1,0 pro Spiel ein. Mit `GK_REACH` 0,85 → **0,50** liegt sie wieder bei 2,8, gleichmäßig über beide Halbzeiten verteilt
+- Vorschaugrafik im Menü an die neuen Proportionen angepasst
+
 ## [0.11.12]
 
 ### Hinzugefügt
