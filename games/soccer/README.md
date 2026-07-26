@@ -167,6 +167,34 @@ Nachgemessen, je vier volle Spiele:
 
 Es wird also **seltener, aber aus deutlich verschiedeneren Lagen** geschossen — der schmale Ring vor dem Tor ist weg.
 
+## Turnierstärke (WM)
+
+Ein einziger Regler steuert, wie stark der Gegner ist: **`SKILL_STEP`** (0,075). Daraus ergibt sich `skill = 1 + runde * SKILL_STEP`, also 1,00 im Achtelfinale bis 1,23 im Finale.
+
+Entscheidend ist, dass er **nur für den Gegner gilt** — in der WM immer Team 1, denn Gegeneinander gibt es nur im Freundschaftsspiel. Vorher galt derselbe Aufschlag für *beide* Seiten: Er machte auch die eigenen Mitspieler und den eigenen Torwart stärker und hob damit den Großteil seiner Wirkung wieder auf.
+
+Woran der Aufschlag hängt, und was er zwischen Achtel- und Finale bewirkt:
+
+| Hebel | Wirkung im Finale |
+|---|---|
+| Schussstreuung (`1 / skill`) | 19 % genauer |
+| Torwarttempo, Schussbereitschaft, Grätschenhäufigkeit, Zweikampfrate | je 23 % mehr |
+| Lauftempo mit / ohne Ball | 1,4 % / 2,3 % mehr — bewusst wenig, Tempo entscheidet zu hart |
+| Schussreichweite | 3 % weiter |
+
+Gemessen, Team 0 als feste Bezugsmannschaft gegen den skalierenden Gegner, je 14 Spiele pro Runde:
+
+| Runde | Aufschlag | Tore Bezug | Tore Gegner | Differenz |
+|---|---|---|---|---|
+| Achtelfinale | 1,00 | 0,8 | 1,2 | −0,4 |
+| Viertelfinale | 1,07 | 0,9 | 1,6 | −0,7 |
+| Halbfinale | 1,15 | 0,9 | 1,7 | −0,8 |
+| Finale | 1,23 | 0,7 | 2,0 | −1,3 |
+
+Die Differenz ist das belastbare Signal; die reinen Siegzahlen rauschen bei rund zwei Toren pro Spiel zu stark. Zum Maßstab: Die Bezugsmannschaft ist **selbst eine KI** — ein Mensch ersetzt einen ihrer Feldspieler und zielt genauer (Streuungsfaktor 0,7) und erobert schneller (1,15). Für eine Spielerin oder einen Spieler fällt die Kurve also flacher aus als hier.
+
+Zum Vergleich der Steilheit: Mit `SKILL_STEP` = 0,11 endete das Finale bei 0,1 : 2,6 und 0 von 12 Siegen — zu hart. Mit 0,05 war zwischen den Runden kaum ein Unterschied messbar.
+
 ## Zweikampf
 
 **Mit Ball am Fuß läuft man langsamer** (`BALL_DRAG` = 0,92). Ohne das ist ein Ballführender schlicht nicht einzuholen und jeder Zweikampf entschieden, bevor er beginnt.

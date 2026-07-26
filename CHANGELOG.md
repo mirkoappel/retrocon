@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.27]
+
+### Behoben
+- **STREET SOCCER: Der WM-Schwierigkeitsregler wirkte kaum.** `skill()` galt für **beide** Mannschaften — der Turnieraufschlag machte also auch die eigenen Mitspieler und den eigenen Torwart stärker und hob damit den Großteil seiner Wirkung wieder auf. Er gilt jetzt nur noch für den Gegner (in der WM immer Team 1; Gegeneinander gibt es nur im Freundschaftsspiel)
+- Damit gibt es überhaupt erst eine messbare Schwierigkeitskurve. Gemessen mit einer festen Bezugsmannschaft gegen den skalierenden Gegner, je 14 Spiele pro Runde: Torverhältnis −0,4 (Achtelfinale) · −0,7 (Viertelfinale) · −0,8 (Halbfinale) · −1,3 (Finale)
+- Die Schrittweite steckt jetzt in einer eigenen Konstante `SKILL_STEP` und wurde von 0,11 auf 0,075 gesenkt: Mit 0,11 endete das Finale bei 0,1 : 2,6 und 0 von 12 Siegen, mit 0,05 war zwischen den Runden kaum ein Unterschied messbar
+- Freundschaftsspiele sind unverändert — dort ist der Aufschlag ohnehin 1,00
+
 ## [0.11.26]
 
 ### Geändert

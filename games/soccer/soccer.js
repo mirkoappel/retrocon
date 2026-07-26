@@ -191,7 +191,13 @@ window.RetroGames.soccer = {
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     const dist  = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
     const goalY = team => (team === 0 ? 1 : 0);       // Tor, auf das team spielt
-    const skill = () => (state.mode === 'cup' ? 1 + state.round * 0.11 : 1);
+    // Turnierstärke. Sie gilt **nur für den Gegner** (in der WM immer Team 1 —
+    // Gegeneinander gibt es nur im Freundschaftsspiel). Vorher galt derselbe
+    // Aufschlag für beide Seiten und machte damit auch die eigenen Mitspieler
+    // und den eigenen Torwart stärker, was den Großteil der Wirkung aufhob.
+    const SKILL_STEP = 0.075;
+    const skill = (team = 1) =>
+      (state.mode === 'cup' && team === 1) ? 1 + state.round * SKILL_STEP : 1;
 
     // Trikotfarbe; bei zu ähnlichen Farben weicht der Gegner auf sein Zweitset aus
     function kit(team) {
@@ -451,7 +457,7 @@ window.RetroGames.soccer = {
       const gy = goalY(p.team);
       // Zielpunkt im Tor leicht streuen; Genauigkeit sinkt mit der Distanz
       const d = Math.abs(gy - p.y);
-      const spread = GOAL_W * (0.55 + d * 1.7) * (p.ctrl ? 0.7 : 1 / skill());
+      const spread = GOAL_W * (0.55 + d * 1.7) * (p.ctrl ? 0.7 : 1 / skill(p.team));
       // Mit Zielpunkt (KI) wird auf die freie Ecke gezielt, ohne (Mensch)
       // weiterhin auf eine zufällige Ecke
       const corner = (Math.random() < 0.5 ? -1 : 1) * GOAL_W * 0.36;
@@ -577,7 +583,7 @@ window.RetroGames.soccer = {
       else if (inBox && b.owner && b.owner.team !== p.team) {
         ty = gy === 0 ? Math.min(0.10, b.y - 0.03) : Math.max(0.90, b.y + 0.03);
       }
-      moveToward(p, tx, ty, SPEED_GK * skill(), dt);
+      moveToward(p, tx, ty, SPEED_GK * skill(p.team), dt);
 
       // Ball halten und nach kurzer Pause herausspielen
       if (state.ball.owner === p) {
@@ -626,9 +632,9 @@ window.RetroGames.soccer = {
       // Dadurch fallen sowohl Distanzschüsse bei freier Bahn als auch
       // Abschlüsse aus kurzer Distanz, wo vorher nur weitergedribbelt wurde.
       const lane = shotLane(p);
-      if (lane.len < SHOT_RANGE + 0.06 * skill() && lane.clear > LANE_MIN) {
+      if (lane.len < SHOT_RANGE + 0.06 * skill(p.team) && lane.clear > LANE_MIN) {
         const urge = (1 - lane.len / SHOT_RANGE) * Math.min(1, lane.clear / 0.05);
-        if (Math.random() < dt * (0.3 + 1.7 * urge) * skill()) { shoot(p, lane.tx); return; }
+        if (Math.random() < dt * (0.3 + 1.7 * urge) * skill(p.team)) { shoot(p, lane.tx); return; }
       }
       if (press < 0.075 && Math.random() < dt * 2.0) { pass(p); return; }
       if (gdist > 0.55 && press < 0.11 && Math.random() < dt * 0.9) { pass(p); return; }
@@ -649,7 +655,7 @@ window.RetroGames.soccer = {
         const d = dist(p, o);
         if (d < 0.12) { tx += (p.x - o.x) * 0.8; ty += (p.y - o.y) * 0.3; }
       }
-      moveToward(p, tx, ty, SPEED * (0.94 + 0.06 * skill()) * BALL_DRAG, dt);
+      moveToward(p, tx, ty, SPEED * (0.94 + 0.06 * skill(p.team)) * BALL_DRAG, dt);
     }
 
     function aiOutfield(p, dt) {
@@ -707,7 +713,7 @@ window.RetroGames.soccer = {
           // Nah genug dran: auch die KI grätscht — sonst sieht man die
           // Aktion nur beim Menschen und Zweikämpfe wirken zahnlos
           if (p.tackle <= 0 && dist(p, owner) < PLAYER_R * 4.5
-              && Math.random() < dt * 1.0 * skill()) {
+              && Math.random() < dt * 1.0 * skill(p.team)) {
             p.tackle = 0.55;
             sndKick();
           }
@@ -723,7 +729,7 @@ window.RetroGames.soccer = {
             ty = owner.y + (ownGoal === 0 ? -1 : 1) * PLAYER_R * 1.6;
             // Auch der zweite Verteidiger darf grätschen, wenn er dran ist
             if (p.tackle <= 0 && dist(p, owner) < PLAYER_R * 4.5
-                && Math.random() < dt * 0.6 * skill()) {
+                && Math.random() < dt * 0.6 * skill(p.team)) {
               p.tackle = 0.55;
               sndKick();
             }
@@ -738,7 +744,7 @@ window.RetroGames.soccer = {
       // Auch die KI macht bei der Grätsche einen Ausfallschritt. Ohne den war
       // ihre Grätsche nur Anzeige: sie setzte das Flag, kam dem Ball aber
       // keinen Zentimeter näher.
-      moveToward(p, tx, ty, SPEED * (0.9 + 0.1 * skill()) * (p.tackle > 0 ? 1.35 : 1), dt);
+      moveToward(p, tx, ty, SPEED * (0.9 + 0.1 * skill(p.team)) * (p.tackle > 0 ? 1.35 : 1), dt);
     }
 
     // ── Match-Update ─────────────────────────────────────
@@ -933,7 +939,7 @@ window.RetroGames.soccer = {
           const atBall = db < CONTACT + 0.018;   // kurzer Ausfallschritt zum Ball
           const atMan  = q.tackle > 0 && dp < TACKLE_MAN;
           if (atBall || atMan) {
-            const rate = (q.tackle > 0 ? 3.4 : 1.5) * (q.ctrl ? 1.15 : skill())
+            const rate = (q.tackle > 0 ? 3.4 : 1.5) * (q.ctrl ? 1.15 : skill(q.team))
                        * (atBall ? 1 : 0.95);    // von hinten etwas zäher
             q.steal += dt * rate;
             const d = Math.min(db, dp);
