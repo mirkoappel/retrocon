@@ -46,15 +46,16 @@ window.RetroGames.soccer = {
     const BALL_R    = 0.0105;
 
     const SPEED      = 0.155;    // Feldeinheiten/s
-    const SPEED_HUM  = 0.17;
+    const SPEED_HUM  = 0.20;    // Sprint; die Auslenkung regelt herunter
     const SPEED_GK   = 0.155;    // Torwart darf auf der Linie schneller sein als Feldspieler
     const GK_REACH   = 0.65;     // Fangradius muss klar unter der halben Torbreite bleiben
     const KEEPER_SPACE = 0.17;  // Abstand, den Gegner zum ballhaltenden Torwart wahren
     const IDLE_TAKEOVER = 8;    // Sekunden ohne Eingabe, dann übernimmt die KI
     const GK_REACT   = 0.28;    // Reaktionszeit, bevor der Torwart dem Schuss folgt
-    const STICK_DEAD = 0.18;    // Totzone des Analogsticks
-    const STICK_FULL = 0.90;    // ab dieser Auslenkung volles Tempo
-    const STICK_MIN  = 0.40;    // Tempo bei minimaler Auslenkung (Anteil)
+    const STICK_DEAD = 0.12;    // Totzone des Analogsticks
+    const STICK_FULL = 0.95;    // ab dieser Auslenkung volles Tempo
+    const STICK_MIN  = 0.22;    // Tempo bei minimaler Auslenkung (Anteil)
+    const DRIBBLE_PUSH = 0.032; // wie weit der Ball im Sprint vorausläuft
     const FRICTION   = 0.72;
     const PASS_SPEED = 0.50;
     const SHOT_SPEED = 0.70;
@@ -723,7 +724,11 @@ window.RetroGames.soccer = {
       // Ball
       if (b.owner) {
         const o = b.owner;
-        const off = PLAYER_R + BALL_R + 0.004;
+        // Ballkontrolle: Je schneller der Ballführende läuft, desto weiter
+        // schiebt er den Ball vor sich her. Langsam bleibt er am Fuß.
+        const spd = Math.hypot(o.vx, o.vy);
+        const off = PLAYER_R + BALL_R + 0.004
+                  + Math.min(1, spd / SPEED_HUM) * DRIBBLE_PUSH;
         // Auf dem Feld halten: sonst schöbe ein Angreifer den Ball allein durchs
         // Vorwärtslaufen über die Torlinie
         b.x = clamp(o.x + o.fx * off, BALL_R, FIELD_W - BALL_R);
@@ -778,8 +783,10 @@ window.RetroGames.soccer = {
         let stealer = null, sd = Infinity;
         for (const q of state.players) {
           if (q.team === carrier.team || q.lockout > 0) continue;
-          const d = dist(q, carrier);
-          if (d < PLAYER_R * 2.9) {
+          // Gegen den BALL prüfen, nicht gegen den Körper: Wer sprintet,
+          // schiebt den Ball vor sich her und wird dadurch angreifbar.
+          const d = dist(q, b);
+          if (d < PLAYER_R * 2.4) {
             const rate = (q.tackle > 0 ? 3.4 : 1.5) * (q.ctrl ? 1.15 : skill());
             q.steal += dt * rate;
             if (q.steal >= 1 && d < sd) { sd = d; stealer = q; }

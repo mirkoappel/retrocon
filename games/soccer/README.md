@@ -50,7 +50,17 @@ Früher wechselte die Steuerung zusätzlich laufend zum ballnächsten Mitspieler
 | **B** (Shift / Q) | Abspiel zum besten Mitspieler | Grätsche — 0,4 s Antritt mit deutlich höherer Chance auf Balleroberung, sichtbar als in Laufrichtung gestreckter Körper |
 | **Richtung** | Laufen | Laufen |
 
-Am **Analogstick bestimmt die Auslenkung das Tempo** (Totzone 0,18, volles Tempo ab 0,90, minimal 40 %). Tastatur und Dpad bleiben digital — dort gibt es nur ganz oder gar nicht.
+Am **Analogstick bestimmt die Auslenkung das Tempo**, von langsamem Gehen bis zum Sprint (Totzone 0,12, volles Tempo ab 0,95, minimal 22 % — gut vierfache Spanne). Tastatur und Dpad bleiben digital; dort gibt es nur ganz oder gar nicht, und zwar volles Tempo.
+
+**Ballkontrolle hängt am Tempo.** Der Ballführende schiebt den Ball umso weiter vor sich her, je schneller er läuft (`DRIBBLE_PUSH`):
+
+| Auslenkung | Tempo | Ballabstand |
+|---|---|---|
+| 0,15 | 0,050 | 0,043 |
+| 0,50 | 0,115 | 0,054 |
+| 1,00 | 0,200 | 0,068 |
+
+Weil der Zweikampf gegen die **Ballposition** geht und nicht gegen den Körper, wird man im Sprint angreifbar: der Ball läuft voraus und ein Verteidiger kommt eher dran. Langsam dribbeln hält ihn am Fuß.
 | **SELECT** | Zurück zum Menü | Zurück zum Menü |
 
 Die Menüs sind zusätzlich **mit der Maus bedienbar**: Ein Klick auf einen Eintrag oder eine Mannschaftskachel wählt ihn direkt aus, auf den Panel-Screens (Anpfiff, Halbzeit, Ergebnis) bestätigt ein Klick irgendwohin. Weil die Menüs auf dem Canvas gezeichnet werden und es keine DOM-Elemente zum Anklicken gibt, registriert jede Zeichenfunktion ihre Klickflächen (`hotspot`); Tastatur, Controller und Maus laufen über dieselben Funktionen `activate()` und `goBack()`.

@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.20]
+
+### Geändert
+- **STREET SOCCER: Deutlich größere Tempospanne am Analogstick.** Der Mindestwert lag bei 40 % des Maximums, die Spanne war damit nur 2,5-fach — jetzt 22 % bis 100 % bei kleinerer Totzone (0,12 statt 0,18) und höherem Sprinttempo, also gut vierfache Spanne
+- **STREET SOCCER: Ballkontrolle hängt jetzt am Tempo.** Wer langsam dribbelt, behält den Ball am Fuß (Abstand 0,043); im Sprint läuft er 56 % weiter voraus (0,068). Der Zweikampf prüft zudem die **Ballposition** statt der Körperposition — im Sprint wird man dadurch angreifbar, langsames Dribbeln ist sicherer
+- Nebenwirkung: KI gegen KI liegt jetzt bei rund 4,3 Toren pro Spiel statt 3,0, weil Ballverluste häufiger sind
+
 ## [0.11.19]
 
 ### Hinzugefügt
