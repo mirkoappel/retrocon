@@ -50,9 +50,21 @@ Das Menü ist als vertikale **Slide-Liste** aufgebaut. Horizontal scrollt das Sp
 | P1 | Pfeiltasten | Enter | Shift (B) |
 | P2 | W A S D | Leertaste | Q (B) |
 
-Im **Menü** funktionieren beide Schemas gleichwertig zur Navigation (`menu.js` behandelt Pfeiltasten und WASD identisch).
+Im **Menü** funktionieren beide Schemas gleichwertig zur Navigation (`menu.js` behandelt Pfeiltasten und WASD identisch) — genau wie jeder verbundene Controller das Menü steuern darf.
 
-Im **Spiel** wird dagegen nur Spieler 1 an die Tastatur durchgereicht: `game.js` verteilt Eingaben ausschließlich an `localPlayers`, und dort steht per `addLocalPlayer(1)` in `setup.js` nur P1. Die P2-Belegung ist in `KB` zwar definiert, wird in-game aber nie abgefragt — zu zweit an einer Tastatur zu spielen ist derzeit nicht möglich. Nicht verbundene Spieler übernimmt die KI des jeweiligen Spiels.
+### Wer spielt einen Platz? (keine Auswahl nötig)
+
+Ein Platz gehört der KI, bis ihn jemand übernimmt. Das regelt sich von selbst:
+
+| Platz | Verhalten |
+|---|---|
+| **P1** | Immer der Mensch an den Pfeiltasten — nie KI. Festgelegt durch `addLocalPlayer(1)` in `setup.js` |
+| **P2** | KI, bis jemand **im Spiel** eine WASD-Richtungstaste drückt. Dann übernimmt der zweite Mensch dauerhaft |
+| **Controller** | Verbindet sich ein Smartphone für einen Platz, hat es Vorrang: `getConns()` trägt `conns` vor den Tastaturspielern ein, und `game.js` reicht die Tastatur für diesen Platz nicht mehr durch. Trennt sich der Controller, springt die Tastatur bzw. die KI wieder ein |
+
+Der Anspruch auf P2 entsteht bewusst **nur im laufenden Spiel und nur über Richtungstasten** (`claimByKey`): Die Leertaste ist P2s Aktionstaste — ein Reflex darauf würde sonst stillschweigend den KI-Gegner abschalten. Und im Menü ist WASD bloß Navigation, mit der sich ein Solospieler nicht versehentlich den Gegner wegnehmen soll.
+
+Spiele erfahren davon nichts weiter als `api.getConns()`; sie starten die KI für jeden Platz, der dort fehlt. Weil alle Spiele das **pro Frame** auswerten (`numPlayers` aus `create()` wird nirgends benutzt), kann ein zweiter Spieler mitten im Match einsteigen.
 
 ## Ingame-Menü
 

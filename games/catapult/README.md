@@ -29,7 +29,7 @@ Links/rechts folgen der Blickrichtung: bei P1 (links) senkt **→** den Winkel, 
 
 Das Schwenken beginnt fein (15°/s) und beschleunigt beim Halten auf 58°/s — ein kurzer Tipper verstellt den Winkel um rund 2°, ein voller Schwenk von 15° auf 75° dauert etwa 1,4 s. Die Werte stehen als `ANGLE_RATE_MIN`, `ANGLE_RATE_MAX` und `ANGLE_ACCEL_T` im Modul.
 
-> **Hinweis:** Die Console reicht in-game nur Spieler 1 an die Tastatur durch (`addLocalPlayer(1)` in `console/views/setup.js`). Zu zweit an einer Tastatur ist derzeit nicht möglich — Spieler 2 ist KI, bis sich ein Controller verbindet.
+**Spieler 2 an derselben Tastatur:** `W A S D` steuert P2 spiegelbildlich — `A`/`D` schwenken, `S` spannt und feuert, Leertaste spannt ebenfalls. Spieler 2 wird von der KI gespielt, bis jemand im Spiel eine der WASD-Richtungstasten drückt; ab dann gehört der Platz dem Menschen. Es gibt nichts auszuwählen, und ein Smartphone-Controller hat jederzeit Vorrang. Details: [console/README.md](../../console/README.md).
 
 Nach jedem Schuss folgen **2 s Nachladezeit** — solange zeigt der Balken grau den Fortschritt. Beide Spieler feuern unabhängig voneinander, es gibt keine Züge.
 

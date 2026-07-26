@@ -123,7 +123,7 @@ window.RetroGames.catapult = {
       state.t = 0;
       state.players = [0, 1].map(() => ({
         angle: 45, power: 0, charging: false, reload: 0,
-        angleDir: 0, angleHold: 0, arm: 0, damage: 0,
+        angleDir: 0, angleHold: 0, arm: 0, damage: 0, wasAI: false,
         tick: 0,                 // Timer für den Lade-Ratschen-Sound
         aiPower: 0, aiWait: 0
       }));
@@ -482,7 +482,15 @@ window.RetroGames.catapult = {
         for (let pi = 0; pi < 2; pi++) {
           const p = state.players[pi];
 
-          if (!conns.has(pi + 1)) runAI(pi, dt);
+          // Wechselt ein Platz zwischen KI und Mensch, darf kein halb geladener
+          // Schuss hängen bleiben — sonst wartet er auf ein Loslassen, das nie kommt.
+          const isAI = !conns.has(pi + 1);
+          if (p.wasAI !== isAI) {
+            p.charging = false; p.power = 0; p.angleDir = 0; p.angleHold = 0;
+          }
+          p.wasAI = isAI;
+
+          if (isAI) runAI(pi, dt);
 
           if (p.angleDir) {
             p.angleHold += dt;

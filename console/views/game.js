@@ -1,5 +1,5 @@
 // Game-View: Canvas, Loop, Start/Exit, In-Game-Overlay (Slide-Menü).
-import { conns, lastInput, code, localPlayers } from '../services/connection.js';
+import { conns, lastInput, code, localPlayers, addLocalPlayer } from '../services/connection.js';
 import { getAudioContext } from '../services/audio.js';
 import { resetMenu, goToGame } from './menu.js';
 
@@ -29,6 +29,19 @@ const KB = {
 };
 
 const IG_ITEMS = ['WEITER', 'SPIEL BEENDEN', 'HILFE'];
+
+// Ein Platz gehört der KI, bis ihn jemand übernimmt. P1 ist per addLocalPlayer(1)
+// dauerhaft vergeben; P2 beansprucht, wer im Spiel WASD drückt.
+// Bewusst nur Richtungstasten: die Leertaste ist P2s Aktionstaste, und ein
+// Reflex darauf würde sonst stillschweigend den KI-Gegner abschalten.
+function claimByKey(code) {
+  for (const p of [1, 2]) {
+    const m = KB[p];
+    if (!localPlayers.has(p) && [m.up, m.down, m.left, m.right].includes(code)) {
+      addLocalPlayer(p);
+    }
+  }
+}
 
 function makeKbGamepad(player) {
   const m = KB[player] || KB[1];
@@ -84,6 +97,7 @@ export function initGame() {
     if (e.code === 'Escape') { e.preventDefault(); handleEsc(); return; }
     if (paused) { handleIgKey(e); return; }
     keys.add(e.code);
+    claimByKey(e.code);
     if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))
       e.preventDefault();
   });

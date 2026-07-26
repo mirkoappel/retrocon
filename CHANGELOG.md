@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.9.0]
+
+### Hinzugefügt
+- **Zweiter Tastaturspieler ohne jede Auswahl.** Ein Platz gehört der KI, bis ihn jemand übernimmt — P2 beansprucht, wer **im Spiel** eine WASD-Richtungstaste drückt (`claimByKey` in `game.js`). Tastatur und Smartphone-Controller laufen gleichzeitig; verbindet sich ein Controller für einen Platz, hat er Vorrang, fällt er weg, springt Tastatur bzw. KI wieder ein
+  - P1 bleibt wie bisher fest an den Pfeiltasten und wird nie von der KI gespielt
+  - Bewusst nur Richtungstasten beanspruchen einen Platz: die Leertaste ist P2s Aktionstaste, ein Reflex darauf hätte sonst stillschweigend den KI-Gegner abgeschaltet
+  - Bewusst nur im laufenden Spiel: im Menü ist WASD gleichwertige Navigation, mit der sich ein Solospieler nicht versehentlich den Gegner wegnehmen soll
+  - Gilt für alle Spiele — sie werten `api.getConns()` pro Frame aus, deshalb kann ein zweiter Spieler mitten im Match einsteigen
+- **CATAPULT:** Wechselt ein Platz zwischen KI und Mensch, wird ein halb geladener Schuss verworfen. Sonst hätte ein Ladevorgang der KI auf ein Loslassen gewartet, das nie kommt
+
 ## [0.8.3]
 
 ### Behoben
