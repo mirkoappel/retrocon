@@ -15,7 +15,11 @@ Zu zweit lässt sich wählen, ob man **miteinander** oder **gegeneinander** spie
 | Auswahl | Bedeutung |
 |---|---|
 | **MITEINANDER** | Beide Menschen in derselben Mannschaft, Gegner ist KI |
-| **GEGENEINANDER** | Spieler 2 steuert die gegnerische Mannschaft. Im World Cup bleibt es der Turnierlauf von Spieler 1 |
+| **GEGENEINANDER** | Spieler 2 steuert die gegnerische Mannschaft |
+
+Im **Freundschaftsspiel** wählt dabei jeder seine eigene Mannschaft: erst Spieler 1, dann übernimmt Spieler 2 den zweiten Auswahlbildschirm. Solange Spieler 2 noch nicht verbunden ist (zwei Leute an einer Tastatur), darf Spieler 1 stellvertretend wählen.
+
+Im **World Cup** geht gegeneinander ebenfalls, nur wählt Spieler 2 dort nichts: die Gegner werden ausgelost, und er übernimmt jede Runde das gezogene Team. Es bleibt der Turnierlauf von Spieler 1 — der andere versucht, ihn zu stoppen.
 
 ## Modi
 
@@ -83,7 +87,7 @@ Ohne diese Trennung gewann die zweite Mannschaft im Testlauf rund **dreimal so v
 
 Ein KI-gegen-KI-Spiel endet im Schnitt bei **rund 4 Toren gesamt** (typisch 5:2, 1:3, 2:3). Menschen treffen besser: ihre Schussstreuung ist mit dem Faktor 0,7 deutlich enger als die der KI.
 
-Das Grundtempo ist bewusst gemächlich — ein Feldspieler braucht rund 5 Sekunden für die Feldlänge. Wer daran dreht, muss **Spieler- und Balltempo zusammen** verstellen: verlangsamt man nur die Spieler, wird der Torwart gegenüber dem Schuss wehrlos.
+Das Grundtempo ist bewusst gemächlich — ein Feldspieler braucht rund 6,5 Sekunden für die Feldlänge. Wer daran dreht, muss **Spieler- und Balltempo zusammen** verstellen: verlangsamt man nur die Spieler, wird der Torwart gegenüber dem Schuss wehrlos.
 
 Stellschrauben:
 

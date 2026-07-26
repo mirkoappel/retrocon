@@ -45,15 +45,15 @@ window.RetroGames.soccer = {
     const PLAYER_R  = 0.021;
     const BALL_R    = 0.0105;
 
-    const SPEED      = 0.21;    // Feldeinheiten/s
-    const SPEED_HUM  = 0.23;
-    const SPEED_GK   = 0.21;    // Torwart darf auf der Linie schneller sein als Feldspieler
+    const SPEED      = 0.155;    // Feldeinheiten/s
+    const SPEED_HUM  = 0.17;
+    const SPEED_GK   = 0.155;    // Torwart darf auf der Linie schneller sein als Feldspieler
     const GK_REACH   = 0.85;     // Fangradius muss klar unter der halben Torbreite bleiben
     const KEEPER_SPACE = 0.17;  // Abstand, den Gegner zum ballhaltenden Torwart wahren
     const GK_REACT   = 0.28;    // Reaktionszeit, bevor der Torwart dem Schuss folgt
-    const FRICTION   = 0.95;
-    const PASS_SPEED = 0.66;
-    const SHOT_SPEED = 0.92;
+    const FRICTION   = 0.72;
+    const PASS_SPEED = 0.50;
+    const SHOT_SPEED = 0.70;
 
     const HALF_TIME = 180;      // Sekunden je Halbzeit
     const HALVES    = 2;
@@ -781,6 +781,8 @@ window.RetroGames.soccer = {
 
           case 'team':
           case 'foe': {
+            if (state.phase === 'foe' && state.teamMode === 'versus'
+                && api.getConns().has(2) && player !== 2) return;
             const cols = 4;
             let s = state.menuSel;
             if (m.dx) s = clamp(s + m.dx, 0, TEAMS.length - 1);
@@ -1102,7 +1104,10 @@ window.RetroGames.soccer = {
       const pick = state.phase === 'team';
       ctx.fillStyle = '#fff';
       ctx.font = font(uni() * 0.045);
-      ctx.fillText(pick ? 'DEINE MANNSCHAFT' : 'GEGNER WÄHLEN', w / 2, h * 0.13);
+      const versus = state.teamMode === 'versus';
+      ctx.fillText(pick ? (versus ? 'SPIELER 1 · MANNSCHAFT' : 'DEINE MANNSCHAFT')
+                        : (versus ? 'SPIELER 2 · MANNSCHAFT' : 'GEGNER WÄHLEN'),
+                   w / 2, h * 0.13);
 
       const cols = 4, rows = 4;
       const cw = w * 0.17, ch = h * 0.13;
@@ -1125,7 +1130,9 @@ window.RetroGames.soccer = {
         ctx.font = font(uni() * 0.017);
         ctx.fillText(t.n, cx + cw / 2, cy + ch * 0.72);
       });
-      hint(pick ? 'A · WÄHLEN   B · ZURÜCK' : 'A · ANPFIFF   B · ZURÜCK');
+      hint(pick ? 'A · WÄHLEN   B · ZURÜCK'
+                : (versus ? 'SPIELER 2 WÄHLT   A · ANPFIFF   B · ZURÜCK'
+                          : 'A · ANPFIFF   B · ZURÜCK'));
     }
 
     function drawIntro() {
@@ -1140,6 +1147,13 @@ window.RetroGames.soccer = {
       ctx.fillStyle = kit(1);
       ctx.font = font(uni() * 0.042);
       ctx.fillText(TEAMS[state.foeTeam].n, w / 2, h * 0.62);
+      if (state.teamMode === 'versus') {
+        ctx.fillStyle = P_COL[1];
+        ctx.font = font(uni() * 0.021);
+        ctx.fillText(state.mode === 'cup'
+          ? 'SPIELER 2 STEUERT DEN AUSGELOSTEN GEGNER'
+          : 'SPIELER 2 STEUERT DIESE MANNSCHAFT', w / 2, h * 0.69);
+      }
       hint('A · ANPFIFF');
     }
 

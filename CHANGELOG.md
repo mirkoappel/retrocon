@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.4]
+
+### Hinzugefügt
+- **STREET SOCCER: Im Freundschaftsspiel gegeneinander wählt jeder seine eigene Mannschaft.** Erst Spieler 1, dann übernimmt Spieler 2 den zweiten Auswahlbildschirm; die Überschriften heißen jetzt „SPIELER 1 · MANNSCHAFT" und „SPIELER 2 · MANNSCHAFT". Ist Spieler 2 noch nicht verbunden, darf Spieler 1 stellvertretend wählen
+- **STREET SOCCER:** Gegeneinander bleibt auch im World Cup möglich — der Anpfiff-Screen weist darauf hin, dass Spieler 2 dort den ausgelosten Gegner übernimmt
+
+### Geändert
+- **STREET SOCCER: Spieltempo nochmals um rund 26 % gesenkt.** Ein Feldspieler braucht jetzt ~6,5 s für die Feldlänge (vorher ~5 s). Spieler und Ball wieder gemeinsam gedrosselt; KI gegen KI liegt bei 3,1 Toren pro Spiel, über 24 Spiele symmetrisch (1,6 : 1,5)
+
 ## [0.11.3]
 
 ### Geändert
