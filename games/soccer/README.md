@@ -47,6 +47,8 @@ Allein greift der automatische Wechsel weiter, aber gedämpft: eine Sperre von 0
 | **Richtung** | Laufen | Laufen |
 | **SELECT** | Zurück zum Menü | Zurück zum Menü |
 
+Die Menüs sind zusätzlich **mit der Maus bedienbar**: Ein Klick auf einen Eintrag oder eine Mannschaftskachel wählt ihn direkt aus, auf den Panel-Screens (Anpfiff, Halbzeit, Ergebnis) bestätigt ein Klick irgendwohin. Weil die Menüs auf dem Canvas gezeichnet werden und es keine DOM-Elemente zum Anklicken gibt, registriert jede Zeichenfunktion ihre Klickflächen (`hotspot`); Tastatur, Controller und Maus laufen über dieselben Funktionen `activate()` und `goBack()`.
+
 Bei zwei Menschen bekommt jeder seinen eigenen Spieler — dieselbe Figur kann nie doppelt belegt werden. Die Markierungsringe zeigen wer wen steuert: Cyan = Spieler 1, Pink = Spieler 2.
 
 ## Regeln

@@ -733,6 +733,105 @@ window.RetroGames.soccer = {
       state.foeTeam = i;
     }
 
+    // ── Menü-Aktionen ────────────────────────────────────
+    // Als eigene Funktionen, damit Tastatur, Controller und Mausklick
+    // denselben Weg nehmen.
+    function activate() {
+      switch (state.phase) {
+        case 'mode':
+          state.mode = state.menuSel === 0 ? 'cup' : 'friendly';
+          state.round = 0;
+          state.menuSel = state.twoPlayers ? 1 : 0;
+          state.phase = 'count'; sndMenu(); return;
+
+        case 'count':
+          state.twoPlayers = state.menuSel === 1;
+          if (state.twoPlayers) {
+            state.menuSel = state.teamMode === 'coop' ? 0 : 1;
+            state.phase = 'side';
+          } else {
+            state.teamMode = 'coop';       // allein ist die Seiten-Frage gegenstandslos
+            state.menuSel = state.myTeam;
+            state.phase = 'team';
+          }
+          sndMenu(); return;
+
+        case 'side':
+          state.teamMode = state.menuSel === 0 ? 'coop' : 'versus';
+          state.menuSel = state.myTeam;
+          state.phase = 'team'; sndMenu(); return;
+
+        case 'team':
+          state.myTeam = state.menuSel;
+          if (state.mode === 'friendly') {
+            state.menuSel = (state.myTeam + 1) % TEAMS.length;
+            state.phase = 'foe';
+          } else { drawFoe(); state.phase = 'intro'; }
+          sndMenu(); return;
+
+        case 'foe':
+          if (state.menuSel === state.myTeam) return;   // nicht gegen sich selbst
+          state.foeTeam = state.menuSel;
+          state.phase = 'intro'; sndMenu(); return;
+
+        case 'intro': startMatch(); return;
+
+        case 'half':
+          state.half++;
+          state.clock = HALF_TIME;
+          state.kickoffFor = 1;
+          kickoff(1);
+          state.phase = 'play';
+          sndWhistle(); return;
+
+        case 'result':
+          if (state.mode === 'friendly') { state.phase = 'mode'; state.menuSel = 0; }
+          else if (state.lastResult === 'WEITER') nextCupRound();
+          else state.phase = 'out';
+          return;
+
+        case 'champion':
+        case 'out':
+          state.round = 0; state.phase = 'mode'; state.menuSel = 0; return;
+      }
+    }
+
+    function goBack() {
+      switch (state.phase) {
+        case 'count': state.phase = 'mode';  state.menuSel = state.mode === 'cup' ? 0 : 1; break;
+        case 'side':  state.phase = 'count'; state.menuSel = state.twoPlayers ? 1 : 0; break;
+        case 'foe':   state.phase = 'team';  state.menuSel = state.myTeam; break;
+        case 'team':
+          if (state.twoPlayers) { state.phase = 'side'; state.menuSel = state.teamMode === 'coop' ? 0 : 1; }
+          else { state.phase = 'count'; state.menuSel = 0; }
+          break;
+        default: return;
+      }
+      sndMenu();
+    }
+
+    // ── Maus ─────────────────────────────────────────────
+    // Die Menüs liegen auf dem Canvas, es gibt also keine DOM-Elemente zum
+    // Anklicken. Beim Zeichnen werden deshalb Klickflächen registriert.
+    const canvasEl = (ctx.canvas && typeof ctx.canvas.addEventListener === 'function')
+      ? ctx.canvas : null;
+    let hotspots = [];
+    function hotspot(x, y, hw, hh, sel) { hotspots.push({ x, y, w: hw, h: hh, sel }); }
+
+    function onCanvasClick(e) {
+      const r = canvasEl.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      const cx = (e.clientX - r.left) * (canvasEl.width / r.width);
+      const cy = (e.clientY - r.top)  * (canvasEl.height / r.height);
+      for (const hs of hotspots) {
+        if (cx < hs.x || cx > hs.x + hs.w || cy < hs.y || cy > hs.y + hs.h) continue;
+        if (hs.sel !== null && hs.sel !== state.menuSel) { state.menuSel = hs.sel; sndMenu(); }
+        activate();
+        return;
+      }
+    }
+    if (canvasEl) canvasEl.addEventListener('click', onCanvasClick);
+
     // ── Öffentliche Schnittstelle ────────────────────────
     return {
       resize(nw, nh) { w = nw; h = nh; },      // Positionen sind normalisiert
@@ -743,40 +842,11 @@ window.RetroGames.soccer = {
 
         switch (state.phase) {
           case 'mode':
-            if (m.dy) { state.menuSel = (state.menuSel + m.dy + 2) % 2; sndMenu(); }
-            if (m.a || m.start) {
-              state.mode = state.menuSel === 0 ? 'cup' : 'friendly';
-              state.round = 0;
-              state.menuSel = state.twoPlayers ? 1 : 0;
-              state.phase = 'count'; sndMenu();
-            }
-            return;
-
           case 'count':
-            if (m.dy) { state.menuSel = (state.menuSel + m.dy + 2) % 2; sndMenu(); }
-            if (m.b) { state.phase = 'mode'; state.menuSel = state.mode === 'cup' ? 0 : 1; sndMenu(); return; }
-            if (m.a || m.start) {
-              state.twoPlayers = state.menuSel === 1;
-              if (state.twoPlayers) {
-                state.menuSel = state.teamMode === 'coop' ? 0 : 1;
-                state.phase = 'side';
-              } else {
-                state.teamMode = 'coop';       // allein ist die Seiten-Frage gegenstandslos
-                state.menuSel = state.myTeam;
-                state.phase = 'team';
-              }
-              sndMenu();
-            }
-            return;
-
           case 'side':
             if (m.dy) { state.menuSel = (state.menuSel + m.dy + 2) % 2; sndMenu(); }
-            if (m.b) { state.phase = 'count'; state.menuSel = state.twoPlayers ? 1 : 0; sndMenu(); return; }
-            if (m.a || m.start) {
-              state.teamMode = state.menuSel === 0 ? 'coop' : 'versus';
-              state.menuSel = state.myTeam;
-              state.phase = 'team'; sndMenu();
-            }
+            if (m.b) { goBack(); return; }
+            if (m.a || m.start) activate();
             return;
 
           case 'team':
@@ -788,55 +858,17 @@ window.RetroGames.soccer = {
             if (m.dx) s = clamp(s + m.dx, 0, TEAMS.length - 1);
             if (m.dy) s = clamp(s + m.dy * cols, 0, TEAMS.length - 1);
             if (s !== state.menuSel) { state.menuSel = s; sndMenu(); }
-            if (m.b) {
-              if (state.phase === 'foe') { state.phase = 'team'; state.menuSel = state.myTeam; }
-              else if (state.twoPlayers) { state.phase = 'side'; state.menuSel = state.teamMode === 'coop' ? 0 : 1; }
-              else { state.phase = 'count'; state.menuSel = 0; }
-              sndMenu(); return;
-            }
-            if (m.a || m.start) {
-              if (state.phase === 'team') {
-                state.myTeam = state.menuSel;
-                if (state.mode === 'friendly') {
-                  state.menuSel = (state.myTeam + 1) % TEAMS.length;
-                  state.phase = 'foe';
-                } else { drawFoe(); state.phase = 'intro'; }
-              } else {
-                if (state.menuSel === state.myTeam) return;   // nicht gegen sich selbst
-                state.foeTeam = state.menuSel;
-                state.phase = 'intro';
-              }
-              sndMenu();
-            }
+            if (m.b) { goBack(); return; }
+            if (m.a || m.start) activate();
             return;
           }
 
           case 'intro':
-            if (m.a || m.start) startMatch();
-            return;
-
           case 'half':
-            if (m.a || m.start) {
-              state.half++;
-              state.clock = HALF_TIME;
-              state.kickoffFor = 1;
-              kickoff(1);
-              state.phase = 'play';
-              sndWhistle();
-            }
-            return;
-
           case 'result':
-            if (m.a || m.start) {
-              if (state.mode === 'friendly') { state.phase = 'mode'; state.menuSel = 0; }
-              else if (state.lastResult === 'WEITER') nextCupRound();
-              else state.phase = 'out';
-            }
-            return;
-
           case 'champion':
           case 'out':
-            if (m.a || m.start) { state.round = 0; state.phase = 'mode'; state.menuSel = 0; }
+            if (m.a || m.start) activate();
             return;
 
           case 'play': {
@@ -871,6 +903,7 @@ window.RetroGames.soccer = {
       },
 
       draw() {
+        hotspots = [];
         ctx.fillStyle = '#0a0e14';
         ctx.fillRect(0, 0, w, h);
         ctx.textAlign = 'center';
@@ -890,7 +923,10 @@ window.RetroGames.soccer = {
         }
       },
 
-      destroy() { timers.forEach(clearTimeout); timers.length = 0; }
+      destroy() {
+        timers.forEach(clearTimeout); timers.length = 0;
+        if (canvasEl) canvasEl.removeEventListener('click', onCanvasClick);
+      }
     };
 
     // ── Rendering ────────────────────────────────────────
@@ -1017,6 +1053,7 @@ window.RetroGames.soccer = {
     }
 
     function panel(title, sub) {
+      hotspot(0, 0, w, h, null);   // ganzer Bildschirm bestätigt
       ctx.fillStyle = 'rgba(0,0,0,0.86)';
       ctx.fillRect(0, 0, w, h);
       ctx.textAlign = 'center';
@@ -1049,6 +1086,7 @@ window.RetroGames.soccer = {
       items.forEach((it, i) => {
         const sel = i === state.menuSel;
         const y = h * (0.45 + i * 0.14);
+        hotspot(w * 0.15, y - h * 0.04, w * 0.7, h * 0.095, i);
         ctx.fillStyle = sel ? '#4fc3f7' : '#555';
         ctx.font = font(uni() * 0.045);
         ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
@@ -1069,6 +1107,7 @@ window.RetroGames.soccer = {
       items.forEach((it, i) => {
         const sel = i === state.menuSel;
         const y = h * (0.4 + i * 0.14);
+        hotspot(w * 0.15, y - h * 0.04, w * 0.7, h * 0.095, i);
         ctx.fillStyle = sel ? '#4fc3f7' : '#555';
         ctx.font = font(uni() * 0.042);
         ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
@@ -1090,6 +1129,7 @@ window.RetroGames.soccer = {
       items.forEach((it, i) => {
         const sel = i === state.menuSel;
         const y = h * (0.4 + i * 0.14);
+        hotspot(w * 0.15, y - h * 0.04, w * 0.7, h * 0.095, i);
         ctx.fillStyle = sel ? '#4fc3f7' : '#555';
         ctx.font = font(uni() * 0.042);
         ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
@@ -1114,6 +1154,7 @@ window.RetroGames.soccer = {
       const x0 = w / 2 - (cols * cw) / 2, y0 = h * 0.2;
       TEAMS.forEach((t, i) => {
         const cx = x0 + (i % cols) * cw, cy = y0 + Math.floor(i / cols) * ch;
+        hotspot(cx, cy, cw, ch, i);
         const sel = i === state.menuSel;
         const own = !pick && i === state.myTeam;
 

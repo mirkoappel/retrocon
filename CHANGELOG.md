@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.5]
+
+### Hinzugefügt
+- **STREET SOCCER: Menüs sind jetzt mit der Maus bedienbar.** Bisher reagierten sie ausschließlich auf Tastatur und Controller — die Menüs werden auf dem Canvas gezeichnet, es gibt also keine DOM-Elemente zum Anklicken. Jede Zeichenfunktion registriert nun ihre Klickflächen; Tastatur, Controller und Maus laufen über dieselben Funktionen `activate()` und `goBack()`
+  - Klick auf einen Listeneintrag oder eine Mannschaftskachel wählt direkt aus
+  - Auf den Panel-Screens (Anpfiff, Halbzeit, Ergebnis, Weltmeister, Aus) bestätigt ein Klick irgendwohin
+
 ## [0.11.4]
 
 ### Hinzugefügt
