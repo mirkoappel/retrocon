@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.15]
+
+### Behoben
+- **Tastatur war bei verbundenem Controller komplett tot.** `game.js` reichte Tastatureingaben nur durch, wenn für den Platz *kein* Controller verbunden war — mit angeschlossenem Smartphone ließen sich Menüs also weder mit der Tastatur bedienen noch das Spiel steuern. Die Tastatur wird jetzt immer durchgereicht, bei verbundenem Controller aber nur solange wirklich eine Taste liegt (plus Loslass-Frame). Ein leeres Tastatur-Gamepad hätte sonst jeden Frame die Controller-Eingabe überschrieben. Gilt für alle Spiele
+
+### Geändert
+- **STREET SOCCER: Am Analogstick bestimmt die Auslenkung das Tempo.** Vorher wurde der Stick-Vektor normalisiert, man lief also immer mit Volltempo. Jetzt Totzone bei 0,18, volles Tempo ab 0,90, dazwischen linear ab 40 %. Tastatur und Dpad bleiben digital
+
 ## [0.11.14]
 
 ### Geändert

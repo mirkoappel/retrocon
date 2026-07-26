@@ -60,7 +60,9 @@ Ein Platz gehört der KI, bis ihn jemand übernimmt. Das regelt sich von selbst:
 |---|---|
 | **P1** | Immer der Mensch an den Pfeiltasten — nie KI. Festgelegt durch `addLocalPlayer(1)` in `setup.js` |
 | **P2** | KI, bis jemand **im Spiel** eine WASD-Richtungstaste drückt. Dann übernimmt der zweite Mensch dauerhaft |
-| **Controller** | Verbindet sich ein Smartphone für einen Platz, hat es Vorrang: `getConns()` trägt `conns` vor den Tastaturspielern ein, und `game.js` reicht die Tastatur für diesen Platz nicht mehr durch. Trennt sich der Controller, springt die Tastatur bzw. die KI wieder ein |
+| **Controller** | Verbindet sich ein Smartphone für einen Platz, hat es Vorrang: `getConns()` trägt `conns` vor den Tastaturspielern ein. Trennt sich der Controller, springt die Tastatur bzw. die KI wieder ein |
+
+**Die Tastatur bleibt auch bei verbundenem Controller bedienbar** — sonst ließen sich mit angeschlossenem Smartphone weder Menüs bedienen noch das Spiel steuern. Sie wird dann nur durchgereicht, solange wirklich eine Taste liegt, plus der Loslass-Frame, damit Flanken (Taste loslassen = schießen) nicht verlorengehen. Ein leeres Tastatur-Gamepad würde sonst jeden Frame die Controller-Eingabe überschreiben.
 
 Der Anspruch auf P2 entsteht bewusst **nur im laufenden Spiel und nur über Richtungstasten** (`claimByKey`): Die Leertaste ist P2s Aktionstaste — ein Reflex darauf würde sonst stillschweigend den KI-Gegner abschalten. Und im Menü ist WASD bloß Navigation, mit der sich ein Solospieler nicht versehentlich den Gegner wegnehmen soll.
 
