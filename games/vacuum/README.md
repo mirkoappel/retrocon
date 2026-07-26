@@ -46,7 +46,7 @@ Die KI läuft für jeden nicht verbundenen Spieler. Zustandsautomat:
 
 | Ereignis | Beschreibung |
 |---|---|
-| Krümel eingesammelt | Kurzer Blip (1200 Hz, 40 ms) |
+| Krümel eingesammelt | Kurzer Blip (1100 Hz, 40 ms) |
 | Sektor abgeschlossen | 3-Ton-Chime (523→659→784 Hz) |
 | Andocken | Aufsteigender Sweep (160→240 Hz) |
 | Akku-Warnung | Zweiton-Alarm (alle 2,5 s bei < 20 %) |

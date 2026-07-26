@@ -68,7 +68,7 @@ Das Menü nutzt denselben Slide-Mechanismus wie das Hauptmenü:
 
 **Slide 1 — Steuerung**
 
-Übersicht aller Eingabemethoden. Zurück per Pfeil-Hoch, ESC, B oder Klick auf „← ZURÜCK".
+Übersicht aller Eingabemethoden. Zurück per Pfeil-Hoch, W, Backspace, ESC, B oder Klick auf „← ZURÜCK".
 
 ## Dateistruktur
 

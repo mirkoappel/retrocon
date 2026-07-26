@@ -26,7 +26,7 @@ Im Hochformat wird ein Hinweis-Overlay im RETROCON-Stil angezeigt (Gehäusefarbe
 
 Der Controller ist als **Progressive Web App** installierbar. `controller/manifest.webmanifest` (fullscreen, landscape, RETROCON-Icons 192/512 + maskable) ist aus der Classic-Variante verlinkt plus iOS-Meta-Tags (`apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style: black-translucent`).
 
-Flow: Controller-URL am Handy öffnen → Share → „Zum Home-Screen". Beim Start ohne `?code=` öffnet der Controller automatisch den Scanner — direkt Raum-QR tippen, verbunden.
+Flow: Controller-URL am Handy öffnen → Share → „Zum Home-Screen". Beim Start ohne `?code=` bleibt die LED rot — der Wifi-Button öffnet den Scanner manuell, kein Auto-Start.
 
 Safe-Area-Insets (`env(safe-area-inset-left/right)`) halten das Gehäuse auch auf Geräten mit Notch frei, der Joystick wird via ResizeObserver nach späten Viewport-Änderungen (PWA-Chrome-Hide, Rotation) re-zentriert.
 

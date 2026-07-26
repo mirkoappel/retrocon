@@ -40,11 +40,10 @@ views/             Ein Modul pro Screen
 | Screen | Beschreibung |
 |---|---|
 | `boot` | Initialer Screen. Terminal-Intro → „PRESS ANY KEY" → RETROCON-Animation. Der Klick hier erzeugt den globalen `AudioContext`. |
-| `setup` | Titel „VERBINDE DEIN SMARTPHONE ALS GAME-CONTROLLER", zwei QR-Codes (P1/P2), einheitlicher Status „WARTE AUF VERBINDUNG" → nach Connect: „DRÜCKE A ZUM STARTEN". |
-| `main-menu` | Horizontales Karussell mit Game-Cards + vertikale Legende. Joystick/D-Pad links/rechts wechselt Spiel, unten springt in die Legende, A aktiviert, B öffnet Setup. |
-| `game-view` | Laufendes Spiel im Canvas. SELECT → zurück zum Menü. |
+| `main-menu` | Vertikale Slide-Liste (RETROCON · CONTROLLER · SPIELE · EINSTELLUNGEN · CREDITS). Die CONTROLLER-Slide zeigt die QR-Codes für P1/P2 — ein separater Setup-Screen existiert nicht mehr. Auf der SPIELE-Slide navigiert Joystick/D-Pad links/rechts im Karussell, A startet das fokussierte Spiel. |
+| `game-view` | Laufendes Spiel im Canvas. SELECT/ESC → Ingame-Menü (Pause-Overlay), nicht direkt zurück ins Hauptmenü. |
 
-Menünavigation: jeder verbundene Controller kann das Menü steuern. Die Game-Card-Vorschau kommt pro Spiel als `artSvg` aus dem Spielmodul.
+Menünavigation: jeder verbundene Controller kann das Menü steuern. Die Game-Card-Vorschau kommt pro Spiel als `artSvg` aus dem Spielmodul. Details zur Slide-Navigation und zum Ingame-Menü: [console/README.md](../console/README.md).
 
 ### Keyboard-Fallback
 
@@ -52,11 +51,11 @@ Die Console unterstützt zusätzlich Maus + Tastatur — nützlich wenn (noch) k
 
 | Kontext | Taste | Aktion |
 |---|---|---|
-| Hauptmenü | `B` | Setup-Screen öffnen |
-| Setup-Screen | `A` / `Enter` / `Esc` | zurück ins Hauptmenü |
-| Im Spiel | `Esc` | Spiel beenden, zurück ins Menü |
+| Hauptmenü | P1: Pfeiltasten + Enter · P2: WASD + Leertaste | Slide-Navigation, Karussell, Spiel starten |
+| Im Spiel | `Esc` | Ingame-Menü öffnen (Pause) |
+| Ingame-Menü | WEITER / SPIEL BEENDEN / HILFE | Fortsetzen, beenden (zurück zur SPIELE-Slide) oder Steuerungsübersicht |
 
-Klicks auf Game-Cards (Karussell) und Legendeneinträge funktionieren wie auf einem Controller.
+Klicks auf Game-Cards (Karussell) und Slide-Pfeile/Labels funktionieren wie auf einem Controller.
 
 ## Bekannte Einschränkungen
 

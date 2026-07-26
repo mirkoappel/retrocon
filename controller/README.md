@@ -35,7 +35,7 @@ Layout (Landscape):
 [ Joystick ]  [ SELECT · Gear · Wifi ]  [ A · B ]
 ```
 
-- **Joystick**: Fixer Mittelpunkt, Dead-Zone ≈ 5 %. Liefert `x`/`y` (-1…1) und leitet D-Pad ab (Schwelle ~0,35).
+- **Joystick**: Fixer Mittelpunkt, keine Dead-Zone. Liefert `x`/`y` (-1…1) und leitet D-Pad ab (Schwelle 0,35).
 - **A / B**: Rechts, nebeneinander. Daumen-erreichbar.
 - **SELECT**: Öffnet Menü im Spiel (entspricht `SELECT` im Gamepad-Protokoll).
 - **Gear-Icon**: Varianten-Picker (Classic / weitere).
@@ -58,10 +58,12 @@ Der Controller sendet alle ~33 ms ein JSON-Paket:
 
 ```json
 {
+  "type": "gamepad",
   "player": 1,
   "joystick": { "x": 0.0, "y": -0.8, "active": true },
   "dpad":    { "up": true, "down": false, "left": false, "right": false },
-  "a": false, "b": false, "select": false, "start": false
+  "a": false, "b": false, "select": false, "start": false,
+  "x": false, "y": false, "l": false, "r": false
 }
 ```
 
