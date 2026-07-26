@@ -45,7 +45,11 @@ window.RetroGames.catapult = {
     const RELOAD     = 2.0;     // Nachladezeit nach dem Schuss
     const CHARGE_T   = 1.1;     // Sekunden von 0 auf volle Kraft
     const ANGLE_MIN  = 15, ANGLE_MAX = 75;
-    const ANGLE_RATE = 48;      // Grad/s bei Dpad-/Tastatur-Steuerung
+    // Tastatur-Zielen: startet fein für kleine Korrekturen und beschleunigt
+    // beim Halten, damit der volle Schwenk trotzdem flott geht.
+    const ANGLE_RATE_MIN = 15;  // Grad/s beim Antippen
+    const ANGLE_RATE_MAX = 58;  // Grad/s bei gehaltener Taste
+    const ANGLE_ACCEL_T  = 0.8; // Sekunden bis zur vollen Rate
     const WIND_EVERY = 7;       // Sekunden bis ein neuer Zielwind gewürfelt wird
     const AI_ANGLE_ERR = 7;     // Grad Streuung auf den KI-Zielwinkel
     const AI_POWER_ERR = 0.11;  // relative Streuung auf die KI-Kraft
@@ -119,7 +123,7 @@ window.RetroGames.catapult = {
       state.t = 0;
       state.players = [0, 1].map(() => ({
         angle: 45, power: 0, charging: false, reload: 0,
-        angleDir: 0, arm: 0, damage: 0,
+        angleDir: 0, angleHold: 0, arm: 0, damage: 0,
         tick: 0,                 // Timer für den Lade-Ratschen-Sound
         aiPower: 0, aiWait: 0
       }));
@@ -415,12 +419,29 @@ window.RetroGames.catapult = {
         const p = state.players[pi];
         if (!p) return;
 
-        // Winkel: Joystick absolut, Dpad/Tastatur mit Rate
+        // Links/rechts schwenkt den Wurfarm in Blickrichtung: für P1 senkt
+        // rechts den Winkel, für P2 spiegelbildlich links.
+        const turn = gp.dpad?.left ? 1 : gp.dpad?.right ? -1 : 0;
+
+        if (gp.type === 'keyboard') {
+          // Die Console meldet bei jeder Pfeiltaste joystick.active mit y=±1 —
+          // deshalb hier gar nicht erst auf den Joystick schauen.
+          p.angleDir = turn * dirOf(pi);
+
+          // Runter spannt das Katapult, damit alles mit den Pfeiltasten geht.
+          // Enter/Leertaste bleibt gleichwertig.
+          const charge     = !!(gp.dpad?.down   || gp.a);
+          const chargePrev = !!(prev?.dpad?.down || prev?.a);
+          if (charge && !chargePrev) startCharge(pi);
+          if (!charge && chargePrev) fire(pi);
+          return;
+        }
+
         if (gp.joystick?.active) {
           p.angleDir = 0;
           p.angle = Math.max(ANGLE_MIN, Math.min(ANGLE_MAX, 45 - gp.joystick.y * 30));
         } else {
-          p.angleDir = gp.dpad?.up ? 1 : gp.dpad?.down ? -1 : 0;
+          p.angleDir = turn * dirOf(pi);   // Varianten ohne Analog-Stick
         }
 
         // A halten = laden, loslassen = feuern
@@ -464,7 +485,12 @@ window.RetroGames.catapult = {
           if (!conns.has(pi + 1)) runAI(pi, dt);
 
           if (p.angleDir) {
-            p.angle = Math.max(ANGLE_MIN, Math.min(ANGLE_MAX, p.angle + p.angleDir * ANGLE_RATE * dt));
+            p.angleHold += dt;
+            const k = Math.min(1, p.angleHold / ANGLE_ACCEL_T);
+            const rate = ANGLE_RATE_MIN + k * (ANGLE_RATE_MAX - ANGLE_RATE_MIN);
+            p.angle = Math.max(ANGLE_MIN, Math.min(ANGLE_MAX, p.angle + p.angleDir * rate * dt));
+          } else {
+            p.angleHold = 0;
           }
           if (p.reload > 0) p.reload = Math.max(0, p.reload - dt);
           if (p.charging) {

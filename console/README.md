@@ -50,7 +50,9 @@ Das Menü ist als vertikale **Slide-Liste** aufgebaut. Horizontal scrollt das Sp
 | P1 | Pfeiltasten | Enter | Shift (B) |
 | P2 | W A S D | Leertaste | Q (B) |
 
-Beide Schemas funktionieren auch zur Menü-Navigation.
+Im **Menü** funktionieren beide Schemas gleichwertig zur Navigation (`menu.js` behandelt Pfeiltasten und WASD identisch).
+
+Im **Spiel** wird dagegen nur Spieler 1 an die Tastatur durchgereicht: `game.js` verteilt Eingaben ausschließlich an `localPlayers`, und dort steht per `addLocalPlayer(1)` in `setup.js` nur P1. Die P2-Belegung ist in `KB` zwar definiert, wird in-game aber nie abgefragt — zu zweit an einer Tastatur zu spielen ist derzeit nicht möglich. Nicht verbundene Spieler übernimmt die KI des jeweiligen Spiels.
 
 ## Ingame-Menü
 

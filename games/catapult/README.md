@@ -6,14 +6,30 @@ Zwei Katapulte beschießen sich über einen Berg hinweg. Jeder Spieler steht vor
 
 ## Steuerung
 
+**Controller (Smartphone):**
+
 | Eingabe | Aktion |
 |---|---|
 | Joystick hoch/runter | Abschusswinkel (15°–75°, absolut) |
-| Dpad hoch/runter · Pfeiltasten | Abschusswinkel schrittweise (48°/s) |
 | A halten | Kraft laden (Balken füllt sich in 1,1 s) |
 | A loslassen | Stein abfeuern |
 | A / START (Game Over) | Neustart |
 | SELECT | Zurück zum Menü |
+
+**Tastatur** — alles mit den Pfeiltasten spielbar, Enter wird nicht gebraucht:
+
+| Taste | Aktion |
+|---|---|
+| ← / → | Wurfarm schwenken |
+| ↓ halten | Kraft laden |
+| ↓ loslassen | Stein abfeuern |
+| Enter | spannt ebenfalls (gleichwertig zu ↓) |
+
+Links/rechts folgen der Blickrichtung: bei P1 (links) senkt **→** den Winkel, bei P2 (rechts) spiegelbildlich **←**. Der Arm bewegt sich also immer dorthin, wohin die Taste zeigt.
+
+Das Schwenken beginnt fein (15°/s) und beschleunigt beim Halten auf 58°/s — ein kurzer Tipper verstellt den Winkel um rund 2°, ein voller Schwenk von 15° auf 75° dauert etwa 1,4 s. Die Werte stehen als `ANGLE_RATE_MIN`, `ANGLE_RATE_MAX` und `ANGLE_ACCEL_T` im Modul.
+
+> **Hinweis:** Die Console reicht in-game nur Spieler 1 an die Tastatur durch (`addLocalPlayer(1)` in `console/views/setup.js`). Zu zweit an einer Tastatur ist derzeit nicht möglich — Spieler 2 ist KI, bis sich ein Controller verbindet.
 
 Nach jedem Schuss folgen **2 s Nachladezeit** — solange zeigt der Balken grau den Fortschritt. Beide Spieler feuern unabhängig voneinander, es gibt keine Züge.
 

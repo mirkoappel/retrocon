@@ -2,6 +2,21 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.8.3]
+
+### Behoben
+- **CATAPULT — Tastatursteuerung sprang statt zu zielen:** Die Console meldet bei jeder gedrückten Pfeiltaste `joystick.active` mit `y = ±1` (`game.js`). Das Spiel nahm dadurch immer den Joystick-Zweig und setzte den Winkel schlagartig auf 75° bzw. 15°; der ratenbasierte Zweig für Dpad/Tastatur lief nie. Tastatur wird jetzt über `gp.type === 'keyboard'` erkannt und getrennt behandelt
+
+### Geändert
+- **CATAPULT — Tastatur komplett auf den Pfeiltasten spielbar:**
+  - **← / →** schwenken den Wurfarm (vorher hoch/runter). Die Richtung folgt der Blickrichtung: bei P1 senkt → den Winkel, bei P2 spiegelbildlich ←
+  - **↓ halten/loslassen** spannt und feuert das Katapult — Enter wird nicht mehr gebraucht, funktioniert aber weiterhin
+  - Zielen beginnt fein (15°/s) und beschleunigt beim Halten auf 58°/s: ein Tipper verstellt rund 2°, ein voller Schwenk dauert ~1,4 s
+  - Am Controller bleibt alles wie gehabt — Dpad-runter spannt dort **nicht**, weil das Dpad aus dem Joystick abgeleitet wird und sonst jedes Zielen nach unten einen Schuss auslösen würde
+
+### Dokumentation
+- `console/README.md`: Die Keyboard-Tabelle erweckte den Eindruck, zwei Spieler könnten sich eine Tastatur teilen. Tatsächlich reicht `game.js` nur `localPlayers` durch, und dort steht per `addLocalPlayer(1)` nur P1 — die P2-Belegung ist definiert, wird in-game aber nie abgefragt. Jetzt korrekt beschrieben
+
 ## [0.8.2]
 
 ### Geändert
