@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.9]
+
+### Geändert
+- **STREET SOCCER: kein automatischer Spielerwechsel nach Ballnähe mehr.** Im Alleingang war es verwirrend, dass die Figur ständig unter den Fingern wechselte. Du behältst jetzt deinen Spieler und wechselst bewusst mit **B**; die einzige verbleibende Automatik ist die Übernahme des Ballführenden, sobald die eigene Mannschaft den Ball hat
+- Gemessen über 2 Minuten ohne Tastendruck: 14 Wechsel, davon **14 Übernahmen des Ballführenden** und keiner nach Ballnähe (vorher 21 Wechsel nach Ballnähe)
+
 ## [0.11.8]
 
 ### Behoben

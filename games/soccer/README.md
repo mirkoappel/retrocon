@@ -34,11 +34,11 @@ Damit die Verlängerung nicht endlos läuft, lassen beide Torhüter dort gleichm
 
 ## Steuerung
 
-Der aktive Spieler wechselt **automatisch** zum ballnächsten Mitspieler; hat deine Mannschaft den Ball, übernimmst du den Ballführenden. Der Torwart bleibt immer KI.
+Du behältst deinen Spieler und **wechselst selbst mit B**. Es gibt nur eine Automatik: sobald deine Mannschaft den Ball erobert, übernimmst du den Ballführenden — sonst würdest du einen Spieler ohne Ball steuern, während die KI dribbelt. Der Torwart bleibt immer KI.
+
+Früher wechselte die Steuerung zusätzlich laufend zum ballnächsten Mitspieler. Das war im Alleingang verwirrend, weil einem die Figur ständig unter den Fingern wegsprang (gemessen: 21 Wechsel in zwei Minuten). Jetzt sind es nur noch die Übernahmen des Ballführenden.
 
 **Zu zweit in einer Mannschaft steht die Zuordnung fest.** Sind ohnehin alle Feldspieler von Menschen besetzt, bringt ein Wechsel nach Ballnähe nichts — er würde den beiden nur gegenseitig die Figur wegtauschen. Jeder behält deshalb seine Figur das ganze Spiel über.
-
-Allein greift der automatische Wechsel weiter, aber gedämpft: eine Sperre von 0,4 s und eine Hysterese von 1,9 verhindern, dass die Steuerung im Getümmel hin und her springt (gemessen: rund ein Wechsel alle 6 Sekunden statt alle 2,5).
 
 | Eingabe | Mit Ball | Ohne Ball |
 |---|---|---|

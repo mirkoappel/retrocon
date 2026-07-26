@@ -280,9 +280,10 @@ window.RetroGames.soccer = {
     }
 
     // ── Steuerung zuweisen ───────────────────────────────
-    // Jeder Mensch bekommt einen eigenen Feldspieler. Hat die eigene
-    // Mannschaft den Ball, übernimmt man den Ballführenden, sonst den
-    // ballnächsten. Der Torwart bleibt immer KI.
+    // Jeder Mensch bekommt einen eigenen Feldspieler und behält ihn.
+    // Gewechselt wird nur bewusst per B — oder automatisch auf den
+    // Ballführenden, sobald die eigene Mannschaft den Ball hat.
+    // Der Torwart bleibt immer KI.
     let ctrlCooldown = 0;
     function humanSlots() {
       const conns = api.getConns();
@@ -334,20 +335,37 @@ window.RetroGames.soccer = {
           owner.ctrl = slot;
           taken.add(owner);
         }
+        // Ohne Ball wird NICHT nach Ballnähe umgeschaltet — das war im
+        // Alleingang verwirrend, weil einem die Figur ständig unter den
+        // Fingern wechselte. Man behält seinen Spieler und wechselt selbst
+        // mit B (siehe cycleControl).
         for (const slot of mine) {
           if (owner && owner.ctrl === slot) continue;
-          let best = null, bd = Infinity;
-          for (const c of cands) {
-            if (taken.has(c)) continue;
-            const d = dist(c, b);
-            if (d < bd) { bd = d; best = c; }
-          }
-          // Hysterese: den bisherigen Spieler behalten, solange er nicht deutlich
-          // weiter weg ist — sonst springt die Steuerung im Getümmel hin und her
           const prev = prevOf.get(slot);
-          if (prev && prev.team === team && !taken.has(prev) && dist(prev, b) < bd * 1.9) best = prev;
-          if (best) { best.ctrl = slot; taken.add(best); }
+          const pick = (prev && prev.team === team && !taken.has(prev))
+            ? prev
+            : cands.find(c => !taken.has(c));
+          if (pick) { pick.ctrl = slot; taken.add(pick); }
         }
+      }
+    }
+
+    // Bewusster Spielerwechsel per B: zum nächsten eigenen Feldspieler, der
+    // nicht schon von einem anderen Menschen gesteuert wird.
+    function cycleControl(slot) {
+      const team = teamOfSlot(slot);
+      const cands = state.players.filter(p => p.team === team && p.role !== 'GK');
+      if (cands.length < 2) return;
+      const cur = cands.find(p => p.ctrl === slot);
+      const start = cur ? cands.indexOf(cur) : -1;
+      for (let k = 1; k <= cands.length; k++) {
+        const next = cands[(start + k + cands.length) % cands.length];
+        if (next === cur || (next.ctrl && next.ctrl !== slot)) continue;
+        if (cur) cur.ctrl = 0;
+        next.ctrl = slot;
+        ctrlCooldown = 0.4;      // die Zuweisung soll den Wechsel nicht sofort überschreiben
+        sndMenu();
+        return;
       }
     }
 
@@ -945,7 +963,7 @@ window.RetroGames.soccer = {
             }
             if (edge(gp, prev, 'b')) {
               if (state.ball.owner === me) pass(me);
-              else { ctrlCooldown = 0; assignControl(true); sndMenu(); }
+              else cycleControl(player);
             }
             return;
           }
