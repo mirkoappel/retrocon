@@ -4,14 +4,18 @@
 
 Kleinfeld-Fußball aus der Vogelperspektive, **3 gegen 3** (Torwart + zwei Feldspieler). Du greifst immer **nach oben** an, dein Tor liegt unten.
 
+Der Menüablauf ist: **Modus → Spielerzahl → (zu zweit) Seiten → Mannschaft**.
+
+Die Spielerzahl wird bewusst **abgefragt statt aus den Verbindungen abgeleitet**: Spieler 2 an der Tastatur existiert erst, wenn jemand im Spiel eine WASD-Taste drückt (`claimByKey` in `console/views/game.js`). Im Menü meldet `api.getConns()` also oft nur einen Spieler, obwohl zwei mitspielen wollen.
+
+Bei **1 Spieler** entfällt die Seiten-Frage und der Teammodus steht auf „miteinander" — verbindet sich später doch ein zweiter Controller, landet er in deiner Mannschaft.
+
 Zu zweit lässt sich wählen, ob man **miteinander** oder **gegeneinander** spielt:
 
 | Auswahl | Bedeutung |
 |---|---|
 | **MITEINANDER** | Beide Menschen in derselben Mannschaft, Gegner ist KI |
 | **GEGENEINANDER** | Spieler 2 steuert die gegnerische Mannschaft. Im World Cup bleibt es der Turnierlauf von Spieler 1 |
-
-Mit nur einem verbundenen Spieler hat die Auswahl keine Wirkung.
 
 ## Modi
 

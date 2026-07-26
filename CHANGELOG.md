@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.3]
+
+### Geändert
+- **STREET SOCCER: Menüablauf umgestellt** auf Modus → **Spielerzahl** → (nur zu zweit) Seiten → Mannschaft. Die Frage „miteinander oder gegeneinander" erscheint nur noch, wenn sie überhaupt Sinn ergibt; allein steht der Teammodus fest auf „miteinander"
+- Die Spielerzahl wird abgefragt statt aus den Verbindungen abgeleitet. Spieler 2 an der Tastatur existiert erst, wenn im Spiel eine WASD-Taste gedrückt wird — im Menü meldet `getConns()` deshalb oft nur einen Spieler, obwohl zwei mitspielen wollen
+
 ## [0.11.2]
 
 ### Behoben

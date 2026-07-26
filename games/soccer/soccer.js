@@ -96,7 +96,8 @@ window.RetroGames.soccer = {
 
     // ── Zustand ──────────────────────────────────────────
     const state = {
-      phase: 'mode',        // mode|side|team|foe|intro|play|half|result|champion|out
+      phase: 'mode',        // mode|count|side|team|foe|intro|play|half|result|champion|out
+      twoPlayers: false,    // zu zweit gewählt? Die Seiten-Frage hat sonst keinen Sinn
       teamMode: 'coop',     // coop = beide Menschen in einer Mannschaft, versus = gegeneinander
       menuSel: 0,
       mode: 'cup',
@@ -244,7 +245,7 @@ window.RetroGames.soccer = {
     // Welche Mannschaft steuert ein Spieler-Slot? Im Modus „gegeneinander"
     // übernimmt Spieler 2 die gegnerische Mannschaft, sonst spielen beide zusammen.
     function teamOfSlot(slot) {
-      return (state.teamMode === 'versus' && slot === 2) ? 1 : 0;
+      return (state.twoPlayers && state.teamMode === 'versus' && slot === 2) ? 1 : 0;
     }
     function assignControl(force = false) {
       if (!force && ctrlCooldown > 0) return;
@@ -746,14 +747,31 @@ window.RetroGames.soccer = {
             if (m.a || m.start) {
               state.mode = state.menuSel === 0 ? 'cup' : 'friendly';
               state.round = 0;
-              state.menuSel = state.teamMode === 'coop' ? 0 : 1;
-              state.phase = 'side'; sndMenu();
+              state.menuSel = state.twoPlayers ? 1 : 0;
+              state.phase = 'count'; sndMenu();
+            }
+            return;
+
+          case 'count':
+            if (m.dy) { state.menuSel = (state.menuSel + m.dy + 2) % 2; sndMenu(); }
+            if (m.b) { state.phase = 'mode'; state.menuSel = state.mode === 'cup' ? 0 : 1; sndMenu(); return; }
+            if (m.a || m.start) {
+              state.twoPlayers = state.menuSel === 1;
+              if (state.twoPlayers) {
+                state.menuSel = state.teamMode === 'coop' ? 0 : 1;
+                state.phase = 'side';
+              } else {
+                state.teamMode = 'coop';       // allein ist die Seiten-Frage gegenstandslos
+                state.menuSel = state.myTeam;
+                state.phase = 'team';
+              }
+              sndMenu();
             }
             return;
 
           case 'side':
             if (m.dy) { state.menuSel = (state.menuSel + m.dy + 2) % 2; sndMenu(); }
-            if (m.b) { state.phase = 'mode'; state.menuSel = state.mode === 'cup' ? 0 : 1; sndMenu(); return; }
+            if (m.b) { state.phase = 'count'; state.menuSel = state.twoPlayers ? 1 : 0; sndMenu(); return; }
             if (m.a || m.start) {
               state.teamMode = state.menuSel === 0 ? 'coop' : 'versus';
               state.menuSel = state.myTeam;
@@ -768,7 +786,12 @@ window.RetroGames.soccer = {
             if (m.dx) s = clamp(s + m.dx, 0, TEAMS.length - 1);
             if (m.dy) s = clamp(s + m.dy * cols, 0, TEAMS.length - 1);
             if (s !== state.menuSel) { state.menuSel = s; sndMenu(); }
-            if (m.b) { state.phase = state.phase === 'team' ? 'side' : 'team'; state.menuSel = 0; sndMenu(); return; }
+            if (m.b) {
+              if (state.phase === 'foe') { state.phase = 'team'; state.menuSel = state.myTeam; }
+              else if (state.twoPlayers) { state.phase = 'side'; state.menuSel = state.teamMode === 'coop' ? 0 : 1; }
+              else { state.phase = 'count'; state.menuSel = 0; }
+              sndMenu(); return;
+            }
             if (m.a || m.start) {
               if (state.phase === 'team') {
                 state.myTeam = state.menuSel;
@@ -852,6 +875,7 @@ window.RetroGames.soccer = {
 
         switch (state.phase) {
           case 'mode':     drawModeMenu(); break;
+          case 'count':    drawCountMenu(); break;
           case 'side':     drawSideMenu(); break;
           case 'team':
           case 'foe':      drawTeamMenu(); break;
@@ -1033,6 +1057,26 @@ window.RetroGames.soccer = {
       hint('A · AUSWÄHLEN');
     }
 
+    function drawCountMenu() {
+      ctx.fillStyle = '#fff';
+      ctx.font = font(uni() * 0.045);
+      ctx.fillText('WIE VIELE SPIELER?', w / 2, h * 0.16);
+
+      const items = ['1 SPIELER', '2 SPIELER'];
+      const subs  = ['GEGEN DIE KI', 'ZU ZWEIT AN TASTATUR ODER CONTROLLER'];
+      items.forEach((it, i) => {
+        const sel = i === state.menuSel;
+        const y = h * (0.4 + i * 0.14);
+        ctx.fillStyle = sel ? '#4fc3f7' : '#555';
+        ctx.font = font(uni() * 0.042);
+        ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
+        ctx.fillStyle = sel ? '#8a9bb0' : '#333';
+        ctx.font = font(uni() * 0.019);
+        ctx.fillText(subs[i], w / 2, y + h * 0.042);
+      });
+      hint('A · WEITER   B · ZURÜCK');
+    }
+
     function drawSideMenu() {
       ctx.fillStyle = '#fff';
       ctx.font = font(uni() * 0.045);
@@ -1051,9 +1095,6 @@ window.RetroGames.soccer = {
         ctx.font = font(uni() * 0.019);
         ctx.fillText(subs[i], w / 2, y + h * 0.042);
       });
-      ctx.fillStyle = '#555';
-      ctx.font = font(uni() * 0.019);
-      ctx.fillText('MIT NUR EINEM SPIELER OHNE WIRKUNG', w / 2, h * 0.72);
       hint('A · WEITER   B · ZURÜCK');
     }
 
