@@ -79,20 +79,20 @@ Zusätzlich ist der Anstoßball **dem vorgesehenen Abnehmer reserviert** (`kicko
 
 ## Maße
 
-Das Feld folgt den **Futsal-Proportionen** (40 × 20 m), passend zum Kleinfeld-Charakter — nicht dem Großfeld (105 × 68 m). Im Querformat nutzt das flachere Feld den Bildschirm deutlich besser aus.
+Das Feld liegt mit **0,58** zwischen Futsal (0,50) und Großfeld (0,648) — flach genug, um im Querformat den Bildschirm gut auszunutzen, aber nicht so schmal wie ein echter Futsalplatz.
 
 | | Spiel | Futsal | Großfeld |
 |---|---|---|---|
-| Breite / Länge | 0,50 | 0,50 | 0,648 |
+| Breite / Länge | **0,58** | 0,50 | 0,648 |
 | Strafraum / Feldbreite | 0,58 | — | 0,59 |
 | Strafraumtiefe / Feldlänge | 0,13 | — | 0,157 |
 | **Torbreite / Feldbreite** | **0,33** | 0,15 | 0,108 |
 
-Das Tor ist bewusst rund doppelt so breit wie beim echten Futsal. Mit realistischer Torbreite deckt der Torwart mit seinem Fangradius praktisch das ganze Tor ab, und es fällt kein einziger Treffer mehr — das war messbar so. Aus demselben Grund sind auch die Spieler proportional viel größer als echte Fußballer.
+Das Tor ist bewusst rund dreimal so breit wie am Großfeld. Mit realistischer Torbreite deckt der Torwart mit seinem Fangradius praktisch das ganze Tor ab, und es fällt kein einziger Treffer mehr — das war messbar so. Aus demselben Grund sind auch die Spieler proportional viel größer als echte Fußballer.
 
 ## Feld und Koordinaten
 
-Positionen liegen in **Feldeinheiten**: Feldlänge = 1,0, Breite = `FIELD_W` (0,50), beide Achsen im selben Maßstab. Dadurch ist Bewegung richtungsunabhängig und `resize()` muss nichts umrechnen — es merkt sich nur die neue Canvas-Größe.
+Positionen liegen in **Feldeinheiten**: Feldlänge = 1,0, Breite = `FIELD_W` (0,58), beide Achsen im selben Maßstab. Dadurch ist Bewegung richtungsunabhängig und `resize()` muss nichts umrechnen — es merkt sich nur die neue Canvas-Größe.
 
 `y = 0` ist die eigene Torlinie, `y = 1` die gegnerische. Wo das auf dem Bildschirm liegt, entscheidet allein `px()` — im Hochformat unten/oben, im Querformat links/rechts. Alle Feldlinien werden über `fieldRect()` aus Feld-Eckpunkten gezeichnet und drehen dadurch automatisch mit.
 

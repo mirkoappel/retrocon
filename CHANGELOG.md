@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.14]
+
+### Geändert
+- **STREET SOCCER: Feld etwas höher.** Breite zu Länge von 0,50 auf **0,58**, also zwischen Futsal (0,50) und Großfeld (0,648). Tor, Strafraum und Torwart-Reichweite wurden wieder mitskaliert, damit ihre Anteile und die Balance gleich bleiben — KI gegen KI liegt weiter bei 3,0 Toren pro Spiel, über 20 Spiele symmetrisch (1,5 : 1,5)
+
 ## [0.11.13]
 
 ### Geändert

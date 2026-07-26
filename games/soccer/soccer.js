@@ -12,18 +12,18 @@ window.RetroGames.soccer = {
   artSvg: `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet">
       <rect width="320" height="200" fill="#0a0e14"/>
-      <rect x="113" y="6" width="94" height="188" fill="#10231a" stroke="#2f5c42" stroke-width="1.5"/>
-      <line x1="113" y1="100" x2="207" y2="100" stroke="#ffffff" stroke-width="1.2" opacity="0.3"/>
+      <rect x="106" y="6" width="109" height="188" fill="#10231a" stroke="#2f5c42" stroke-width="1.5"/>
+      <line x1="106" y1="100" x2="215" y2="100" stroke="#ffffff" stroke-width="1.2" opacity="0.3"/>
       <circle cx="160" cy="100" r="20" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.3"/>
-      <rect x="133" y="6"   width="54" height="20" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.25"/>
-      <rect x="133" y="174" width="54" height="20" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.25"/>
-      <rect x="145" y="2"   width="31" height="5" fill="#ffffff" opacity="0.75"/>
-      <rect x="145" y="193" width="31" height="5" fill="#ffffff" opacity="0.75"/>
-      <circle cx="144" cy="46"  r="5" fill="#f48fb1"/>
-      <circle cx="174" cy="62"  r="5" fill="#f48fb1"/>
+      <rect x="129" y="6"   width="63" height="20" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.25"/>
+      <rect x="129" y="174" width="63" height="20" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.25"/>
+      <rect x="142" y="2"   width="36" height="5" fill="#ffffff" opacity="0.75"/>
+      <rect x="142" y="193" width="36" height="5" fill="#ffffff" opacity="0.75"/>
+      <circle cx="141" cy="46"  r="5" fill="#f48fb1"/>
+      <circle cx="176" cy="62"  r="5" fill="#f48fb1"/>
       <circle cx="160" cy="30"  r="5" fill="#f48fb1"/>
-      <circle cx="136" cy="128" r="5" fill="#4fc3f7"/>
-      <circle cx="184" cy="140" r="5" fill="#4fc3f7"/>
+      <circle cx="132" cy="128" r="5" fill="#4fc3f7"/>
+      <circle cx="188" cy="140" r="5" fill="#4fc3f7"/>
       <circle cx="160" cy="112" r="6" fill="#4fc3f7"/>
       <circle cx="160" cy="112" r="9" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.9"/>
       <circle cx="162" cy="99" r="4" fill="#ffffff"/>
@@ -39,16 +39,16 @@ window.RetroGames.soccer = {
     // Koordinaten in Feldeinheiten: Feldlänge = 1.0, Breite = FIELD_W.
     // Beide Achsen im selben Maßstab, dadurch ist Bewegung richtungsunabhängig
     // und resize() muss nichts umrechnen.
-    const FIELD_W   = 0.50;   // Futsal-Verhaeltnis 20:40
-    const GOAL_W    = 0.163;
-    const BOX_W     = 0.288, BOX_D = 0.13;   // Strafraum
+    const FIELD_W   = 0.58;   // zwischen Futsal (0,50) und Grossfeld (0,648)
+    const GOAL_W    = 0.189;
+    const BOX_W     = 0.334, BOX_D = 0.13;   // Strafraum
     const PLAYER_R  = 0.021;
     const BALL_R    = 0.0105;
 
     const SPEED      = 0.155;    // Feldeinheiten/s
     const SPEED_HUM  = 0.17;
     const SPEED_GK   = 0.155;    // Torwart darf auf der Linie schneller sein als Feldspieler
-    const GK_REACH   = 0.50;     // Fangradius muss klar unter der halben Torbreite bleiben
+    const GK_REACH   = 0.65;     // Fangradius muss klar unter der halben Torbreite bleiben
     const KEEPER_SPACE = 0.17;  // Abstand, den Gegner zum ballhaltenden Torwart wahren
     const GK_REACT   = 0.28;    // Reaktionszeit, bevor der Torwart dem Schuss folgt
     const FRICTION   = 0.72;
