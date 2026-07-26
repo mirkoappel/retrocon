@@ -73,7 +73,11 @@ Ohne diese Trennung gewann die zweite Mannschaft im Testlauf rund **dreimal so v
 
 ## Balance
 
-Ein KI-gegen-KI-Spiel endet im Schnitt bei **rund 1,6 Toren gesamt** (typisch 1:0, 0:1, 2:1) — fußballtypisch, für Arcade eher trocken. Menschen treffen besser: ihre Schussstreuung ist mit dem Faktor 0,7 deutlich enger als die der KI. Stellschrauben:
+Ein KI-gegen-KI-Spiel endet im Schnitt bei **rund 4 Toren gesamt** (typisch 5:2, 1:3, 2:3). Menschen treffen besser: ihre Schussstreuung ist mit dem Faktor 0,7 deutlich enger als die der KI.
+
+Das Grundtempo ist bewusst gemächlich — ein Feldspieler braucht rund 5 Sekunden für die Feldlänge. Wer daran dreht, muss **Spieler- und Balltempo zusammen** verstellen: verlangsamt man nur die Spieler, wird der Torwart gegenüber dem Schuss wehrlos.
+
+Stellschrauben:
 
 | Konstante | Wirkung |
 |---|---|
@@ -81,6 +85,7 @@ Ein KI-gegen-KI-Spiel endet im Schnitt bei **rund 1,6 Toren gesamt** (typisch 1:
 | `GOAL_W` | Torbreite. Wirkt nur, solange der Fangradius des Torwarts klar darunter liegt — sonst deckt er das ganze Tor ab |
 | `spread` in `doShoot` | Schussstreuung; wächst mit der Distanz |
 | `PLAYER_R * 2.9`, `rate` im Zweikampf | Wie leicht der Ball erobert wird |
+| `SPEED`, `SPEED_HUM`, `SPEED_GK` | Lauftempo. Immer zusammen mit `PASS_SPEED`, `SHOT_SPEED` und `FRICTION` anpassen |
 | `HALF_TIME` | Halbzeitlänge |
 
 ## Sounds

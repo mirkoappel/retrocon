@@ -45,15 +45,15 @@ window.RetroGames.soccer = {
     const PLAYER_R  = 0.021;
     const BALL_R    = 0.0105;
 
-    const SPEED      = 0.30;    // Feldeinheiten/s
-    const SPEED_HUM  = 0.325;
-    const SPEED_GK   = 0.28;    // Torwart darf auf der Linie schneller sein als Feldspieler
-    const GK_REACH   = 1.15;     // Fangradius muss klar unter der halben Torbreite bleiben
+    const SPEED      = 0.21;    // Feldeinheiten/s
+    const SPEED_HUM  = 0.23;
+    const SPEED_GK   = 0.21;    // Torwart darf auf der Linie schneller sein als Feldspieler
+    const GK_REACH   = 0.85;     // Fangradius muss klar unter der halben Torbreite bleiben
     const KEEPER_SPACE = 0.17;  // Abstand, den Gegner zum ballhaltenden Torwart wahren
     const GK_REACT   = 0.28;    // Reaktionszeit, bevor der Torwart dem Schuss folgt
-    const FRICTION   = 1.25;
-    const PASS_SPEED = 0.88;
-    const SHOT_SPEED = 1.20;
+    const FRICTION   = 0.95;
+    const PASS_SPEED = 0.66;
+    const SHOT_SPEED = 0.92;
 
     const HALF_TIME = 180;      // Sekunden je Halbzeit
     const HALVES    = 2;

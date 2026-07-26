@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.1]
+
+### Geändert
+- **STREET SOCCER: ruhigeres Spieltempo.** Lauftempo um rund 30 % gesenkt (ein Feldspieler braucht jetzt ~5 s für die Feldlänge statt ~3 s), Ballgeschwindigkeiten um 25 % und die Reibung entsprechend. Spieler und Ball wurden bewusst gemeinsam gedrosselt — bei nur langsameren Spielern wäre der Torwart gegenüber dem Schuss wehrlos geworden
+- **STREET SOCCER: mehr Tore.** Durch das langsamere Spiel entstanden in regulärer Zeit kaum noch Treffer, fast jede Partie wurde erst im Golden Goal entschieden. Der Fangradius des Torwarts ist deshalb weiter reduziert; ein KI-gegen-KI-Spiel endet jetzt bei rund **4 Toren** (vorher 1,6) mit Ergebnissen wie 5:2, 1:3 oder 2:3, und die Treffer verteilen sich wieder über beide Halbzeiten
+
 ## [0.11.0]
 
 ### Hinzugefügt
