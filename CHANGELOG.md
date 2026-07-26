@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.19]
+
+### Hinzugefügt
+- **STREET SOCCER: Die KI übernimmt untätige Plätze.** Drückt an einem Platz 8 Sekunden lang niemand etwas, spielt dort die KI weiter — die erste Eingabe holt die Steuerung sofort zurück. Als Aktivität zählt nur echte Eingabe: ein ruhender Controller sendet weiterhin 30 Pakete pro Sekunde, die werden ignoriert. Erkennbar ist die Übernahme am fehlenden Markierungsring
+
 ## [0.11.18]
 
 ### Behoben

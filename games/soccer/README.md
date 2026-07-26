@@ -36,7 +36,9 @@ Damit die Verlängerung nicht endlos läuft, lassen beide Torhüter dort gleichm
 
 ## Steuerung
 
-Du behältst deinen Spieler und **wechselst selbst mit B**. Es gibt nur eine Automatik: sobald deine Mannschaft den Ball erobert, übernimmst du den Ballführenden — sonst würdest du einen Spieler ohne Ball steuern, während die KI dribbelt. Der Torwart bleibt immer KI.
+Drückt an einem Platz **8 Sekunden lang niemand etwas** (`IDLE_TAKEOVER`), übernimmt dort die KI — sonst stünde die Figur nutzlos herum. Die erste Eingabe holt sie sofort zurück. Als Eingabe zählt nur echte Aktivität: ein ruhender Controller sendet trotzdem 30 Pakete pro Sekunde, die dürfen nicht als Spielen durchgehen. Dass die KI übernommen hat, erkennt man am fehlenden Markierungsring.
+
+Solange du spielst, behältst du deinen Spieler und **wechselst selbst mit B**. Es gibt nur eine Automatik: sobald deine Mannschaft den Ball erobert, übernimmst du den Ballführenden — sonst würdest du einen Spieler ohne Ball steuern, während die KI dribbelt. Der Torwart bleibt immer KI.
 
 Früher wechselte die Steuerung zusätzlich laufend zum ballnächsten Mitspieler. Das war im Alleingang verwirrend, weil einem die Figur ständig unter den Fingern wegsprang (gemessen: 21 Wechsel in zwei Minuten). Jetzt sind es nur noch die Übernahmen des Ballführenden.
 

@@ -50,6 +50,7 @@ window.RetroGames.soccer = {
     const SPEED_GK   = 0.155;    // Torwart darf auf der Linie schneller sein als Feldspieler
     const GK_REACH   = 0.65;     // Fangradius muss klar unter der halben Torbreite bleiben
     const KEEPER_SPACE = 0.17;  // Abstand, den Gegner zum ballhaltenden Torwart wahren
+    const IDLE_TAKEOVER = 8;    // Sekunden ohne Eingabe, dann übernimmt die KI
     const GK_REACT   = 0.28;    // Reaktionszeit, bevor der Torwart dem Schuss folgt
     const STICK_DEAD = 0.18;    // Totzone des Analogsticks
     const STICK_FULL = 0.90;    // ab dieser Auslenkung volles Tempo
@@ -118,6 +119,7 @@ window.RetroGames.soccer = {
       msg: '', msgTimer: 0,
       kickoffFor: 0, kickoffLock: 0, restart: 0,
       kickoffTo: null, kickoffToT: 0,   // Anstoßpass ist für diesen Spieler reserviert
+      lastAct: new Map(),   // letzte echte Eingabe je Spieler-Slot
       shake: 0, t: 0,
       lastResult: ''
     };
@@ -278,6 +280,7 @@ window.RetroGames.soccer = {
       state.golden = false; state.goldenT = 0;
       state.msg = ''; state.msgTimer = 0;
       buildTeams();
+      state.lastAct = new Map([[1, state.t], [2, state.t]]);
       state.kickoffFor = 0;
       kickoff(0);
       state.msg = 'ANSTOSS'; state.msgTimer = RESTART_KICK;
@@ -291,9 +294,16 @@ window.RetroGames.soccer = {
     // Ballführenden, sobald die eigene Mannschaft den Ball hat.
     // Der Torwart bleibt immer KI.
     let ctrlCooldown = 0;
+    // Ein Platz gilt nur als menschlich besetzt, solange dort auch wirklich
+    // gespielt wird. Wer länger nichts drückt, gibt ihn an die KI ab — sonst
+    // steht die Figur nutzlos herum.
     function humanSlots() {
       const conns = api.getConns();
-      return [1, 2].filter(p => conns.has(p));
+      return [1, 2].filter(p => conns.has(p) && !slotIdle(p));
+    }
+    function slotIdle(p) {
+      const last = state.lastAct.get(p);
+      return last !== undefined && state.t - last >= IDLE_TAKEOVER;
     }
     // Welche Mannschaft steuert ein Spieler-Slot? Im Modus „gegeneinander"
     // übernimmt Spieler 2 die gegnerische Mannschaft, sonst spielen beide zusammen.
@@ -988,6 +998,16 @@ window.RetroGames.soccer = {
           case 'play': {
             const mv = moveVector(gp);
             inputs.set(player, mv);
+
+            // Nur echte Eingaben zählen. Ein Controller schickt auch im
+            // Ruhezustand 30 Pakete pro Sekunde — die dürfen nicht als
+            // Aktivität durchgehen.
+            if (Math.hypot(mv.x, mv.y) > 0.2 || gp.a || gp.b || gp.start) {
+              const wasIdle = slotIdle(player);
+              state.lastAct.set(player, state.t);
+              if (wasIdle) assignControl(true);   // sofort zurück ans Steuer
+            }
+
             const me = state.players.find(p => p.ctrl === player);
             if (!me) return;
             // A: mit Ball schießen, ohne Ball den Spieler wechseln
