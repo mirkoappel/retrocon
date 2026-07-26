@@ -213,14 +213,50 @@ window.RetroGames.soccer = {
         p.x = hp.x; p.y = hp.y; p.vx = 0; p.vy = 0;
         p.steal = 0; p.lockout = 0; p.tackle = 0; p.gkHold = 0;
       }
-      // Anstoßende Mannschaft stellt den Stürmer an den Ball
+      // Anstoßende Mannschaft stellt den Stürmer an den Ball und den
+      // Mitspieler schräg dahinter — er bekommt gleich den Anstoßpass
       const fwd = state.players.find(p => p.team === forTeam && p.role === 'FWD');
-      if (fwd) { fwd.x = FIELD_W / 2; fwd.y = 0.5 + (forTeam === 0 ? -0.03 : 0.03); }
+      if (fwd) {
+        fwd.x = FIELD_W / 2;
+        fwd.y = 0.5 + (forTeam === 0 ? -0.03 : 0.03);
+        fwd.fx = 0; fwd.fy = forTeam === 0 ? 1 : -1;
+      }
+      const mate = state.players.find(p => p.team === forTeam && p.role !== 'GK' && p !== fwd);
+      if (mate) {
+        const side = mate.x < FIELD_W / 2 ? -1 : 1;
+        mate.x = FIELD_W / 2 + side * 0.10;
+        mate.y = 0.5 + (forTeam === 0 ? -0.09 : 0.09);
+      }
+
+      // Wie im echten Fußball: die andere Mannschaft bleibt beim Anstoß in
+      // der eigenen Hälfte. Sonst steht ihr Stürmer genau auf dem Abnehmer
+      // und fängt den Anstoßpass sofort ab.
+      for (const p of state.players) {
+        if (p.team === forTeam || p.role === 'GK') continue;
+        p.y = forTeam === 0 ? Math.max(p.y, 0.62) : Math.min(p.y, 0.38);
+      }
       const b = state.ball;
       b.x = FIELD_W / 2; b.y = 0.5; b.vx = 0; b.vy = 0; b.owner = fwd || null;
       state.kickoffLock = 0.6;
       state.restart = delay;
       assignControl(true);
+    }
+
+    // Anstoß: der Ball wird kurz zum Mitspieler gespielt, statt dass der
+    // Schütze einfach losdribbelt
+    function kickoffPass() {
+      const b = state.ball;
+      const taker = b.owner;
+      if (!taker) return;
+      const mate = state.players.find(p => p.team === taker.team && p !== taker && p.role !== 'GK');
+      if (!mate) return;
+      const dx = mate.x - taker.x, dy = mate.y - taker.y;
+      const len = Math.hypot(dx, dy) || 1;
+      b.owner = null;
+      b.vx = dx / len * PASS_SPEED * 0.75;
+      b.vy = dy / len * PASS_SPEED * 0.75;
+      taker.lockout = 0.35;
+      sndPass();
     }
 
     function startMatch() {
@@ -557,6 +593,7 @@ window.RetroGames.soccer = {
       if (state.restart > 0) {
         state.restart -= dt;
         if (state.msgTimer > 0) state.msgTimer -= dt;
+        if (state.restart <= 0) kickoffPass();
         return;
       }
 

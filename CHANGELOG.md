@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.11.7]
+
+### Hinzugefügt
+- **STREET SOCCER: echter Anstoß.** Der Ball liegt auf dem Mittelpunkt und wird nach der Anstoß-Pause kurz zum Mitspieler abgelegt, statt dass der Schütze einfach losdribbelt
+- Die andere Mannschaft bleibt beim Anstoß in ihrer eigenen Hälfte. Ohne diese Regel stand ihr Stürmer auf seiner Grundposition praktisch genau auf dem Abnehmer und fing den Anstoßpass sofort ab — im Test ging der erste Ball jedes Anstoßes direkt an den Gegner
+
 ## [0.11.6]
 
 ### Hinzugefügt
