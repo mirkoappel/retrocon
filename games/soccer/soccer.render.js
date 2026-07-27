@@ -40,14 +40,20 @@ window.RetroSoccer.render = function (ctx, K) {
     const top = h * 0.11;
     const availH = h - top - h * 0.03;
     const availW = w * 0.96;
+    // Die Tore stehen HINTER der Torlinie. Rechnet man nur mit der Feldlänge,
+    // ragen sie an beiden Enden aus dem Bild — genau das war zu sehen.
+    const LAENGE = 1 + 2 * GOAL_DEPTH;
+    // Der Rasen ist der Hintergrund des Schirms, nicht nur die markierte
+    // Fläche: Das Feld liegt darin wie auf einem Tipp-Kick-Platz.
+    const rasen = { x: 0, y: top, w, h: h - top };
     if (isLandscape()) {
-      const s = Math.min(availW, availH / FIELD_W);          // Pixel je Feldlänge
+      const s = Math.min(availW / LAENGE, availH / FIELD_W);  // Pixel je Feldlänge
       const pw = s, ph = s * FIELD_W;
-      return { x: (w - pw) / 2, y: top + (availH - ph) / 2, w: pw, h: ph, s, rot: true };
+      return { x: (w - pw) / 2, y: top + (availH - ph) / 2, w: pw, h: ph, s, rot: true, rasen };
     }
-    const s = Math.min(availH, availW / FIELD_W);
+    const s = Math.min(availH / LAENGE, availW / FIELD_W);
     const pw = s * FIELD_W, ph = s;
-    return { x: (w - pw) / 2, y: top + (availH - ph) / 2, w: pw, h: ph, s, rot: false };
+    return { x: (w - pw) / 2, y: top + (availH - ph) / 2, w: pw, h: ph, s, rot: false, rasen };
   }
 
   // Feldeinheiten → Pixel.
@@ -95,14 +101,29 @@ window.RetroSoccer.render = function (ctx, K) {
   }
 
   function drawPitch(r) {
+    const g = r.rasen || r;
     ctx.fillStyle = TURF;
-    ctx.fillRect(r.x, r.y, r.w, r.h);
-    // Streifen für die Rasenoptik, quer zur Spielrichtung
-    ctx.fillStyle = TURF_ALT;
+    ctx.fillRect(g.x, g.y, g.w, g.h);
+
+    // Streifen quer zur Spielrichtung. Sie laufen über den ganzen Rasen
+    // weiter, nicht nur über die markierte Fläche — sonst hört der Platz an
+    // der Aussenlinie sichtbar auf.
     const bands = 8;
-    for (let i = 0; i < bands; i += 2) {
-      const bd = fieldRect(r, 0, i / bands, FIELD_W, (i + 1) / bands);
-      ctx.fillRect(bd.x, bd.y, bd.w, bd.h);
+    const breit = r.s / bands;                    // Streifenbreite in Pixeln
+    const laengs = r.rot ? 'x' : 'y';             // Achse der Feldlänge auf dem Schirm
+    const null0 = laengs === 'x' ? px(r, 0, 0).X : px(r, 0, 0).Y;
+    const richt = laengs === 'x' ? 1 : -1;        // im Hochformat zeigt y nach oben
+    const von = laengs === 'x' ? g.x : g.y;
+    const bis = laengs === 'x' ? g.x + g.w : g.y + g.h;
+    const erste = Math.floor((von - null0) * richt / breit) - 1;
+    const letzte = Math.ceil((bis - null0) * richt / breit) + 1;
+    ctx.fillStyle = TURF_ALT;
+    for (let i = erste; i <= letzte; i++) {
+      if (((i % 2) + 2) % 2 !== 0) continue;
+      const a = null0 + richt * i * breit, b = a + richt * breit;
+      const p0 = Math.min(a, b), p1 = Math.max(a, b);
+      if (laengs === 'x') ctx.fillRect(p0, g.y, p1 - p0, g.h);
+      else                ctx.fillRect(g.x, p0, g.w, p1 - p0);
     }
 
     // Alle Markierungen in derselben Farbe und Stärke. Vorher waren sie

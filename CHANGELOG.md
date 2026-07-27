@@ -2,6 +2,18 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.3]
+
+### Geändert
+- **STREET SOCCER: Der Torraum ist breiter als das Tor.** Er war 0,80 × Torbreite — schmaler als das Tor, das gibt es auf keinem Platz. Er richtet sich jetzt am Tor aus (1,32 ×) statt am Strafraum, weil unser Tor mit 33 % der Feldbreite viel größer ist als ein echtes und die echten Verhältnisse einen Strafraum breiter als das Feld ergäben
+- **Strafraum und Torraum sind nicht mehr in die Länge gezogen.** Breite zu Tiefe liegt beim Strafraum jetzt bei 2,45 : 1 wie auf einem echten Platz (40,32 m zu 16,5 m); die Tiefe wächst dafür von 0,13 auf 0,155
+- **Die Eckviertel sind sichtbar** (0,028 statt 0,008). Maßstäblich wären sie ein Kringel von zwei Pixeln
+- **Der Rasen ist der Hintergrund des Schirms**, nicht nur die markierte Fläche. Das Feld liegt darin mit Auslauf, die Streifen laufen durch
+
+### Behoben
+- **Die Tore ragten aus dem Bild.** Der Zuschnitt rechnete mit der Feldlänge, die Tore stehen aber hinter der Torlinie — jetzt zählt `1 + 2 × GOAL_DEPTH`
+- **Der Test „läuft ohne Tastendruck weiter" schlug zufällig fehl.** Er zählte nur den Weg `result → intro` nach einem Sieg; nach dem Ausscheiden geht es `result → out → intro` in ein neues Turnier
+
 ## [0.21.2]
 
 ### Geändert

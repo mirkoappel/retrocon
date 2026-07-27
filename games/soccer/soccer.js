@@ -72,7 +72,11 @@ window.RetroGames.soccer = {
     // und resize() muss nichts umrechnen.
     const FIELD_W   = 0.58;   // zwischen Futsal (0,50) und Grossfeld (0,648)
     const GOAL_W    = 0.189;
-    const BOX_W     = 0.334, BOX_D = 0.13;   // Strafraum
+    // Strafraum. Das Seitenverhaeltnis zaehlt mehr als die absolute Groesse:
+    // Breite zu Tiefe liegt jetzt bei 2,45 : 1 wie auf einem echten Platz
+    // (40,32 m zu 16,5 m). Vorher war es 2,57 : 1 bei nur 0,13 Tiefe — der
+    // Kasten wirkte dadurch in die Laenge gezogen.
+    const BOX_W     = 0.38, BOX_D = 0.155;   // Strafraum
     const PLAYER_R  = 0.021;
     const BALL_R    = 0.0105;
 
@@ -179,12 +183,19 @@ window.RetroGames.soccer = {
     const LINE  = '#5c7a6a';
     // Maße der Markierungen, abgeleitet aus dem Strafraum: Der entspricht
     // 16,5 m Tiefe und 40,3 m Breite, daraus ergibt sich der Rest.
-    const GOAL_AREA_W  = BOX_W * 0.454;   // Torraum, 18,3 m breit
-    const GOAL_AREA_D  = BOX_D / 3;       // …und 5,5 m tief
+    // Der Torraum MUSS breiter sein als das Tor — mit BOX_W * 0,454 war er
+    // schmaler. Die echten Verhältnisse (Strafraum 5,5 × Torbreite) passen
+    // hier nicht: Sie ergäben einen Strafraum breiter als das ganze Feld, weil
+    // unser Tor im Verhältnis viel größer ist als auf einem echten Platz.
+    // Der Torraum richtet sich deshalb am TOR aus, nicht am Strafraum.
+    const GOAL_AREA_W  = 0.25;            // 1,32 x Tor
+    const GOAL_AREA_D  = 0.065;           // Verhaeltnis 3,8 : 1
     const ELFMETER     = BOX_D * 0.667;   // 11 m vor der Linie
     const TEILKREIS_R  = BOX_D * 0.555;   // 9,15 m Radius
     const MITTE_R      = BOX_D * 0.555;   // derselbe Radius für den Anstoßkreis
-    const ECK_R        = BOX_D * 0.061;   // 1 m Eckviertel
+    // Eckviertel. Maßstabsgetreu wären es 0,008 — auf dem Bildschirm ein
+    // Kringel von zwei Pixeln. Bewusst größer, wie auf einem Tipp-Kick-Feld.
+    const ECK_R        = 0.028;
     const TURF  = '#10231a', TURF_ALT = '#0d1d15';
 
     // Aufstellung für die nach +y angreifende Mannschaft.

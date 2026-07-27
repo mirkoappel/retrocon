@@ -24,7 +24,9 @@ module.exports = {
       for (let f = 0; f < 60 * 1600; f++) {
         s.step();
         phasen.add(S.phase);
-        if (S.phase === 'intro' && letzte === 'result') anschluss++;
+        // Nach einem Sieg geht es result -> intro weiter, nach dem Ausscheiden
+        // result -> out -> intro (neues Turnier von vorn). Beides zaehlt.
+        if (S.phase === 'intro' && ['result', 'out'].includes(letzte)) anschluss++;
         letzte = S.phase;
         if (S.phase === vor) gleich++; else { gleich = 0; vor = S.phase; }
         // Tafeln duerfen nicht haengen; play und goal duerfen dauern
