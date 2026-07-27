@@ -2,6 +2,17 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.19.0]
+
+### Neu
+- **STREET SOCCER: Höhepunkte nach dem Spiel.** Die Ergebnistafel ist jetzt ein Menü wie die Toranzeige: HÖHEPUNKTE zeigt alle Tore des Spiels nacheinander in Zeitlupe (mit Zähler), der zweite Punkt führt weiter. Jede Torszene wird beim Tor aus dem Mitschnitt zur Seite gelegt, bevor der Anstoß ihn löscht
+
+### Geändert
+- **Der Ausgang eines Spiels heißt jetzt, was er ist.** Im Turnier stand „WEITER" als Ergebnis da und las sich wie eine Taste — gemeint war, dass man eine Runde weiterkommt. Jetzt: EINE RUNDE WEITER, IM FINALE, AUSGESCHIEDEN; im Freundschaftsspiel SIEG, NIEDERLAGE, UNENTSCHIEDEN. Der Menüpunkt zum Weitergehen trägt den Namen der nächsten Runde
+
+### Behoben
+- Zwei Konstanten (`resultItems`, `MITSCHNITT_FELDER`) standen wieder unterhalb der öffentlichen Schnittstelle und wurden nie initialisiert — dieselbe Falle wie zuvor bei `uni`, `ELAST_N` und `GOAL_ITEMS`. **Neuer Prüfstandsfall `spiele-hoisting`** prüft das jetzt statisch für alle Spiele, damit es nicht ein sechstes Mal passiert
+
 ## [0.18.9]
 
 ### Behoben

@@ -33,6 +33,10 @@ Jeder Fall hier steht für einen Fehler, der schon einmal im Spiel war und beim 
 | `soccer-wechsel` | Der Spielerwechsel war fest verdrahtet statt einstellbar |
 | `soccer-b-taste` | Angriff und Grätsche ließen sich mit der Tastatur nicht auslösen |
 | `soccer-zuschauen` | Ein Spiel blieb an der Halbzeit- und der Ergebnistafel stehen, statt von selbst weiterzulaufen |
+| `soccer-ergebnis` | Die Ergebnistafel war eine Tafel ohne Menü, und „WEITER" las sich als Taste statt als Ergebnis |
+| `soccer-wiederholung` | In der Zeitlupe hingen die Animationen, weil nur Positionen mitgeschnitten wurden |
+| `spiele-hoisting` | Fünfmal stand eine Konstante unterhalb der öffentlichen Schnittstelle und wurde nie initialisiert |
+| `konsole-cache` | Der Browser mischte eine alte Spieldatei zu einer neuen `index.html` |
 
 **Beobachte den Zustand, nicht die Zierde.** `playMatch` erkannte Halbzeit und Abpfiff einmal am gezeichneten Text „A · WEITER". Als diese Tastenhinweise aus den Menüs flogen, lief jeder statistische Lauf still ins Zeitlimit und gab den Halbzeitstand als Endstand aus. Für Spielabschnitte also `state.phase` nehmen; der gezeichnete Text taugt für Inhalte, die auch wirklich Inhalt sind (Spielstand, Mannschaftsnamen).
 

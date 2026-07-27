@@ -135,6 +135,10 @@ window.RetroGames.soccer = {
     // keine Menüpunkte. Wer im Spielfieber weiterdrückt, klickt sie sonst weg,
     // bevor er sie überhaupt gelesen hat.
     const GOAL_LOCK    = 1.2;
+    const HL_MAX       = 8;     // so viele Tore werden für die Höhepunkte aufbewahrt
+    // Was ein Mitschnitt je Spieler festhält
+    const MITSCHNITT_FELDER = ['x', 'y', 'fx', 'fy', 'dive', 'down', 'downMax',
+                               'tackle', 'poke', 'dx', 'dy', 'ctrl'];
     // Ein Spiel soll von Anfang bis Ende ohne einen einzigen Tastendruck
     // durchlaufen — man soll der KI zusehen können wie im Fernsehen. Jede
     // Tafel geht deshalb von selbst weiter; wer drückt, überspringt nur die
@@ -218,6 +222,7 @@ window.RetroGames.soccer = {
       msg: '', msgTimer: 0,
       tafel: 0,                      // Restzeit, bis eine Tafel von selbst weitergeht
       hist: [], replay: null,        // Mitschnitt und laufende Wiederholung
+      highlights: [], hl: null,      // aufbewahrte Torszenen und laufende Schau
       passTo: null, passToT: 0,      // wer gerade angespielt wurde und wie lange er hinläuft
       goalWait: 0, goalTeam: 0, autoReplay: -1, goalLock: 0,   // Toranzeige: Restzeit, Torschütze, Countdown zur Wiederholung
       kickoffFor: 0, kickoffLock: 0, restart: 0,
@@ -976,6 +981,22 @@ window.RetroGames.soccer = {
       moveToward(p, tx, ty, SPEED * (0.9 + 0.1 * skill(p.team)) * tackleBoost(p), dt);
     }
 
+    function updateResult(dt) {
+      if (state.hl) {
+        state.hl.i += REPLAY_SPEED;
+        const szene = state.highlights[state.hl.clip];
+        if (state.hl.i >= szene.frames.length - 1) {
+          if (state.hl.clip + 1 < state.highlights.length) { state.hl.clip++; state.hl.i = 0; }
+          else { state.hl = null; state.menuSel = resultItems().length - 1; }
+        }
+        return;
+      }
+      if (state.tafel > 0) {
+        state.tafel -= dt;
+        if (state.tafel <= 0) { state.tafel = 0; activate(true); }
+      }
+    }
+
     function updateGoal(dt) {
       if (state.replay) {
         state.replay.i += REPLAY_SPEED;
@@ -1290,6 +1311,12 @@ window.RetroGames.soccer = {
       state.replay = null;
       state.menuSel = 0;                        // oben, also die Wiederholung
       state.goalLock = GOAL_LOCK;
+      // Die Szene für die Höhepunkte aufbewahren, bevor der Mitschnitt beim
+      // Anstoß gelöscht wird
+      if (state.hist.length > 30) {
+        state.highlights.push({ frames: state.hist.slice(), team, stand: [...state.score] });
+        if (state.highlights.length > HL_MAX) state.highlights.shift();
+      }
       state.autoReplay = REPLAY_ON ? AUTO_REPLAY : -1;
       state.msg = ''; state.msgTimer = 0;
     }
@@ -1330,6 +1357,7 @@ window.RetroGames.soccer = {
         return;
       }
       state.phase = 'result'; state.tafel = AUTO_RESULT;
+      state.menuSel = 0; state.hl = null;
       if (state.mode === 'friendly') {
         state.lastResult = a > b ? 'SIEG' : a < b ? 'NIEDERLAGE' : 'UNENTSCHIEDEN';
         (a > b ? sndWin : a < b ? sndLose : sndWhistle)();
@@ -1352,6 +1380,7 @@ window.RetroGames.soccer = {
       while (state.foeTeam === state.myTeam);
       state.score = [0, 0];
       state.half = 1;
+      state.highlights = [];
       state.phase = 'intro';
       state.tafel = 3.5;                        // auch der Anpfiff wartet nicht auf uns
     }
@@ -1434,6 +1463,12 @@ window.RetroGames.soccer = {
           sndWhistle(); return;
 
         case 'result':
+          if (!vonSelbst && resultItems()[state.menuSel] === 'HÖHEPUNKTE') {
+            state.hl = { clip: 0, i: 0 };
+            state.tafel = 0;
+            sndMenu();
+            return;
+          }
           // Drückt niemand, geht es einfach weiter mit dem nächsten Gegner —
           // wer zusehen will, muss dafür nichts tun. Wer drückt, kommt ins Menü.
           if (vonSelbst && state.mode === 'friendly') { naechstesSpiel(); return; }
@@ -1525,8 +1560,13 @@ window.RetroGames.soccer = {
           }
 
           case 'intro':
-          case 'half':
           case 'result':
+            if (state.hl) { if (m.a || m.b || m.start) state.hl = null; return; }
+            if (m.dy) { state.menuSel = (state.menuSel + m.dy + resultItems().length) % resultItems().length; sndMenu(); }
+            if (m.a || m.start) activate();
+            return;
+
+          case 'half':
           case 'champion':
           case 'out':
             if (m.a || m.start) activate();
@@ -1591,6 +1631,7 @@ window.RetroGames.soccer = {
         state.shake = Math.max(0, state.shake - dt * 1.8);
         if (state.phase === 'play') updateMatch(dt);
         else if (state.phase === 'goal') updateGoal(dt);
+        else if (state.phase === 'result') updateResult(dt);
         else if (state.tafel > 0) {
           // Tafeln laufen von selbst weiter, damit ein Spiel ohne Zutun endet
           state.tafel -= dt;
@@ -1812,7 +1853,7 @@ window.RetroGames.soccer = {
     // zurückgeschrieben.
     // Deutlich als Wiederholung gekennzeichnet — sonst hält man die Zeitlupe
     // für das laufende Spiel und wundert sich, warum nichts reagiert.
-    function drawReplayBadge() {
+    function drawReplayBadge(text) {
       // Unten mittig und in demselben Gelb wie TOR!. Ohne blinkenden Punkt und
       // ohne Pulsieren — es ist eine Beschriftung, kein Bedienelement.
       ctx.save();
@@ -1820,26 +1861,31 @@ window.RetroGames.soccer = {
       ctx.shadowColor = '#ffb300';
       ctx.shadowBlur = uni() * 0.03;
       ctx.fillStyle = '#ffd54f';
-      ctx.fillText('WIEDERHOLUNG', w / 2, h * 0.93);
+      ctx.fillText(text, w / 2, h * 0.93);
       ctx.shadowBlur = 0;
       ctx.restore();
+    }
+
+    // Einen Frame aus einem Mitschnitt zeichnen. Der echte Spielzustand wird
+    // dafür kurz überschrieben und danach zurückgeschrieben — danach wird ja
+    // weitergespielt.
+    function zeichneMitschnitt(r, frames, pos) {
+      const f = frames[Math.max(0, Math.min(frames.length - 1, Math.floor(pos)))];
+      const sicherung = state.players.map(p => MITSCHNITT_FELDER.map(k => p[k]));
+      const ball = [state.ball.x, state.ball.y];
+      state.players.forEach((p, k) => MITSCHNITT_FELDER.forEach((k2, i) => { p[k2] = f.p[k][i]; }));
+      state.ball.x = f.bx; state.ball.y = f.by;
+      drawPitch(r); drawPlayers(r);
+      state.players.forEach((p, k) => MITSCHNITT_FELDER.forEach((k2, i) => { p[k2] = sicherung[k][i]; }));
+      state.ball.x = ball[0]; state.ball.y = ball[1];
     }
 
     function drawGoal() {
       const r = pitchRect();
       if (state.replay) {
-        const i = Math.min(state.hist.length - 1, Math.floor(state.replay.i));
-        const f = state.hist[i];
-        const FELDER = ['x', 'y', 'fx', 'fy', 'dive', 'down', 'downMax', 'tackle', 'poke', 'dx', 'dy', 'ctrl'];
-        const sicherung = state.players.map(p => FELDER.map(k2 => p[k2]));
-        const ball = [state.ball.x, state.ball.y];
-        state.players.forEach((p, k) => FELDER.forEach((k2, i) => { p[k2] = f.p[k][i]; }));
-        state.ball.x = f.bx; state.ball.y = f.by;
-        drawPitch(r); drawPlayers(r);
-        state.players.forEach((p, k) => FELDER.forEach((k2, i) => { p[k2] = sicherung[k][i]; }));
-        state.ball.x = ball[0]; state.ball.y = ball[1];
+        zeichneMitschnitt(r, state.hist, state.replay.i);
         drawHud();
-        drawReplayBadge();
+        drawReplayBadge('WIEDERHOLUNG');
         return;
       }
 
@@ -2198,17 +2244,68 @@ window.RetroGames.soccer = {
       panel('HALBZEIT', `${TEAMS[state.myTeam].n} ${state.score[0]} : ${state.score[1]} ${TEAMS[state.foeTeam].n}`);
     }
 
+    // Wie heißt der Ausgang, und wie heißt der Weg hinaus? „WEITER" stand
+    // vorher als Ergebnis da und las sich wie eine Taste — gemeint war, dass
+    // man eine Runde weiterkommt.
+    function resultTitel() {
+      if (state.mode === 'friendly') return state.lastResult;
+      if (state.lastResult !== 'WEITER') return 'AUSGESCHIEDEN';
+      return state.round + 1 < ROUNDS.length ? 'EINE RUNDE WEITER' : 'IM FINALE';
+    }
+    function resultWeiter() {
+      if (state.mode === 'friendly') return 'NÄCHSTES SPIEL';
+      if (state.lastResult !== 'WEITER') return 'ZURÜCK ZUM MENÜ';
+      return ROUNDS[state.round + 1] || 'FINALE';
+    }
+    // Bewusst eine Funktionsdeklaration: Sie wird auch von der Eingabe und vom
+    // Update gerufen, die weit vor dieser Stelle stehen. Ein `const` hier wäre
+    // zum Zeitpunkt des Aufrufs noch nicht initialisiert.
+    function resultItems() {
+      return state.highlights.length ? ['HÖHEPUNKTE', resultWeiter()] : [resultWeiter()];
+    }
+
     function drawResult() {
       const [a, b] = state.score;
-      const title = state.mode === 'friendly'
-        ? state.lastResult
-        : (state.lastResult === 'WEITER' ? 'WEITER!' : 'AUSGESCHIEDEN');
-      panel(title, `${TEAMS[state.myTeam].n} ${a} : ${b} ${TEAMS[state.foeTeam].n}`);
-      if (state.mode === 'cup' && state.lastResult === 'WEITER' && state.round + 1 < ROUNDS.length) {
-        ctx.fillStyle = '#4fc3f7';
-        ctx.font = font(uni() * 0.028);
-        ctx.fillText(`NÄCHSTE RUNDE: ${ROUNDS[state.round + 1]}`, w / 2, h * 0.54);
+      const r = pitchRect();
+      if (state.hl) {                             // Höhepunkte laufen
+        const szene = state.highlights[state.hl.clip];
+        zeichneMitschnitt(r, szene.frames, state.hl.i);
+        drawHud();
+        drawReplayBadge(`HÖHEPUNKTE   ${state.hl.clip + 1} / ${state.highlights.length}`);
+        return;
       }
+
+      const pw = Math.min(w * 0.8, uni() * 0.72);
+      const ph = uni() * 0.5;
+      const x0 = w / 2 - pw / 2, y0 = h / 2 - ph / 2;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.85)';
+      ctx.shadowBlur = uni() * 0.05;
+      ctx.fillStyle = 'rgba(6,9,14,0.96)';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x0, y0, pw, ph, uni() * 0.022);
+      else ctx.rect(x0, y0, pw, ph);
+      ctx.fill();
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+      ctx.lineWidth = Math.max(1, uni() * 0.002);
+      ctx.stroke();
+
+      ctx.fillStyle = '#fff';
+      ctx.font = font(uni() * 0.045);
+      ctx.fillText(resultTitel(), w / 2, y0 + ph * 0.24);
+      ctx.fillStyle = '#8a9bb0';
+      ctx.font = font(uni() * 0.028);
+      ctx.fillText(`${TEAMS[state.myTeam].n}  ${a} : ${b}  ${TEAMS[state.foeTeam].n}`, w / 2, y0 + ph * 0.42);
+
+      resultItems().forEach((it, i) => {
+        const y = y0 + ph * (0.66 + i * 0.16);
+        const sel = i === state.menuSel;
+        hotspot(x0 + pw * 0.08, y - ph * 0.065, pw * 0.84, ph * 0.13, i);
+        ctx.fillStyle = sel ? '#4fc3f7' : '#666';
+        ctx.font = font(uni() * 0.03);
+        ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
+      });
     }
 
     function drawChampion() {

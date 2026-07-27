@@ -116,6 +116,26 @@ Nachgemessen: Gleichschritt 88,5 % → **5,4 %**, vor der Grundstellung 0,4 % �
 
 **Was nicht ging:** Die seitliche Deckung auch nur jenseits jeder Schussdistanz träge zu machen, ließ die Torquote auf **34,8 Tore pro Spiel** springen. Ein Rest an Gleichlauf bleibt deshalb bewusst bestehen — es gibt einen Ball, und beide Torhüter reagieren richtig darauf.
 
+## Nach dem Spiel
+
+Die Ergebnistafel funktioniert wie die Toranzeige — ein Panel mit Menü statt einer Tafel, die man wegdrückt:
+
+| Punkt | Wirkung |
+|---|---|
+| **HÖHEPUNKTE** | alle Tore des Spiels nacheinander in Zeitlupe, mit Zähler „2 / 3" |
+| **NÄCHSTES SPIEL** bzw. der Name der nächsten Runde | weiter |
+
+Jede Torszene wird beim Tor aus dem Mitschnitt zur Seite gelegt (`HL_MAX`, höchstens acht), bevor der Anstoß ihn löscht. Jede Taste bricht die Schau ab.
+
+**Der Ausgang heißt jetzt, was er ist.** Vorher stand im Turnier „WEITER" als Ergebnis da und las sich wie eine Taste; gemeint war, dass man eine Runde weiterkommt:
+
+| Lage | Text |
+|---|---|
+| Turnier, weiter | EINE RUNDE WEITER |
+| Turnier, letzte Runde erreicht | IM FINALE |
+| Turnier, verloren | AUSGESCHIEDEN |
+| Freundschaftsspiel | SIEG · NIEDERLAGE · UNENTSCHIEDEN |
+
 ## Nach dem Tor
 
 Ein Tor war nach 2,4 Sekunden vorbei — man bekam es kaum mit. Jetzt hält das Spiel an und zeigt eine Anzeige mit Torschütze und Spielstand:
