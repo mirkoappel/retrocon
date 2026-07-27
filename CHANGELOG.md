@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.16.1]
+
+### Geändert
+- **STREET SOCCER: Die Kennzeichnung der Wiederholung steht jetzt unten mittig** und im selben Gelb wie TOR!. Oben links stand sie im Spielfeld und wirkte wie ein zweites Bedienelement
+
 ## [0.16.0]
 
 ### Neu

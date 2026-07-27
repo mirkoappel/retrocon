@@ -1666,20 +1666,27 @@ window.RetroGames.soccer = {
     // Deutlich als Wiederholung gekennzeichnet — sonst hält man die Zeitlupe
     // für das laufende Spiel und wundert sich, warum nichts reagiert.
     function drawReplayBadge() {
-      const x = w * 0.055, y = h * 0.16;
-      const r0 = uni() * 0.013;
+      // Unten mittig und in demselben Gelb wie TOR! — oben links stand sie im
+      // Weg des Spielfelds und wirkte wie ein zweites Bedienelement.
+      const t = 'WIEDERHOLUNG';
+      ctx.font = font(uni() * 0.032);
+      const tw = ctx.measureText(t).width;
+      const r0 = uni() * 0.012;
+      const luecke = uni() * 0.022;
+      const x0 = w / 2 - (r0 * 2 + luecke + tw) / 2;
+      const y = h * 0.93;
+
       ctx.save();
-      ctx.globalAlpha = 0.55 + 0.45 * Math.abs(Math.sin(state.t * 5));
-      ctx.fillStyle = '#e53935';
-      ctx.beginPath(); ctx.arc(x, y, r0, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(state.t * 5));
+      ctx.fillStyle = '#ffd54f';
+      ctx.beginPath(); ctx.arc(x0 + r0, y - uni() * 0.011, r0, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = 1;
       ctx.textAlign = 'left';
-      ctx.fillStyle = '#fff';
-      ctx.font = font(uni() * 0.03);
-      ctx.fillText('WIEDERHOLUNG', x + r0 * 2.2, y + uni() * 0.011);
-      ctx.font = font(uni() * 0.02);
-      ctx.fillStyle = '#8a9bb0';
-      ctx.fillText('ZEITLUPE', x + r0 * 2.2, y + uni() * 0.045);
+      ctx.shadowColor = '#ffb300';
+      ctx.shadowBlur = uni() * 0.03;
+      ctx.fillStyle = '#ffd54f';
+      ctx.fillText(t, x0 + r0 * 2 + luecke, y);
+      ctx.shadowBlur = 0;
       ctx.textAlign = 'center';
       ctx.restore();
     }
