@@ -124,6 +124,7 @@ window.RetroGames.soccer = {
     const HIST_LEN     = 210;   // Frames im Speicher für die Wiederholung (3,5 s)
     const REPLAY_SPEED = 0.34;  // Zeitlupe
     const GOAL_WAIT    = 12;    // so lange bleibt die Toranzeige stehen, wenn niemand drückt
+    const GOAL_ITEMS   = ['WEITER', 'WIEDERHOLUNG'];   // Menü der Torpause
     // Die beiden eigenen Regler aus dem Einstellungsmenü. Fehlt `api.setting`
     // (Prüfstand, Einbettung), gelten die Vorgabewerte.
     const HALF_TIME  = api.setting?.('duration') ?? 180;   // Sekunden je Halbzeit
@@ -887,10 +888,13 @@ window.RetroGames.soccer = {
     function updateGoal(dt) {
       if (state.replay) {
         state.replay.i += REPLAY_SPEED;
-        if (state.replay.i >= state.hist.length - 1) state.replay = null;
+        // Nach der Wiederholung steht die Auswahl wieder auf WEITER — sonst
+        // startet der nächste Druck versehentlich noch eine Wiederholung
+        if (state.replay.i >= state.hist.length - 1) { state.replay = null; state.menuSel = 0; }
         return;
       }
       state.goalWait -= dt;
+      // Solange jemand im Menü blättert, läuft die Uhr nicht weiter
       if (state.goalWait <= 0) weiterNachTor();
     }
 
@@ -1167,6 +1171,7 @@ window.RetroGames.soccer = {
       state.goalTeam = team;
       state.goalWait = GOAL_WAIT;
       state.replay = null;
+      state.menuSel = 0;
       state.msg = ''; state.msgTimer = 0;
     }
 
@@ -1228,6 +1233,11 @@ window.RetroGames.soccer = {
     // denselben Weg nehmen.
     function activate() {
       switch (state.phase) {
+        case 'goal':
+          if (state.menuSel === 1) startReplay();
+          else weiterNachTor();
+          return;
+
         case 'mode':
           // Dritter Punkt: der Einstellungs-Screen der Konsole. So kommt man
           // an Halbzeitlänge und Schwierigkeit, ohne erst anpfeifen zu müssen.
@@ -1377,8 +1387,8 @@ window.RetroGames.soccer = {
               if (m.a || m.b || m.start) state.replay = null;
               return;
             }
-            if (m.a || m.start) { weiterNachTor(); return; }
-            if (m.b) { startReplay(); return; }
+            if (m.dy) { state.menuSel = (state.menuSel + m.dy + GOAL_ITEMS.length) % GOAL_ITEMS.length; sndMenu(); }
+            if (m.a || m.start) activate();
             return;
 
           case 'play': {
@@ -1602,17 +1612,17 @@ window.RetroGames.soccer = {
         }
 
         if (Math.abs(k - 1) > 0.01) {
+          // Gezeichnet wird als Ellipse mit zwei Radien, NICHT als Kreis unter
+          // ctx.scale: Eine ungleiche Skalierung verzerrt auch die Kontur, und
+          // an den Spitzen entstand dadurch eine dicke Zunge. Mit ctx.ellipse
+          // bleibt die Linienstärke überall gleich.
           const koerper = (X, Y, sk, a, lw) => {
-            ctx.save();
-            ctx.translate(X, Y);
-            ctx.rotate(ang);
-            ctx.scale(k * sk, sk / k);
             ctx.globalAlpha = a;
-            ctx.beginPath(); ctx.arc(0, 0, rad, 0, Math.PI * 2);
+            ctx.beginPath();
+            ctx.ellipse(X, Y, rad * k * sk, rad / k * sk, ang, 0, Math.PI * 2);
             ctx.fill();
-            if (lw) { ctx.lineWidth = lw * k; ctx.stroke(); }
+            if (lw) { ctx.lineWidth = lw; ctx.stroke(); }
             ctx.globalAlpha = 1;
-            ctx.restore();
           };
           if (hoehe > 0.02) {
             // Schatten bleibt am Boden und wird kleiner, je höher der Sprung
@@ -1663,24 +1673,50 @@ window.RetroGames.soccer = {
       }
 
       drawPitch(r); drawPlayers(r); drawHud();
-      // Panel, damit die Anzeige auf dem Rasen lesbar bleibt
-      const pw = uni() * 0.62, ph = uni() * 0.3;
-      ctx.fillStyle = 'rgba(4,6,10,0.92)';
-      ctx.fillRect(w / 2 - pw / 2, h / 2 - ph / 2, pw, ph);
+
+      const treffer = state.goalTeam === 0 ? TEAMS[state.myTeam] : TEAMS[state.foeTeam];
+      const pw = Math.min(w * 0.86, uni() * 0.72);
+      const ph = uni() * 0.50;
+      const x0 = w / 2 - pw / 2, y0 = h / 2 - ph / 2;
+
+      ctx.fillStyle = 'rgba(4,6,10,0.94)';
+      ctx.fillRect(x0, y0, pw, ph);
       ctx.strokeStyle = '#4fc3f7';
       ctx.lineWidth = Math.max(1, uni() * 0.004);
-      ctx.strokeRect(w / 2 - pw / 2, h / 2 - ph / 2, pw, ph);
+      ctx.strokeRect(x0, y0, pw, ph);
 
       ctx.fillStyle = '#fff';
-      ctx.font = font(uni() * 0.075);
-      ctx.fillText('TOR!', w / 2, h / 2 - ph * 0.16);
-      ctx.font = font(uni() * 0.04);
-      const treffer = state.goalTeam === 0 ? TEAMS[state.myTeam] : TEAMS[state.foeTeam];
+      ctx.font = font(uni() * 0.07);
+      ctx.fillText('TOR!', w / 2, y0 + ph * 0.20);
+
+      // Mannschaftsname eigenständig und eingepasst — „FREUNDSCHAFTSSPIEL" oder
+      // „DEUTSCHLAND 2 : 1" in einer Zeile lief vorher aus dem Panel heraus.
       ctx.fillStyle = '#8a9bb0';
-      ctx.fillText(`${treffer.n}   ${state.score[0]} : ${state.score[1]}`, w / 2, h / 2 + ph * 0.1);
-      ctx.font = font(uni() * 0.024);
-      ctx.fillStyle = '#4fc3f7';
-      ctx.fillText('B · WIEDERHOLUNG', w / 2, h / 2 + ph * 0.36);
+      fitText(treffer.n, w / 2, y0 + ph * 0.33, pw * 0.86, uni() * 0.034);
+      ctx.fillStyle = '#fff';
+      ctx.font = font(uni() * 0.042);
+      ctx.fillText(`${state.score[0]} : ${state.score[1]}`, w / 2, y0 + ph * 0.47);
+
+      // Zwei echte Menüpunkte statt Tastenansagen
+      GOAL_ITEMS.forEach((it, i) => {
+        const y = y0 + ph * (0.68 + i * 0.15);
+        const sel = i === state.menuSel;
+        hotspot(x0 + pw * 0.08, y - ph * 0.06, pw * 0.84, ph * 0.12, i);
+        ctx.fillStyle = sel ? '#4fc3f7' : '#666';
+        ctx.font = font(uni() * 0.03);
+        ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
+      });
+    }
+
+    // Text auf eine Höchstbreite einpassen, statt ihn überlaufen zu lassen
+    function fitText(text, x, y, maxW, size) {
+      let s2 = size;
+      for (let i = 0; i < 8; i++) {
+        ctx.font = font(s2);
+        if (ctx.measureText(text).width <= maxW) break;
+        s2 *= 0.9;
+      }
+      ctx.fillText(text, x, y);
     }
 
     function drawHud() {

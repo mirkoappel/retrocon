@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.15.2]
+
+### Geändert
+- **STREET SOCCER: Die Toranzeige ist ein Auswahlmenü.** WEITER und WIEDERHOLUNG stehen als Punkte da und werden ausgewählt, statt als Tastenansage aufzutreten — bedienbar mit Pfeilen, A und Maus. Nach einer Wiederholung springt die Auswahl zurück auf WEITER
+- Der Mannschaftsname steht in einer eigenen Zeile und wird auf die Panelbreite eingepasst; „DEUTSCHLAND 2 : 1" in einer Zeile lief aus dem Panel heraus. Das Panel ist außerdem höher, damit der letzte Punkt nicht am Rand klebt
+
+### Behoben
+- **Die Kontur der Spieler wurde mitverzerrt.** Gedehnt wurde per `ctx.scale`, was auch die Linienstärke ungleich skaliert — an den Spitzen entstand dadurch eine dicke Zunge. Gezeichnet wird jetzt als Ellipse mit zwei Radien (`ctx.ellipse`), die Linienstärke bleibt überall gleich
+- `GOAL_ITEMS` stand hinter dem `return` der Schnittstelle und wurde nie initialisiert — dieselbe Falle wie zuvor bei `uni` und `ELAST_N`. Vom Prüfstand gefangen
+
 ## [0.15.1]
 
 ### Neu

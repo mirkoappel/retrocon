@@ -27,9 +27,11 @@ module.exports = {
     for (let f = 0; f < 60 * 6; f++) s.step();
     if (S.phase !== 'goal') fehler.push('Anzeige verschwindet schon nach 6 s von selbst');
 
-    // B startet die Wiederholung
-    s.send(pad({ b: true })); s.send(pad());
-    if (!S.replay) fehler.push('B startet keine Wiederholung');
+    // Zweiter Menuepunkt startet die Wiederholung
+    s.send(pad({ dpad: { down: true } })); s.send(pad());
+    if (S.menuSel !== 1) fehler.push(`Blaettern landet auf ${S.menuSel}, erwartet 1`);
+    s.send(pad({ a: true })); s.send(pad());
+    if (!S.replay) fehler.push('Auswahl startet keine Wiederholung');
     else {
       const vorher = S.replay.i;
       for (let f = 0; f < 10; f++) s.step();

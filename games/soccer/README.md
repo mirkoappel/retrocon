@@ -82,15 +82,19 @@ Bei zwei Menschen bekommt jeder seinen eigenen Spieler — dieselbe Figur kann n
 
 Ein Tor war nach 2,4 Sekunden vorbei — man bekam es kaum mit. Jetzt hält das Spiel an und zeigt eine Anzeige mit Torschütze und Spielstand:
 
-| Eingabe | Wirkung |
+Zwei echte Menüpunkte, keine Tastenansage:
+
+| Punkt | Wirkung |
 |---|---|
-| **A** | weiter, Anstoß für die andere Mannschaft |
-| **B** | Wiederholung der Szene in Zeitlupe (0,34-fach) |
-| nichts | nach `GOAL_WAIT` (12 s) geht es von selbst weiter |
+| **WEITER** | Anstoß für die andere Mannschaft |
+| **WIEDERHOLUNG** | die Szene in Zeitlupe (0,34-fach) |
+| — | ohne Eingabe geht es nach `GOAL_WAIT` (12 s) von selbst weiter |
+
+Der Mannschaftsname steht in einer eigenen Zeile und wird über `fitText` auf die Panelbreite eingepasst; „DEUTSCHLAND 2 : 1" in einer Zeile lief vorher aus dem Panel heraus. Nach einer Wiederholung springt die Auswahl zurück auf WEITER, sonst startet der nächste Druck versehentlich die nächste.
 
 Die Wiederholung läuft aus einem **Mitschnitt der letzten 3,5 Sekunden** (`HIST_LEN` = 210 Frames). Aufgezeichnet werden nur Positionen und Blickrichtungen — mehr braucht es nicht, um die Szene noch einmal zu zeichnen, und gezeichnet wird sie mit demselben Code wie das laufende Spiel: Die Positionen werden kurz aus dem Mitschnitt gesetzt und danach zurückgeschrieben.
 
-Angesagt wird nur die **Wiederholung**, nicht das Weiterdrücken — A führt überall weiter, das muss nicht auf dem Bildschirm stehen. Die Zeitlupe dagegen kann man nicht erraten.
+
 
 ## Regeln
 
@@ -224,6 +228,8 @@ Zum Vergleich der Steilheit: Mit `SKILL_STEP` = 0,11 endete das Finale bei 0,1 :
 ## Verformung: Spieler sind Flummi-Scheiben
 
 Grätsche und Hechtsprung waren als **konstantes Oval** gezeichnet — über die ganze Aktion dieselbe Streckung (1,75 × 0,62 bzw. 2,15 × 0,52). Das sah nach einem lang gezogenen Körper aus, nicht nach einer Bewegung.
+
+Gezeichnet wird als **Ellipse mit zwei Radien** (`ctx.ellipse`), nicht als Kreis unter `ctx.scale`: Eine ungleiche Skalierung verzerrt auch die Kontur, wodurch an den Spitzen eine dicke Zunge entstand. So bleibt die Linienstärke überall gleich.
 
 Die Dehnung ist **flächentreu** — längs `k`, quer `1/k`; die Scheibe wird gedehnt, nicht größer. Und sie wird **schnell aufgebaut und dann gehalten**, solange die Aktion dauert. Gefedert wird nur beim Aufprall.
 
