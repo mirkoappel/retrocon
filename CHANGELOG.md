@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.13.5]
+
+### Geändert
+- **STREET SOCCER: Die Grätsche wackelt nicht mehr, sie rutscht.** Sich strecken, antreten, ausrutschen, kurz liegen: Die Streckung wird in 0,08 s aufgebaut und dann **gehalten** statt zu federn, und der Tempobonus ist nicht mehr konstant 1,35, sondern beginnt bei ×1,50 und fällt auf ×0,91 — am Ende ist man langsamer als im normalen Lauf. Die federnde Schwingung gehört zum Aufprall, nicht in die Bewegung
+
+### Behoben
+- **Der Prüfstand erkannte Halbzeit und Abpfiff am gezeichneten Text „A · WEITER".** Als der mit den Tastenhinweisen verschwand, liefen die statistischen Fälle still ins Zeitlimit und lieferten den **Halbzeitstand als Endstand** — die Torquote sah dadurch nach 1,9 statt 3,3 aus. Erkannt wird jetzt über `state.phase`
+
 ## [0.13.4]
 
 ### Geändert

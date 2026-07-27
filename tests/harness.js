@@ -83,15 +83,21 @@ function session(game, { conns = new Map(), inject, setting, w = 1600, h = 900 }
 
 // Menü bis zum Anpfiff durchtippen und dann bis zum Abpfiff spielen.
 // `onFrame` bekommt jeden Frame und darf abbrechen, indem es `false` liefert.
+//
+// Erkannt werden Halbzeit und Abpfiff über `state.phase`, nicht über den
+// gezeichneten Text. Vorher hing das an der Zeile „A · WEITER" — als die aus
+// den Menüs verschwand, lief jeder Testlauf still ins Zeitlimit und lieferte
+// den Halbzeitstand als Endstand.
 function playMatch(s, onFrame, maxFrames = 60 * 900) {
   for (let i = 0; i < 4; i++) s.tap();
+  const S = s.state;
+  const ENDE = ['result', 'champion', 'out'];
   for (let f = 0; f < maxFrames; f++) {
     s.step();
     if (onFrame && onFrame(f) === false) return 'abgebrochen';
-    const scr = s.screen();
-    if (/A · WEITER/.test(scr)) {
-      if (/HALBZEIT \|/.test(scr)) { s.tap(); continue; }
-      const m = scr.match(/(\d+) : (\d+)/);
+    if (S.phase === 'half') { s.tap(); continue; }
+    if (ENDE.includes(S.phase)) {
+      const m = s.screen().match(/(\d+) : (\d+)/);
       return m ? [+m[1], +m[2]] : [0, 0];
     }
   }

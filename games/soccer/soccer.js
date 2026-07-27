@@ -90,10 +90,6 @@ window.RetroGames.soccer = {
     const TACKLE_MAN   = PLAYER_R * 2.6;  // Grätsche erwischt auch den Mann, nicht nur den Ball
     const TACKLE_TIME  = 0.55;  // Dauer der Grätsche — für Mensch und KI dieselbe
     const TACKLE_DOWN  = 0.35;  // danach liegt man kurz — eine Grätsche kostet etwas
-    // Verformung der Spielerscheibe (siehe flummi weiter unten)
-    const ELAST_F = 1.15;   // Schwingungen über die Dauer der Aktion
-    const ELAST_D = 3.4;    // Dämpfung
-    const ELAST_N = Math.exp(-ELAST_D / (4 * ELAST_F));   // so wird der erste Ausschlag genau amp
     // Hechtsprung: das offensive Gegenstück zur Grätsche. Man macht sich lang,
     // um eine Hereingabe doch noch zu erreichen — und liegt danach kurz.
     const DIVE_TIME    = 0.45;  // Dauer des Sprungs
@@ -635,6 +631,15 @@ window.RetroGames.soccer = {
       return best;
     }
 
+    // Grätsche: kurzer Antritt, danach rutscht man aus. Ein konstanter
+    // Tempobonus über die ganze Dauer fühlte sich an wie Rennen, nicht wie
+    // Rutschen — am Ende ist man langsamer als im Lauf.
+    function tackleBoost(p) {
+      if (p.tackle <= 0) return 1;
+      const t = 1 - p.tackle / TACKLE_TIME;
+      return 0.88 + 0.62 * Math.exp(-3.0 * t);
+    }
+
     function moveToward(p, tx, ty, speed, dt) {
       const dx = tx - p.x, dy = ty - p.y;
       const len = Math.hypot(dx, dy);
@@ -834,7 +839,7 @@ window.RetroGames.soccer = {
       // Auch die KI macht bei der Grätsche einen Ausfallschritt. Ohne den war
       // ihre Grätsche nur Anzeige: sie setzte das Flag, kam dem Ball aber
       // keinen Zentimeter näher.
-      moveToward(p, tx, ty, SPEED * (0.9 + 0.1 * skill(p.team)) * (p.tackle > 0 ? 1.35 : 1), dt);
+      moveToward(p, tx, ty, SPEED * (0.9 + 0.1 * skill(p.team)) * tackleBoost(p), dt);
     }
 
     // ── Match-Update ─────────────────────────────────────
@@ -900,7 +905,7 @@ window.RetroGames.soccer = {
             : 1;
           // Mit Ball am Fuß läuft man langsamer — sonst ist ein Ballführender
           // nicht einzuholen und jeder Zweikampf entschieden, bevor er beginnt
-          const sp = SPEED_HUM * (p.tackle > 0 ? 1.35 : 1) * push
+          const sp = SPEED_HUM * tackleBoost(p) * push
                    * (state.ball.owner === p ? BALL_DRAG : 1);
           if (len > (mv.analog ? STICK_DEAD : 0.15)) {
             // Bildschirmeingabe in Feldrichtung umrechnen. Im Querformat wird
@@ -1429,17 +1434,11 @@ window.RetroGames.soccer = {
       }
     }
 
-    // Spieler sind Scheiben aus elastischem Material. Drei Dinge machen daraus
-    // eine Bewegung statt eines langen Ovals:
-    //   flächentreu — längs k, quer 1/k; die Scheibe wird gedehnt, nicht größer
-    //   über die Dauer — sie steht nicht still, sondern läuft ab
-    //   und sie federt: gedämpfte Schwingung, die über die Kugelform hinaus in
-    //   die Stauchung schwingt und ausschwingt. Eine einzelne Beule sah aus wie
-    //   ein gedrehtes Oval; erst das Nachfedern fühlt sich nach Material an.
-    function flummi(t, amp) {
-      const x = Math.min(1, Math.max(0, t));
-      return 1 + (amp / ELAST_N) * Math.sin(2 * Math.PI * ELAST_F * x) * Math.exp(-ELAST_D * x);
-    }
+    // Spieler sind Scheiben, die sich verformen. Die Dehnung ist flächentreu —
+    // längs k, quer 1/k, die Scheibe wird also gedehnt, nicht größer.
+    // Gestreckt wird schnell und dann gehalten, solange die Aktion dauert;
+    // gefedert wird nur beim Aufprall. Eine Schwingung während der Bewegung
+    // sah aus wie Gummi statt wie ein Spieler, der sich lang macht.
 
     function drawPlayers(r) {
       const b = state.ball;
@@ -1480,7 +1479,10 @@ window.RetroGames.soccer = {
           ang = screenAngle(r, p.fx, p.fy);
           alpha = 0.82;
         } else if (p.tackle > 0) {
-          k = flummi(1 - p.tackle / TACKLE_TIME, 0.55);
+          // Wie beim Sprung: schnell lang machen und lang bleiben, solange man
+          // rutscht. Eine federnde Schwingung sah aus wie Gummi statt wie ein
+          // Spieler, der sich streckt.
+          k = 1 + 0.6 * Math.min(1, (1 - p.tackle / TACKLE_TIME) / 0.14);
           ang = screenAngle(r, p.fx, p.fy);
         }
 

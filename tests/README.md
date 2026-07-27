@@ -26,7 +26,10 @@ Jeder Fall hier steht für einen Fehler, der schon einmal im Spiel war und beim 
 | `soccer-menu` | Zurück aus der Mannschaftswahl führte im Einzelspiel auf den falschen Bildschirm |
 | `soccer-balance` | Eine Mannschaft traf dreimal so oft wie die andere, weil eine Ballaktion mitten im Entscheidungsdurchgang griff |
 | `soccer-cup` | Der Turnieraufschlag galt für beide Mannschaften und wirkte deshalb kaum |
-| `settings-games` | — neu mit den Einstellungen: Spiele müssen Dauer und Stärke annehmen *und* ohne sie laufen |
+| `settings-games` | Spiele müssen ihre eigenen Regler deklarieren, übernehmen *und* ohne die Konsole laufen |
+| `soccer-dive` | Der Hechtsprung muss vorkommen, aber die Ausnahme bleiben — und darf den Ball nie führen |
+
+**Beobachte den Zustand, nicht die Zierde.** `playMatch` erkannte Halbzeit und Abpfiff einmal am gezeichneten Text „A · WEITER". Als diese Tastenhinweise aus den Menüs flogen, lief jeder statistische Lauf still ins Zeitlimit und gab den Halbzeitstand als Endstand aus. Für Spielabschnitte also `state.phase` nehmen; der gezeichnete Text taugt für Inhalte, die auch wirklich Inhalt sind (Spielstand, Mannschaftsnamen).
 
 ## Einen Fall schreiben
 

@@ -211,22 +211,21 @@ Zum Vergleich der Steilheit: Mit `SKILL_STEP` = 0,11 endete das Finale bei 0,1 :
 
 Grätsche und Hechtsprung waren als **konstantes Oval** gezeichnet — über die ganze Aktion dieselbe Streckung (1,75 × 0,62 bzw. 2,15 × 0,52). Das sah nach einem lang gezogenen Körper aus, nicht nach einer Bewegung.
 
-Drei Dinge machen daraus eine Bewegung aus Material:
+Die Dehnung ist **flächentreu** — längs `k`, quer `1/k`; die Scheibe wird gedehnt, nicht größer. Und sie wird **schnell aufgebaut und dann gehalten**, solange die Aktion dauert. Gefedert wird nur beim Aufprall.
 
-1. **Flächentreu.** Längs `k`, quer `1/k` — die Scheibe wird gedehnt, nicht größer. Wie ein Flummi, der beim Aufprall breit wird und dabei flach.
-2. **Über die Dauer**, statt still zu stehen.
-3. **Sie federt.** `flummi(t, amp) = 1 + (amp/N) · sin(2π·f·t) · e^(−d·t)` mit f = 1,15 und d = 3,4 — eine gedämpfte Schwingung, die über die Kugelform **hinaus** in die Stauchung schwingt und ausschwingt. Eine einzelne Beule sah aus wie ein gedrehtes Oval; erst das Nachfedern fühlt sich nach Material an.
+Eine gedämpfte Schwingung während der Bewegung war der falsche Weg: Sie sah aus wie Gummi, nicht wie ein Spieler, der sich lang macht.
 
-Ablauf der Grätsche (0,55 s), längs:
+**Grätsche** (0,55 s) — sich strecken, antreten, ausrutschen, kurz liegen:
 
-| Zeit | k | |
+| Zeit | Streckung | Tempo |
 |---|---|---|
-| 0,00 s | 1,00 | rund |
-| 0,06 s | 1,54 | gedehnt, erster Ausschlag |
-| 0,19 s | 1,20 | kommt zurück |
-| 0,24 s | 0,99 | durch die Kugelform hindurch |
-| 0,33 s | 0,86 | quer gestaucht |
-| 0,55 s | 1,03 | ausgeschwungen |
+| 0,00 s | 1,00 | ×1,50 — Antritt |
+| 0,08 s | 1,60 | ×1,32 |
+| 0,28 s | 1,60 | ×1,02 |
+| 0,55 s | 1,60 | ×0,91 — ausgerutscht |
+| danach 0,35 s | liegen | — |
+
+Der Tempobonus war vorher **konstant 1,35** über die ganze Grätsche. Das fühlte sich an wie Rennen, nicht wie Rutschen; jetzt gibt es einen Antritt, und am Ende ist man langsamer als im normalen Lauf.
 
 **Der Hechtsprung läuft anders** — er ist kein Gummi, sondern ein Sprung:
 
