@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.19.3]
+
+### Geändert
+- **STREET SOCCER: Spieler werden bei Grätsche, Hechtsprung und im Liegen nicht mehr durchscheinend.** Nur der Schatten des Sprungs bleibt transparent — ein liegender Spieler sah vorher aus, als gehöre er nicht mehr richtig aufs Feld
+- **GEWONNEN und AUSGESCHIEDEN stehen im selben Gelb wie TOR!**, mit demselben weichen Schein
+- Spielstand und Mannschaften sind aus der Ergebnistafel raus — beides steht schon in der Kopfzeile. Das Panel ist entsprechend kompakter
+
 ## [0.19.2]
 
 ### Geändert

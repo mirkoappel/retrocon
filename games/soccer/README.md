@@ -135,7 +135,7 @@ Jede Torszene wird beim Tor aus dem Mitschnitt zur Seite gelegt (`HL_MAX`, höch
 | Turnier, verloren | AUSGESCHIEDEN | ZURÜCK ZUM MENÜ |
 | Freundschaftsspiel | SIEG · NIEDERLAGE · UNENTSCHIEDEN | NÄCHSTES SPIEL |
 
-Alle Texte im Panel werden über `fitText` auf die Panelbreite eingepasst — „DEUTSCHLAND 3 : 2 NIEDERLANDE" lief vorher links und rechts aus der Box heraus.
+Auf dem Panel steht nur der Ausgang und das Menü — **im selben Gelb wie TOR!**. Spielstand und Mannschaften stehen schon in der Kopfzeile; unten wiederholt machten sie es nur voll, und die Zeile lief obendrein aus der Box heraus. Was bleibt, wird über `fitText` auf die Panelbreite eingepasst.
 
 In der Kopfzeile steht nach dem Abpfiff die Runde (bzw. ABPFIFF im Freundschaftsspiel) statt der stehengebliebenen Uhr — dort las man vorher weiter „1. HALBZEIT 2:56", obwohl das Spiel vorbei war.
 
@@ -301,6 +301,8 @@ Zum Vergleich der Steilheit: Mit `SKILL_STEP` = 0,11 endete das Finale bei 0,1 :
 ## Verformung: Spieler sind Flummi-Scheiben
 
 Grätsche und Hechtsprung waren als **konstantes Oval** gezeichnet — über die ganze Aktion dieselbe Streckung (1,75 × 0,62 bzw. 2,15 × 0,52). Das sah nach einem lang gezogenen Körper aus, nicht nach einer Bewegung.
+
+Die Figur bleibt dabei immer **deckend** — nur der Schatten beim Hechtsprung ist durchscheinend. Ein liegender Spieler war vorher halbtransparent und sah aus, als gehöre er nicht mehr richtig aufs Feld.
 
 Gezeichnet wird als **Ellipse mit zwei Radien** (`ctx.ellipse`), nicht als Kreis unter `ctx.scale`: Eine ungleiche Skalierung verzerrt auch die Kontur, wodurch an den Spitzen eine dicke Zunge entstand. So bleibt die Linienstärke überall gleich.
 
