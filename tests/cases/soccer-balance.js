@@ -10,7 +10,10 @@ module.exports = {
   name: 'Fussball · Torquote und Seitenverteilung',
   slow: true,
   run() {
-    const N = 16;
+    // 40 statt 16 Spiele: Bei 7,5 Toren je Spiel und einer Streuung von 2,6
+    // je Spiel lag die Messung mit 16 Spielen nur 2,3 Sigma unter der oberen
+    // Grenze — jeder achtzigste Lauf waere durchgefallen.
+    const N = 40;
     let a = 0, b = 0;
     for (let i = 0; i < N; i++) {
       const r = playMatch(session('soccer'));

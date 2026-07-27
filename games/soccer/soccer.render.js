@@ -141,6 +141,22 @@ window.RetroSoccer.render = function (ctx, K) {
     }
   }
 
+  // Der Torwart traegt dieselbe Trikotfarbe, nur deutlich heller — und wenn
+  // das Trikot schon hell ist, deutlich dunkler. Vorher sass ein dunkler Punkt
+  // in der Mitte der Scheibe; der sah aus wie ein Kopf und nicht wie ein
+  // Torwart.
+  const gkCache = new Map();
+  function torwartFarbe(c) {
+    if (gkCache.has(c)) return gkCache.get(c);
+    const [rr, gg, bb] = [1, 3, 5].map(i => parseInt(c.substr(i, 2), 16));
+    const hell = (rr * 0.299 + gg * 0.587 + bb * 0.114) / 255;
+    const f = hell > 0.55 ? -0.45 : 0.55;          // aufhellen oder abdunkeln
+    const misch = k => Math.round(f > 0 ? k + (255 - k) * f : k * (1 + f));
+    const aus = '#' + [rr, gg, bb].map(k => misch(k).toString(16).padStart(2, '0')).join('');
+    gkCache.set(c, aus);
+    return aus;
+  }
+
   function drawPitch(r) {
     const g = r.rasen || r;
     ctx.fillStyle = belag()[0];
@@ -273,7 +289,7 @@ window.RetroSoccer.render = function (ctx, K) {
         ctx.lineWidth = Math.max(2, r.s * 0.005);
         ctx.beginPath(); ctx.arc(q.X, q.Y, rad * 1.55, 0, Math.PI * 2); ctx.stroke();
       }
-      ctx.fillStyle = kit(p.team);
+      ctx.fillStyle = p.role === 'GK' ? torwartFarbe(kit(p.team)) : kit(p.team);
       ctx.strokeStyle = 'rgba(0,0,0,0.55)';
       ctx.lineWidth = Math.max(1, r.s * 0.002);
 
@@ -281,7 +297,9 @@ window.RetroSoccer.render = function (ctx, K) {
       // Bildschirm-y ist gespiegelt, deshalb der Winkel über screenAngle.
       let k = 1, ang = 0, hoehe = 0, gross = 1, vor = 0;   // Spieler bleiben immer deckend
       if (p.dive > 0) {
-        const dauer = p.role === 'GK' ? GK_DIVE_TIME : DIVE_TIME;
+        // Der Torwart hechtet nur so weit wie noetig, seine Flugzeit steht
+        // deshalb am Spieler und ist nicht mehr fest.
+        const dauer = p.diveMax || (p.role === 'GK' ? GK_DIVE_TIME : DIVE_TIME);
         // Ein Sprung, keine Gummiwurst: schnell strecken und gestreckt
         // bleiben, solange man fliegt. Die federnde Schwingung gehört zum
         // Aufprall, nicht in die Luft.
@@ -342,10 +360,6 @@ window.RetroSoccer.render = function (ctx, K) {
       } else {
         ctx.beginPath(); ctx.arc(q.X, q.Y, rad, 0, Math.PI * 2); ctx.fill();
         ctx.stroke();
-      }
-      if (p.role === 'GK') {
-        ctx.fillStyle = 'rgba(0,0,0,0.55)';
-        ctx.beginPath(); ctx.arc(q.X, q.Y, rad * 0.45, 0, Math.PI * 2); ctx.fill();
       }
     }
     const bq = px(r, b.x, b.y);

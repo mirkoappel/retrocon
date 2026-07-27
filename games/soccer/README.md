@@ -118,6 +118,19 @@ Nachgemessen: Gleichschritt 88,5 % → **5,4 %**, vor der Grundstellung 0,4 % �
 
 **Was nicht ging:** Die seitliche Deckung auch nur jenseits jeder Schussdistanz träge zu machen, ließ die Torquote auf **34,8 Tore pro Spiel** springen. Ein Rest an Gleichlauf bleibt deshalb bewusst bestehen — es gibt einen Ball, und beide Torhüter reagieren richtig darauf.
 
+## Der Ball am Fuß
+
+Ein gedribbelter Ball wird vorgelegt — gemessen liegt er im Mittel 0,040 vom Spieler entfernt, in 29 % der Frames weiter als das 1,5-fache des Kontaktabstands, im Äußersten 0,115. `TURN_PULL` zieht ihn dabei in die Laufrichtung nach, sonst verlöre man ihn in jeder Kurve.
+
+**Dieses Nachziehen verblasst jetzt mit dem Abstand** (`nah²`, null bei `CONTROL_R`). Auf einer weit vorgelegten Kugel wirkte es wie ein Bogen, den der Ball von selbst läuft: Der Spieler berührt ihn sichtbar nicht, und trotzdem schwenkt er im Kreis mit. Gemessen am seitlichen Schwenk während einer Drehung:
+
+| Vorlage | vorher | jetzt |
+|---|---|---|
+| 0,032 — am Fuß | 0,132 | 0,131 |
+| 0,105 — weit | 0,125 | 0,070 |
+
+Am Fuß bleibt alles wie es war; das ist die Kurvenkontrolle, die `soccer-turn` mit 60 von 60 Läufen absichert.
+
 ## Spielfeldlinien
 
 Ein Käfigplatz hat keinen Strafraum. **Vorgabe ist deshalb STREET SOCCER**: Außenlinie, Mittellinie, Anstoßkreis mit Punkt und je ein Bogen vor dem Tor (`STRASSE_R` 0,17) — mehr steht auf keiner Straße. Wer den kompletten Platz will, stellt **MARKIERUNGEN** auf KOMPLETT; dann kommt alles aus der Tabelle unten dazu.
@@ -166,6 +179,18 @@ Belag und Muster sind getrennt einstellbar:
 Beide Einstellungen werden **bei jedem Bild frisch gelesen**, nicht einmal beim Start — so sieht man die Auswahl im Einstellungsmenü sofort.
 
 Beim Zuschnitt zählt `1 + 2 × GOAL_DEPTH`, nicht die Feldlänge. Rechnet man nur mit der Länge, ragen die Tore an beiden Enden aus dem Bild.
+
+## Der Torwart
+
+Er trägt **dieselbe Trikotfarbe, nur deutlich heller** — und wenn das Trikot schon hell ist, deutlich dunkler. Vorher saß ein dunkler Punkt in der Mitte der Scheibe; der sah aus wie ein Kopf und nicht wie ein Torwart.
+
+Beim Hechten gilt: **so weit wie nötig, nicht so weit wie möglich.** Mit fester Flugzeit legte er 0,196 zurück — mehr, als das Tor breit ist (0,189); aus der Mitte flog er hinter beide Pfosten. Die Flugzeit ergibt sich jetzt aus der Strecke (`clamp(len / tempo, 0.12, GK_DIVE_TIME)`), und gesprungen wird nur, wenn der vorausberechnete Kreuzungspunkt **im Tor liegt**. Vorher wurde dieser Punkt erst *nach* der Sprungentscheidung auf den Torbereich begrenzt — der Torwart warf sich also auch hinter Bällen her, die weit vorbeigingen, und machte dabei das Tor frei.
+
+| | vorher | jetzt |
+|---|---|---|
+| Hechtsprünge je Spiel | 16,2 | 9,3 |
+| Sprungweite im Mittel | 0,089 | 0,041 |
+| landet neben dem Tor | 41 % | 8 % |
 
 ## Tore
 

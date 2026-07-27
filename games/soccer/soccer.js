@@ -126,11 +126,18 @@ window.RetroGames.soccer = {
     const DIVE_DOWN    = 0.7;   // so lange liegt man danach
     const DIVE_ZONE    = 0.26;  // nur so nah am gegnerischen Tor
     const GK_DIVE_GAP  = 0.028; // ab dieser Lücke zum Schuss hechtet der Torwart
-    const GK_DIVE_TIME = 0.55;  // seine Flugzeit — länger als beim Feldspieler
+    const GK_DIVE_TIME = 0.55;  // seine längste Flugzeit; meist ist sie kürzer
+    const SPEED_GK_DIVE = DIVE_SPEED * 0.85;   // flacher als der Feldspieler
     const DIVE_MIN_V   = 0.30;  // und nur auf eine scharf gespielte Hereingabe
     const HEADER_SPEED = 0.62;  // Wucht des abgefälschten Balls
     const SHOT_RANGE   = 0.36;  // ab hier denkt die KI überhaupt ans Abschließen
     const LANE_MIN     = 0.012; // so viel Luft braucht die Schussbahn am Gegner vorbei
+    // Abschlussrate direkt vor dem Tor, je Sekunde. Mit 0,6 endeten nur 31 %
+    // der freien Gelegenheiten im Schuss — der Rest loeste sich auf, die KI
+    // dribbelte vor dem leeren Tor weiter. Mit 1,2 sind es 39 % bei 7,5 Toren
+    // je Spiel (vorher 5,8). Hoeher nicht: 1,5 bringt 8,5 Tore und damit nur
+    // noch 1 Sigma Abstand zur oberen Grenze des Balancetests.
+    const SHOT_CLOSE   = 1.2;
     // Angriffswege, die sich die KI je Ballbesitz aussucht. Flügel doppelt
     // gewichtet — sonst läuft jeder Angriff wieder durch die Mitte.
     const ROUTES = [-1, -1, 0, 1, 1];
@@ -156,7 +163,7 @@ window.RetroGames.soccer = {
     const NETZ_TIEFE   = GOAL_DEPTH * 0.62;  // so weit rollt der Ball ins Netz
     const REPLAY_HALT  = 0.7;   // so lange steht das Bild am Ende der Wiederholung
     // Was ein Mitschnitt je Spieler festhält
-    const MITSCHNITT_FELDER = ['x', 'y', 'fx', 'fy', 'dive', 'down', 'downMax',
+    const MITSCHNITT_FELDER = ['x', 'y', 'fx', 'fy', 'dive', 'diveMax', 'down', 'downMax',
                                'tackle', 'poke', 'dx', 'dy', 'ctrl'];
     // Ein Spiel soll von Anfang bis Ende ohne einen einzigen Tastendruck
     // durchlaufen — man soll der KI zusehen können wie im Fernsehen. Jede
@@ -352,7 +359,7 @@ window.RetroGames.soccer = {
             team, i, role: f.role,
             x: hp.x, y: hp.y, vx: 0, vy: 0,
             fx: 0, fy: team === 0 ? 1 : -1,   // Blickrichtung
-            ctrl: 0, steal: 0, lockout: 0, tackle: 0, poke: 0, bHold: -1, gkHold: 0, dive: 0, down: 0, downMax: 1, dx: 0, dy: 0
+            ctrl: 0, steal: 0, lockout: 0, tackle: 0, poke: 0, bHold: -1, gkHold: 0, dive: 0, diveMax: 1, down: 0, downMax: 1, dx: 0, dy: 0
           });
         });
       }
@@ -363,7 +370,7 @@ window.RetroGames.soccer = {
       for (const p of state.players) {
         const hp = homePos(p.team, p.i);
         p.x = hp.x; p.y = hp.y; p.vx = 0; p.vy = 0;
-        p.steal = 0; p.lockout = 0; p.tackle = 0; p.poke = 0; p.bHold = -1; p.gkHold = 0; p.dive = 0; p.down = 0;
+        p.steal = 0; p.lockout = 0; p.tackle = 0; p.poke = 0; p.bHold = -1; p.gkHold = 0; p.dive = 0; p.diveMax = 0; p.down = 0;
       }
       // Anstoßende Mannschaft stellt den Stürmer an den Ball und den
       // Mitspieler schräg dahinter — er bekommt gleich den Anstoßpass
@@ -610,7 +617,7 @@ window.RetroGames.soccer = {
     }
 
     function startDive(p) {
-      p.dive = DIVE_TIME;
+      p.dive = DIVE_TIME; p.diveMax = DIVE_TIME;
       // In Richtung Ball abspringen, nicht in Laufrichtung — man hechtet ja
       // dorthin, wo der Ball hinkommt
       const b = state.ball;
@@ -802,11 +809,21 @@ window.RetroGames.soccer = {
             // Torwart nur da und sah dem Ball nach, wenn er nicht rechtzeitig
             // hinkam — ein Torwart wirft sich in so einem Fall.
             const luecke = Math.abs(tx - p.x);
-            if (p.dive <= 0 && p.down <= 0 && luecke > GK_DIVE_GAP
+            // Nur hechten, wenn der Ball ueberhaupt ins Tor geht. Vorher wurde
+            // `tx` erst NACH dieser Entscheidung auf den Torbereich begrenzt —
+            // der Torwart warf sich also auch hinter Baellen her, die weit
+            // vorbeigingen, und machte dabei das Tor frei.
+            const aufsTor = Math.abs(tx - FIELD_W / 2) < GOAL_W / 2 + PLAYER_R;
+            if (aufsTor && p.dive <= 0 && p.down <= 0 && luecke > GK_DIVE_GAP
                 && luecke > SPEED_GK * tt * 0.9 && tt < 0.9) {
-              p.dive = GK_DIVE_TIME;
-              const dx = tx - p.x, dy = (gy === 0 ? line : line) - p.y;
+              const dx = tx - p.x, dy = line - p.y;
               const len = Math.hypot(dx, dy) || 1;
+              // So weit wie noetig, nicht so weit wie moeglich: Mit der festen
+              // Flugzeit legte er 0,196 zurueck — mehr, als das Tor breit ist
+              // (0,189). Aus der Mitte flog er damit hinter beide Pfosten.
+              const tempo = SPEED_GK_DIVE;
+              p.dive = clamp(len / tempo, 0.12, GK_DIVE_TIME);
+              p.diveMax = p.dive;
               p.dx = dx / len; p.dy = dy / len;
               p.fx = p.dx; p.fy = p.dy;
               sndSave();
@@ -885,7 +902,7 @@ window.RetroGames.soccer = {
       // zurückhaltend dosiert: mit Rate 1,8 kostete allein diese Regel 1,7 Tore
       // mehr pro Spiel.
       if (lane.len < 0.10) {
-        if (Math.random() < dt * 0.6) { shoot(p, lane.tx); return; }
+        if (Math.random() < dt * SHOT_CLOSE) { shoot(p, lane.tx); return; }
       } else if (lane.len < SHOT_RANGE + 0.06 * skill(p.team) && lane.clear > LANE_MIN) {
         const urge = (1 - lane.len / SHOT_RANGE) * Math.min(1, lane.clear / 0.05);
         if (Math.random() < dt * (0.3 + 1.7 * urge) * skill(p.team)) { shoot(p, lane.tx); return; }
@@ -1160,7 +1177,7 @@ window.RetroGames.soccer = {
         if (p.dive > 0) {
           p.dive -= dt;
           // Der Torwart hechtet flacher, aber weiter — er wirft sich in die Ecke
-          const tempo = p.role === 'GK' ? DIVE_SPEED * 0.85 : DIVE_SPEED;
+          const tempo = p.role === 'GK' ? SPEED_GK_DIVE : DIVE_SPEED;
           const reich = p.role === 'GK' ? DIVE_REACH * 1.25 : DIVE_REACH;
           p.vx = p.dx * tempo; p.vy = p.dy * tempo;
           if (dist(p, state.ball) < reich && !state.ball.owner) headerHit(p);
@@ -1268,8 +1285,15 @@ window.RetroGames.soccer = {
             // jeder Kurve: er liefe nach vorn, während der Spieler abbiegt,
             // und wäre nach CONTROL_R weg. Der Abstand bleibt dabei gleich —
             // die Vorlage wird also nicht kürzer, nur richtungstreu.
+            // ...aber nur, solange der Ball noch am Fuss ist. Auf einer weit
+            // vorgelegten Kugel wirkte das Nachziehen wie ein Bogen, den der
+            // Ball von selbst laeuft: Gemessen lag er in 28,7 % der
+            // Dribbelframes weiter als das 1,5-fache des Kontaktabstands vom
+            // Spieler weg — bis zu 0,115 — und schwenkte dort trotzdem im
+            // Kreis mit. Ein langer Stoss rollt jetzt geradeaus weiter.
+            const nah = clamp(1 - (d - CONTACT) / (CONTROL_R - CONTACT), 0, 1);
             const ax = o.vx / spd, ay = o.vy / spd;
-            const f = Math.min(1, TURN_PULL * dt);
+            const f = Math.min(1, TURN_PULL * nah * nah * dt);
             b.x += (o.x + ax * d - b.x) * f;
             b.y += (o.y + ay * d - b.y) * f;
             const bs = Math.hypot(b.vx, b.vy);

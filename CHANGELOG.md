@@ -2,6 +2,18 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.8]
+
+### Behoben
+- **STREET SOCCER: Der Torwart hechtete am Tor vorbei.** Der vorausberechnete Kreuzungspunkt wurde erst *nach* der Sprungentscheidung auf den Torbereich begrenzt — er warf sich also auch hinter Bällen her, die weit vorbeigingen, und machte dabei das Tor frei. Nach 41 % der Sprünge stand er neben dem Tor, jetzt nach 8 %
+- **Und er sprang zu weit:** 0,196 bei einer Torbreite von 0,189 — aus der Mitte flog er hinter beide Pfosten. Die Flugzeit ergibt sich jetzt aus der nötigen Strecke, die mittlere Sprungweite fällt von 0,089 auf 0,041
+- **Der Ball lief Bögen, ohne dass ihn jemand berührte.** Das Nachziehen in die Laufrichtung wirkte auf jede Entfernung, auch auf eine weit vorgelegte Kugel. Es verblasst jetzt mit dem Abstand: Bei einer Vorlage von 0,105 fällt der seitliche Schwenk von 0,125 auf 0,070, am Fuß bleibt er unverändert
+
+### Geändert
+- **Die KI schließt vor dem Tor ab.** Nur 31 % der freien Gelegenheiten endeten im Schuss, der Rest löste sich auf — sie dribbelte vor dem leeren Tor weiter. Jetzt sind es 39 % bei 7,5 statt 5,8 Toren je Spiel
+- **Der Torwart trägt die Trikotfarbe, nur heller** (oder dunkler, wenn das Trikot schon hell ist). Der dunkle Punkt in der Mitte sah aus wie ein Kopf
+- Der Balancetest läuft über 40 statt 16 Spiele — bei der höheren Torquote lag er sonst nur 2,3 Sigma unter der oberen Grenze
+
 ## [0.21.7]
 
 ### Geändert
