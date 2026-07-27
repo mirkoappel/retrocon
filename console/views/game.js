@@ -15,7 +15,7 @@ let currentGameId = null;
 let rafId = null;
 let paused = false;
 let canvas, ctx, gameView, toast, igOverlay, igSlidesEl, igTrack, igSlides, igNavTop, igNavArrow, igNavLabel, igItems;
-let igSetList, igSetTitle;
+let igSetCarousel, igSetTrack, igSetTitle;
 let toastTimer = null;
 let igSlideIdx = 0;   // 0 = Pause-Menü, 1 = Einstellungen, 2 = Hilfe
 let igSetIdx = 0;     // ausgewählter Regler auf der Einstellungs-Seite
@@ -78,8 +78,12 @@ export function initGame() {
   igNavArrow  = document.getElementById('ig-nav-arrow');
   igNavLabel  = document.getElementById('ig-nav-label');
   igItems     = igOverlay.querySelectorAll('.ig-item');
-  igSetList   = document.getElementById('ig-settings-list');
-  igSetTitle  = document.getElementById('ig-settings-title');
+  igSetCarousel = document.getElementById('ig-settings-carousel');
+  igSetTrack    = document.getElementById('ig-settings-track');
+  igSetTitle    = document.getElementById('ig-settings-title');
+
+  igSetCarousel.querySelector('.carousel-arrow.left') .addEventListener('click', () => igSettingsStep(-1));
+  igSetCarousel.querySelector('.carousel-arrow.right').addEventListener('click', () => igSettingsStep(1));
 
   igItems.forEach((el, i) => el.addEventListener('click', () => {
     if (igSlideIdx !== 0) return;
@@ -117,14 +121,14 @@ function handleEsc() {
 
 function handleIgKey(e) {
   if (igSlideIdx === 1) {                       // Einstellungen des Spiels
-    if (e.code === 'ArrowUp'   || e.code === 'KeyW') { igSettingsKey(-1); e.preventDefault(); return; }
-    if (e.code === 'ArrowDown' || e.code === 'KeyS') { igSettingsKey(1);  e.preventDefault(); return; }
+    if (e.code === 'ArrowLeft'  || e.code === 'KeyA') { igSettingsStep(-1); e.preventDefault(); return; }
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') { igSettingsStep(1);  e.preventDefault(); return; }
     if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space') {
-      const opts = gameOptions(currentGameId);
-      if (opts[igSetIdx]) { cycleGameSetting(currentGameId, opts[igSetIdx].key); refreshIgSettings(); }
-      e.preventDefault(); e.stopImmediatePropagation(); return;
+      igCycleCurrent(); e.preventDefault(); e.stopImmediatePropagation(); return;
     }
-    if (e.code === 'Escape' || e.code === 'KeyB' || e.code === 'Backspace') {
+    // Hoch/Runter verlässt den Screen — dieselbe Achse wie im Konsolenmenü
+    if (e.code === 'Escape' || e.code === 'KeyB' || e.code === 'Backspace' ||
+        e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'ArrowDown' || e.code === 'KeyS') {
       igSlideIdx = 0; refreshIg(); e.preventDefault();
     }
     return;
@@ -155,47 +159,64 @@ function selectIgMenuItem() {
   else if (igMenuIdx === 3) { igSlideIdx = 2; refreshIg(); }
 }
 
-// Die Regler des laufenden Spiels. Was hier steht, deklariert das Spiel selbst
-// — die Konsole zeigt es nur an und speichert es unter dem Spielnamen.
+// Die Regler des laufenden Spiels — als dasselbe Karussell wie im
+// Konsolenmenü: gleiche Karten, gleiche Achse, gleiche Tasten. Was hier steht,
+// deklariert das Spiel selbst; die Konsole zeigt es nur an und speichert es
+// unter dem Spielnamen.
 function buildIgSettings() {
   const opts = gameOptions(currentGameId);
-  igSetTitle.textContent = (window.RetroGames?.[currentGameId]?.name || 'SPIEL');
-  igSetList.innerHTML = '';
+  igSetTitle.textContent = window.RetroGames?.[currentGameId]?.name || 'SPIEL';
+  igSetTrack.innerHTML = '';
   igSetIdx = Math.min(igSetIdx, Math.max(0, opts.length - 1));
   opts.forEach((o, i) => {
     const el = document.createElement('div');
-    el.className = 'ig-setting';
+    el.className = 'setting';
     el.innerHTML = `<span class="name">${o.label}</span><span class="wert"></span>`;
     el.addEventListener('click', () => {
       if (igSetIdx === i) cycleGameSetting(currentGameId, o.key);
       else igSetIdx = i;
       refreshIgSettings();
     });
-    igSetList.appendChild(el);
+    igSetTrack.appendChild(el);
   });
-  if (!opts.length) {
-    igSetList.innerHTML = '<p class="slide-placeholder">KEINE EIGENEN EINSTELLUNGEN</p>';
-  }
   refreshIgSettings();
 }
 
 function refreshIgSettings() {
   const opts = gameOptions(currentGameId);
-  [...igSetList.querySelectorAll('.ig-setting')].forEach((el, i) => {
+  const karten = [...igSetTrack.children];
+  karten.forEach((el, i) => {
     el.classList.toggle('selected', i === igSetIdx);
     el.querySelector('.wert').textContent = opts[i].zeige(getGameSetting(currentGameId, opts[i].key));
   });
+  const aktiv = karten[igSetIdx];
+  if (aktiv) {
+    const offset = aktiv.offsetLeft + aktiv.offsetWidth / 2 - igSetCarousel.clientWidth / 2;
+    igSetTrack.style.transform = `translateX(${-offset}px)`;
+  }
+  igSetCarousel.classList.toggle('has-prev', igSetIdx > 0);
+  igSetCarousel.classList.toggle('has-next', igSetIdx < karten.length - 1);
+
   // Ehrlich bleiben: Dauer und Stärke liest ein Spiel beim Start
   const hint = document.getElementById('ig-settings-hint');
   if (hint) hint.textContent = opts.length
-    ? '↑ ↓ WÄHLEN · A / ENTER ÄNDERN · GILT AB DEM NÄCHSTEN SPIEL'
-    : '';
+    ? '← → BLÄTTERN · A / ENTER ÄNDERN · GILT AB DEM NÄCHSTEN SPIEL'
+    : 'DIESES SPIEL HAT KEINE EIGENEN EINSTELLUNGEN';
 }
 
-function igSettingsKey(step) {
+// Blättern endet an den Rändern, genau wie im Konsolenmenü
+function igSettingsStep(step) {
+  const n = gameOptions(currentGameId).length;
+  const neu = igSetIdx + step;
+  if (neu < 0 || neu >= n) return;
+  igSetIdx = neu;
+  refreshIgSettings();
+}
+
+function igCycleCurrent() {
   const opts = gameOptions(currentGameId);
-  if (!opts.length) return;
-  igSetIdx = (igSetIdx + step + opts.length) % opts.length;
+  if (!opts[igSetIdx]) return;
+  cycleGameSetting(currentGameId, opts[igSetIdx].key);
   refreshIgSettings();
 }
 
@@ -240,13 +261,11 @@ export const isIngameMenuOpen  = () => paused;
 
 export function handleIngameMenuInput(gp, prev) {
   if (igSlideIdx === 1) {                       // Einstellungen des Spiels
-    if (gp.dpad?.up   && !prev?.dpad?.up)   igSettingsKey(-1);
-    if (gp.dpad?.down && !prev?.dpad?.down) igSettingsKey(1);
-    if (gp.a && !prev?.a) {
-      const opts = gameOptions(currentGameId);
-      if (opts[igSetIdx]) { cycleGameSetting(currentGameId, opts[igSetIdx].key); refreshIgSettings(); }
-    }
-    if ((gp.b && !prev?.b) || (gp.select && !prev?.select)) { igSlideIdx = 0; refreshIg(); }
+    if (gp.dpad?.left  && !prev?.dpad?.left)  igSettingsStep(-1);
+    if (gp.dpad?.right && !prev?.dpad?.right) igSettingsStep(1);
+    if (gp.a && !prev?.a) igCycleCurrent();
+    if ((gp.b && !prev?.b) || (gp.select && !prev?.select) ||
+        (gp.dpad?.up && !prev?.dpad?.up)) { igSlideIdx = 0; refreshIg(); }
     return;
   }
   if (igSlideIdx === 2) {

@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.12.2]
+
+### Geändert
+- **Der Einstellungs-Screen im Spiel ist jetzt dasselbe Karussell wie im Konsolenmenü** — gleiche Karten, gleiche Achse, gleiche Tasten: ← → blättert, A / Enter ändert, ↑ ↓ verlässt den Screen. Vorher war es dort eine senkrechte Liste, man musste also zwei Bedienarten lernen
+- Die Karussell-Regeln teilen sich beide Screens (`.settings-carousel`, `.settings-track`, `.setting`), damit sie nicht auseinanderlaufen
+
 ## [0.12.1]
 
 ### Geändert

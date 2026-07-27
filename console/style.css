@@ -25,7 +25,7 @@ body.no-scanlines::after { display: none; }
 /* Einstellungen als Karussell — dieselbe Achse wie bei den Spielen:
    ← → blättert durch die Regler, ↑ ↓ verlässt die Zeile. Eine senkrechte
    Liste stritte sich hier mit der Zeilennavigation. */
-#settings-carousel {
+.settings-carousel {
   position: relative;
   width: min(900px, 92vw);
   height: clamp(190px, 30vh, 260px);
@@ -37,7 +37,7 @@ body.no-scanlines::after { display: none; }
   overflow: hidden;
   margin: 1.4rem 0 0.6rem;
 }
-#settings-track {
+.settings-track {
   display: flex;
   align-items: center;
   gap: 28px;
@@ -437,9 +437,9 @@ body.no-scanlines::after { display: none; }
 .carousel-arrow.left  { left: 16px;  transform: translateY(-50%) rotate(-135deg); }
 .carousel-arrow.right { right: 16px; transform: translateY(-50%) rotate(45deg); }
 #carousel.has-prev .carousel-arrow.left,
-#settings-carousel.has-prev .carousel-arrow.left  { opacity: 0.8; pointer-events: auto; }
+.settings-carousel.has-prev .carousel-arrow.left  { opacity: 0.8; pointer-events: auto; }
 #carousel.has-next .carousel-arrow.right,
-#settings-carousel.has-next .carousel-arrow.right { opacity: 0.8; pointer-events: auto; }
+.settings-carousel.has-next .carousel-arrow.right { opacity: 0.8; pointer-events: auto; }
 .carousel-arrow:hover { opacity: 1 !important; }
 .carousel-arrow.left  { left: 8px; }
 .carousel-arrow.right { right: 8px; }
@@ -602,35 +602,20 @@ body.no-scanlines::after { display: none; }
 
 /* Spiel-Einstellungen: nur im laufenden Spiel erreichbar und dort dem Spiel
    zugeordnet — im Konsolenmenü stehen ausschließlich globale Regler. */
-/* Der Canvas bleibt im Pausenmenü bewusst sichtbar. Für eine Liste mit Werten
-   ist das zu unruhig — Titel, Liste und Hinweis bekommen deshalb einen
-   deckenden Rücken statt durchscheinendem Spielfeld. */
+/* Im Spiel dasselbe Karussell wie im Konsolenmenü — gleiche Karten, gleiche
+   Achse, gleiche Tasten. Nur der Rücken ist deckend, weil der Canvas im
+   Pausenmenü sichtbar bleibt und eine durchscheinende Wertliste unruhig wäre. */
 #ig-slide-settings {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 #ig-slide-settings .slide-title,
-#ig-slide-settings .slide-hint,
-#ig-settings-list {
+#ig-slide-settings .slide-hint {
   background: rgba(4, 6, 10, 0.95);
   border-radius: 8px;
-  padding: 0.7rem 1.2rem;
+  padding: 0.6rem 1.2rem;
 }
-#ig-settings-list {
-  display: flex; flex-direction: column; gap: 0.7rem;
-  margin: 1.4rem 0 1.2rem;
-  min-width: min(24rem, 78vw);
-}
-.ig-setting {
-  display: flex; justify-content: space-between; align-items: baseline;
-  gap: 2rem; padding: 0.6rem 1rem;
-  border: 1px solid #223; cursor: pointer;
-  font-size: 0.7rem; letter-spacing: 0.2rem; color: #667;
-}
-.ig-setting:hover { border-color: #445; color: #99a; }
-.ig-setting.selected { border-color: #4fc3f7; color: #fff; }
-.ig-setting.selected .wert { color: #4fc3f7; }
-.ig-setting.selected .wert::before { content: '‹ '; }
-.ig-setting.selected .wert::after  { content: ' ›'; }
+#ig-settings-carousel { margin: 1.2rem 0 0.6rem; }
+#ig-settings-carousel .setting { background: rgba(4, 6, 10, 0.97); }
 
 .ig-help-blocks {
   display: flex;

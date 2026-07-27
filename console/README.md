@@ -96,9 +96,11 @@ const HALF_TIME = api.setting?.('duration') ?? 180;
 
 Ein Spiel braucht für einen eigenen Regler also nichts am Menü zu ändern — und das Konsolenmenü bleibt frei von Dingen, die nur ein einzelnes Spiel betreffen.
 
-### Globale Einstellungen bedienen
+### Bedienung — beide Ebenen gleich
 
-Waagerecht als Karussell, dieselbe Achse wie bei den Spielen: **← →** blättert durch die Regler, **A / Enter** ändert den ausgewählten, **↑ ↓** verlässt die Zeile. Eine senkrechte Liste stritte sich hier mit der Zeilennavigation. Mausklick wählt eine Karte, der zweite Klick ändert sie.
+Beide Einstellungs-Screens sind **dasselbe Karussell**, mit denselben Karten und denselben Tasten: **← →** blättert durch die Regler, **A / Enter** ändert den ausgewählten, **↑ ↓** verlässt den Screen. Mausklick wählt eine Karte, der zweite Klick ändert sie; die ‹ › am Rand sind anklickbar.
+
+Waagerecht deshalb, weil ↑ ↓ im Hauptmenü für den Zeilenwechsel belegt sind — eine senkrechte Liste stritte sich damit. Im Spiel gilt dieselbe Aufteilung, damit man nicht zwei Bedienarten lernen muss.
 
 | Eintrag | Werte | Wirkung |
 |---|---|---|
@@ -108,9 +110,9 @@ Waagerecht als Karussell, dieselbe Achse wie bei den Spielen: **← →** blätt
 
 **Lautstärke ohne Eingriff in die Spiele:** Alle Spiele verbinden ihre Klänge auf `audioCtx.destination`. Sie bekommen deshalb nicht den AudioContext selbst, sondern eine Hülle (`Proxy`), deren `destination` ein Master-Gain ist. Der Regler wirkt damit überall, ohne dass ein einziges Spiel angefasst werden musste.
 
-### Spiel-Einstellungen bedienen
+### Spiel-Einstellungen
 
-ESC → EINSTELLUNGEN. Der Screen trägt den Namen des laufenden Spiels und zeigt nur dessen Regler; **↑ ↓** wählt, **A / Enter** ändert, **B / ESC** zurück. Dauer und Stärke liest ein Spiel beim Start — die Änderung gilt deshalb ab dem nächsten Spiel, und der Hinweis unter der Liste sagt das auch.
+ESC → EINSTELLUNGEN. Der Screen trägt den Namen des laufenden Spiels und zeigt nur dessen Regler. Dauer und Stärke liest ein Spiel beim Start — die Änderung gilt deshalb ab dem nächsten Spiel, und der Hinweis unter dem Karussell sagt das auch.
 
 ## Ingame-Menü
 
