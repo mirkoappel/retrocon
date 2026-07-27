@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.5]
+
+### Hinzugefügt
+- **STREET SOCCER: MARKIERUNGEN ist einstellbar.** Vorgabe ist STREET SOCCER — Außenlinie, Mittellinie, Anstoßkreis und je ein Bogen vor dem Tor. Ein Käfigplatz hat keinen Strafraum. KOMPLETT bringt Strafraum, Torraum, Elfmeterpunkt, Teilkreis und Eckviertel zurück
+- **RASEN ist einstellbar**: EINFARBIG (Vorgabe), QUERSTREIFEN, LÄNGSSTREIFEN, SCHACHBRETT. Beide Einstellungen wirken sofort, ohne Neustart
+
+### Geändert
+- **Der Rasen ist der Hintergrund des ganzen Schirms**, auch hinter der Anzeigezeile
+
 ## [0.21.4]
 
 ### Behoben

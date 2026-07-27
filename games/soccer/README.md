@@ -118,6 +118,8 @@ Nachgemessen: Gleichschritt 88,5 % → **5,4 %**, vor der Grundstellung 0,4 % �
 
 ## Spielfeldlinien
 
+Ein Käfigplatz hat keinen Strafraum. **Vorgabe ist deshalb STREET SOCCER**: Außenlinie, Mittellinie, Anstoßkreis mit Punkt und je ein Bogen vor dem Tor (`STRASSE_R` 0,17) — mehr steht auf keiner Straße. Wer den kompletten Platz will, stellt **MARKIERUNGEN** auf KOMPLETT; dann kommt alles aus der Tabelle unten dazu.
+
 Alle Markierungen haben **dieselbe Farbe und dieselbe Stärke**. Vorher waren sie halbdurchsichtig — und wo zwei aufeinanderlagen, etwa die Strafraumkante auf der Torlinie, sah es doppelt so kräftig aus. Kanten, die auf einer anderen Linie liegen, werden deshalb gar nicht erst gezeichnet.
 
 Der Strafraum ist kein Kasten mehr, sondern das, was auf einem Platz steht:
@@ -145,7 +147,20 @@ Beim Rest zählt das **Seitenverhältnis** mehr als die absolute Größe: Ein zu
 
 ## Rasen
 
-Der Rasen ist der **Hintergrund des Schirms**, nicht die markierte Fläche: Das Feld liegt darin wie auf einem Tipp-Kick-Platz, mit Auslauf an allen vier Seiten. Die Streifen laufen über den ganzen Rasen weiter — sonst hört der Platz an der Außenlinie sichtbar auf. Sie sind an das Feld phasengebunden und werden darüber hinaus gekachelt.
+Der Rasen ist der **Hintergrund des ganzen Schirms**, nicht die markierte Fläche: Das Feld liegt darin wie auf einem Tipp-Kick-Platz, mit Auslauf an allen vier Seiten.
+
+Das Mähmuster ist einstellbar, Vorgabe ist **EINFARBIG**:
+
+| RASEN | Bahnen |
+|---|---|
+| EINFARBIG | keine — Vorgabe |
+| QUERSTREIFEN | entlang der Feldlänge |
+| LÄNGSSTREIFEN | entlang der Feldbreite |
+| SCHACHBRETT | beides, jedes zweite Feld |
+
+Die Bahnen hängen am **Feld**, nicht am Bildschirm: Anfang und Breite (`r.s / BAHNEN`) kommen aus den Feldkoordinaten, gekachelt wird darüber hinaus in beide Richtungen. Sonst hörte der Platz an der Außenlinie sichtbar auf oder das Muster verschöbe sich beim Drehen.
+
+Beide Einstellungen werden **bei jedem Bild frisch gelesen**, nicht einmal beim Start — so sieht man die Auswahl im Einstellungsmenü sofort.
 
 Beim Zuschnitt zählt `1 + 2 × GOAL_DEPTH`, nicht die Feldlänge. Rechnet man nur mit der Länge, ragen die Tore an beiden Enden aus dem Bild.
 

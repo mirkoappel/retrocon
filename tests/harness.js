@@ -60,7 +60,10 @@ function makeCtx(texts, kaesten, pfade) {
       if (pfade) {
         if (p === 'beginPath') return () => { t.__pfad = []; };
         if (p === 'moveTo' || p === 'lineTo') return (x, y) => { (t.__pfad ||= []).push([x, y]); };
-        if (p === 'stroke') return () => { if (t.__pfad && t.__pfad.length) pfade.push(t.__pfad); t.__pfad = []; };
+        if (p === 'stroke') return () => {
+          if (t.__pfad && t.__pfad.length) pfade.push({ punkte: t.__pfad, farbe: String(t.strokeStyle) });
+          t.__pfad = [];
+        };
       }
       return () => {};
     },

@@ -32,6 +32,11 @@ window.RetroGames.soccer = {
       zeige: v => v.toUpperCase() },
     { key: 'replay', label: 'WIEDERHOLUNG', werte: ['an', 'aus'], vorgabe: 'an',
       zeige: v => v === 'an' ? 'AN' : 'AUS' },
+    { key: 'lines', label: 'MARKIERUNGEN', werte: ['strasse', 'komplett'], vorgabe: 'strasse',
+      zeige: v => v === 'strasse' ? 'STREET SOCCER' : 'KOMPLETT' },
+    { key: 'turf', label: 'RASEN', werte: ['einfarbig', 'quer', 'laengs', 'schach'], vorgabe: 'einfarbig',
+      zeige: v => ({ einfarbig: 'EINFARBIG', quer: 'QUERSTREIFEN',
+                     laengs: 'LÄNGSSTREIFEN', schach: 'SCHACHBRETT' }[v]) },
     { key: 'switch', label: 'SPIELERWECHSEL', werte: ['manuell', 'ballgewinn', 'amball'], vorgabe: 'ballgewinn',
       zeige: v => v === 'manuell' ? 'NUR SELBST' : v === 'ballgewinn' ? 'BEI BALLGEWINN' : 'AM BALL' },
   ],
@@ -168,6 +173,12 @@ window.RetroGames.soccer = {
     //   amball      — zusätzlich immer zum Spieler, der dem Ball am nächsten ist
     const SWITCH_MODE = api.setting?.('switch') ?? 'ballgewinn';
     const REPLAY_ON   = (api.setting?.('replay') ?? 'an') === 'an';
+    // Der Rasen wird bei jedem Bild frisch gelesen, nicht einmal beim Start:
+    // So sieht man die Auswahl im Einstellungsmenü sofort.
+    const rasenArt    = () => api.setting?.('turf') ?? 'einfarbig';
+    // Ein Kaefigplatz hat keinen Strafraum. Vorgabe sind deshalb die
+    // schlichten Linien; den kompletten Platz gibt es auf Wunsch.
+    const linienArt   = () => api.setting?.('lines') ?? 'strasse';
     // Ohne Wiederholung hat die Torpause nur einen Punkt
     // Der vorgewählte Punkt steht oben, und das ist WEITER: Der schnelle
     // Druck soll anpfeifen, nicht zurückspulen.
@@ -196,6 +207,8 @@ window.RetroGames.soccer = {
     // Eckviertel. Maßstabsgetreu wären es 0,008 — auf dem Bildschirm ein
     // Kringel von zwei Pixeln. Bewusst größer, wie auf einem Tipp-Kick-Feld.
     const ECK_R        = 0.028;
+    // Street Soccer: statt Strafraum nur ein Bogen vor dem Tor
+    const STRASSE_R    = 0.17;
     const TURF  = '#10231a', TURF_ALT = '#0d1d15';
 
     // Aufstellung für die nach +y angreifende Mannschaft.
@@ -1614,10 +1627,10 @@ window.RetroGames.soccer = {
     // Maße führt resize() nach.
     const R = window.RetroSoccer.render(ctx, {
       state, clamp, kit, hotspot, goalItems, drawFlagIcon, GOAL_DEPTH,
-      MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R,
+      MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R, STRASSE_R,
       AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
       FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
-      TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS,
+      TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, linienArt,
       DIVE_TIME, DIVE_DOWN, GK_DIVE_TIME, TACKLE_TIME, POKE_TIME,
       GOAL_WAIT, GOAL_LOCK, MITSCHNITT_FELDER,
       w, h,

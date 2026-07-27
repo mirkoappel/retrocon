@@ -16,10 +16,10 @@ window.RetroSoccer.render = function (ctx, K) {
   let { w, h } = K;
   const {
     state, clamp, kit, hotspot, goalItems, drawFlagIcon, GOAL_DEPTH,
-    MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R,
+    MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R, STRASSE_R,
     AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
     FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
-    TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS,
+    TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, linienArt,
     DIVE_TIME, DIVE_DOWN, GK_DIVE_TIME, TACKLE_TIME, POKE_TIME,
     GOAL_WAIT, GOAL_LOCK, MITSCHNITT_FELDER,
   } = K;
@@ -43,9 +43,9 @@ window.RetroSoccer.render = function (ctx, K) {
     // Die Tore stehen HINTER der Torlinie. Rechnet man nur mit der Feldlänge,
     // ragen sie an beiden Enden aus dem Bild — genau das war zu sehen.
     const LAENGE = 1 + 2 * GOAL_DEPTH;
-    // Der Rasen ist der Hintergrund des Schirms, nicht nur die markierte
-    // Fläche: Das Feld liegt darin wie auf einem Tipp-Kick-Platz.
-    const rasen = { x: 0, y: top, w, h: h - top };
+    // Der Rasen ist der Hintergrund des GANZEN Schirms, nicht nur die
+    // markierte Fläche: Das Feld liegt darin wie auf einem Tipp-Kick-Platz.
+    const rasen = { x: 0, y: 0, w, h };
     if (isLandscape()) {
       const s = Math.min(availW / LAENGE, availH / FIELD_W);  // Pixel je Feldlänge
       const pw = s, ph = s * FIELD_W;
@@ -100,31 +100,65 @@ window.RetroSoccer.render = function (ctx, K) {
     ctx.beginPath(); ctx.arc(p.X, p.Y, Math.max(1.5, r.s * 0.005), 0, Math.PI * 2); ctx.fill();
   }
 
+  // Das Mähmuster. Es läuft über den ganzen Rasen weiter, nicht nur über die
+  // markierte Fläche — sonst hörte der Platz an der Aussenlinie sichtbar auf.
+  // Die Bahnen hängen am Feld, nicht am Bildschirm: Anfang und Breite kommen
+  // aus den Feldkoordinaten, gekachelt wird darüber hinaus in beide Richtungen.
+  const BAHNEN = 8;                               // Bahnen je Feldlänge
+
+  // Alle Bahnindizes, die den Rasen auf einer Bildschirmachse überdecken
+  function bahnen(g, achse, null0, richt, breit) {
+    const a = ((achse === 'x' ? g.x : g.y) - null0) * richt / breit;
+    const b = ((achse === 'x' ? g.x + g.w : g.y + g.h) - null0) * richt / breit;
+    const liste = [];
+    for (let i = Math.floor(Math.min(a, b)) - 1; i <= Math.ceil(Math.max(a, b)) + 1; i++) liste.push(i);
+    return liste;
+  }
+  function bahnKante(null0, richt, breit, i) {
+    const a = null0 + richt * i * breit, b = a + richt * breit;
+    return [Math.min(a, b), Math.max(a, b)];
+  }
+
+  function rasenMuster(r, g) {
+    const art = rasenArt ? rasenArt() : 'einfarbig';
+    if (art === 'einfarbig') return;
+
+    const breit = r.s / BAHNEN;
+    const ecke = px(r, 0, 0);
+    // Achse der Feldlänge auf dem Schirm — im Hochformat zeigt sie nach oben
+    const lA = r.rot ? 'x' : 'y', l0 = r.rot ? ecke.X : ecke.Y, lR = r.rot ? 1 : -1;
+    const qA = r.rot ? 'y' : 'x', q0 = r.rot ? ecke.Y : ecke.X, qR = 1;
+
+    ctx.fillStyle = TURF_ALT;
+    if (art === 'schach') {
+      for (const i of bahnen(g, lA, l0, lR, breit)) {
+        const [a0, a1] = bahnKante(l0, lR, breit, i);
+        for (const j of bahnen(g, qA, q0, qR, breit)) {
+          if (((i + j) % 2 + 2) % 2 !== 0) continue;
+          const [b0, b1] = bahnKante(q0, qR, breit, j);
+          if (lA === 'x') ctx.fillRect(a0, b0, a1 - a0, b1 - b0);
+          else            ctx.fillRect(b0, a0, b1 - b0, a1 - a0);
+        }
+      }
+      return;
+    }
+    // quer: Bahnen entlang der Feldlänge. laengs: entlang der Feldbreite.
+    const achse = art === 'quer' ? lA : qA;
+    const null0 = art === 'quer' ? l0 : q0;
+    const richt = art === 'quer' ? lR : qR;
+    for (const i of bahnen(g, achse, null0, richt, breit)) {
+      if (((i % 2) + 2) % 2 !== 0) continue;
+      const [p0, p1] = bahnKante(null0, richt, breit, i);
+      if (achse === 'x') ctx.fillRect(p0, g.y, p1 - p0, g.h);
+      else               ctx.fillRect(g.x, p0, g.w, p1 - p0);
+    }
+  }
+
   function drawPitch(r) {
     const g = r.rasen || r;
     ctx.fillStyle = TURF;
     ctx.fillRect(g.x, g.y, g.w, g.h);
-
-    // Streifen quer zur Spielrichtung. Sie laufen über den ganzen Rasen
-    // weiter, nicht nur über die markierte Fläche — sonst hört der Platz an
-    // der Aussenlinie sichtbar auf.
-    const bands = 8;
-    const breit = r.s / bands;                    // Streifenbreite in Pixeln
-    const laengs = r.rot ? 'x' : 'y';             // Achse der Feldlänge auf dem Schirm
-    const null0 = laengs === 'x' ? px(r, 0, 0).X : px(r, 0, 0).Y;
-    const richt = laengs === 'x' ? 1 : -1;        // im Hochformat zeigt y nach oben
-    const von = laengs === 'x' ? g.x : g.y;
-    const bis = laengs === 'x' ? g.x + g.w : g.y + g.h;
-    const erste = Math.floor((von - null0) * richt / breit) - 1;
-    const letzte = Math.ceil((bis - null0) * richt / breit) + 1;
-    ctx.fillStyle = TURF_ALT;
-    for (let i = erste; i <= letzte; i++) {
-      if (((i % 2) + 2) % 2 !== 0) continue;
-      const a = null0 + richt * i * breit, b = a + richt * breit;
-      const p0 = Math.min(a, b), p1 = Math.max(a, b);
-      if (laengs === 'x') ctx.fillRect(p0, g.y, p1 - p0, g.h);
-      else                ctx.fillRect(g.x, p0, g.w, p1 - p0);
-    }
+    rasenMuster(r, g);
 
     // Alle Markierungen in derselben Farbe und Stärke. Vorher waren sie
     // halbdurchsichtig, und wo zwei Linien aufeinanderlagen — Strafraum auf
@@ -143,7 +177,16 @@ window.RetroSoccer.render = function (ctx, K) {
     feldpunkt(r, FIELD_W / 2, 0.5);
 
     const mitte = FIELD_W / 2;
-    for (const gy of [0, 1]) {
+    // Auf einem Kaefigplatz gibt es keinen Strafraum. Vorgabe ist deshalb ein
+    // schlichter Bogen vor jedem Tor — mehr steht auf keiner Strasse. Kein
+    // vorzeitiges `return` an dieser Stelle: Danach kommen noch die Tore.
+    const komplett = (linienArt ? linienArt() : 'strasse') === 'komplett';
+    if (!komplett) for (const gy of [0, 1]) {
+      const grund = gy === 0 ? 0 : Math.PI;
+      feldbogen(r, mitte, gy, STRASSE_R, grund, grund + Math.PI);
+    }
+
+    if (komplett) for (const gy of [0, 1]) {
       const ein = gy === 0 ? 1 : -1;              // ins Feld hinein
       // Strafraum — nur die drei Seiten im Feld. Die vierte liegt auf der
       // Torlinie und wird von den Aussenlinien schon gezogen.

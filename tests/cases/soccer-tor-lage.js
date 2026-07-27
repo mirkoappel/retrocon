@@ -10,9 +10,9 @@ const TOR_FARBE = 'rgba(10,14,20,0.85)';
 // Der erste gezeichnete Linienzug ist die Aussenlinie — der Rasen davor wird
 // gefuellt, nicht gestrichelt.
 function feldRahmen(pfade) {
-  const p = pfade.find(z => z.length === 4);
+  const p = pfade.find(z => z.punkte.length === 4);
   if (!p) return null;
-  const xs = p.map(q => q[0]), ys = p.map(q => q[1]);
+  const xs = p.punkte.map(q => q[0]), ys = p.punkte.map(q => q[1]);
   return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
 }
 
