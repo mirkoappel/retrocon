@@ -116,6 +116,12 @@ Nachgemessen: Gleichschritt 88,5 % → **5,4 %**, vor der Grundstellung 0,4 % �
 
 **Was nicht ging:** Die seitliche Deckung auch nur jenseits jeder Schussdistanz träge zu machen, ließ die Torquote auf **34,8 Tore pro Spiel** springen. Ein Rest an Gleichlauf bleibt deshalb bewusst bestehen — es gibt einen Ball, und beide Torhüter reagieren richtig darauf.
 
+## Tafeln
+
+Anpfiff, Tor, Halbzeit, Ergebnis, Weltmeister und Aus benutzen **dieselbe Box** (`zeichneBox`): abgerundete Fläche mit Schlagschatten und Haarlinie, gelbe Überschrift, darunter Menüpunkte mit Klickflächen.
+
+Vorher gab es zwei Sorten nebeneinander — diese Box für Tor und Ergebnis, und eine Vollbild-Abdunklung für alles andere, bei der ein Klick **irgendwohin** bestätigte. Das sah nicht nur unterschiedlich aus, es verhielt sich auch unterschiedlich: Die Halbzeittafel ließ sich versehentlich wegklicken, genau der Fehler, den wir bei der Toranzeige behoben hatten.
+
 ## Nach dem Turnier
 
 Nach AUSGESCHIEDEN oder WELTMEISTER steht auf der Tafel, was folgt: **NEUE WELTMEISTERSCHAFT**. Wer nichts drückt, sieht ihr zu — Runde, Spielstand und Höhepunkte werden dabei zurückgesetzt, es beginnt wirklich von vorn. Ohne die Ansage sah es aus, als starte nach dem Aus grundlos noch ein Spiel.

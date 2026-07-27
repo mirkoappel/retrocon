@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.20.0]
+
+### Geändert
+- **STREET SOCCER: Alle Tafeln benutzen dieselbe Box.** Anpfiff, Tor, Halbzeit, Ergebnis, Weltmeister und Aus sehen gleich aus und werden gleich bedient. Vorher gab es zwei Sorten nebeneinander: die abgerundete Box mit Menü für Tor und Ergebnis, und eine Vollbild-Abdunklung für alles andere, bei der ein Klick **irgendwohin** bestätigte — die Halbzeittafel ließ sich also versehentlich wegklicken
+- **`updateMatch` ist von 272 auf 14 Zeilen geschrumpft.** Ein Frame läuft jetzt in acht benannten Schritten ab: Pausen, Mitschnitt, Entscheiden, Bewegen, Trennen, Ball, Zweikampf, Uhr. Die Reihenfolge war schon vorher wichtig, stand aber nur in Kommentaren mitten im Fluss; jetzt steht sie im Code
+- Der doppelte Panel-Code aus Toranzeige und Ergebnistafel ist damit ebenfalls weg
+
 ## [0.19.5]
 
 ### Geändert

@@ -1038,12 +1038,31 @@ window.RetroGames.soccer = {
     }
 
     // ── Match-Update ─────────────────────────────────────
+    // Ein Frame in acht Schritten. Die Reihenfolge ist nicht beliebig: Erst
+    // entscheiden alle aus demselben Weltzustand, dann bewegen sich alle, und
+    // die Torprüfung steht vor der Ballaufnahme. Wo das eine Rolle spielt,
+    // steht es am jeweiligen Schritt.
+    //
+    // Schritte, die den Frame beenden, liefern `true` zurück.
     function updateMatch(dt) {
-      const b = state.ball;
       state.kickoffLock = Math.max(0, state.kickoffLock - dt);
       ctrlCooldown = Math.max(0, ctrlCooldown - dt);
       assignControl();
 
+      if (laufenPausen(dt)) return;
+      schreibeMitschnitt();
+      lassEntscheiden(dt);
+      lassBewegen(dt);
+      trenneSpieler();
+      if (fuehreBall(dt)) return;
+      fuehreZweikampf(dt);
+      laufeUhr(dt);
+    }
+
+    // Anstoß- und Passpause. Solange der Anstoß läuft, steht alles still —
+    // auch die Uhr.
+    function laufenPausen(dt) {
+      const b = state.ball;
       // Anstoß-Pause: Spieler und Ball stehen still, damit man den Neubeginn
       // überhaupt mitbekommt. Die Uhr läuft solange ebenfalls nicht.
       if (state.kickoffToT > 0) {
@@ -1059,9 +1078,14 @@ window.RetroGames.soccer = {
         state.restart -= dt;
         if (state.msgTimer > 0) state.msgTimer -= dt;
         if (state.restart <= 0) kickoffPass();
-        return;
+        return true;
       }
 
+      return false;
+    }
+
+    function schreibeMitschnitt() {
+      const b = state.ball;
       // Mitschnitt für die Wiederholung. Neben den Positionen auch alles, was
       // die Figur verformt: Ohne die Zeitgeber blieb ein Spieler, der beim Tor
       // gerade grätschte, die ganze Zeitlupe über ein Oval — die Verformung kam
@@ -1074,6 +1098,9 @@ window.RetroGames.soccer = {
       });
       if (state.hist.length > HIST_LEN) state.hist.shift();
 
+    }
+
+    function lassEntscheiden(dt) {
       // Zwei Durchgänge: erst entscheiden alle aus demselben Weltzustand,
       // dann bewegen sich alle. Würde beides in einer Schleife passieren,
       // sähe die zweite Mannschaft bereits die neuen Positionen der ersten
@@ -1141,6 +1168,9 @@ window.RetroGames.soccer = {
           aiOutfield(p, dt);
         }
       }
+    }
+
+    function lassBewegen(dt) {
       for (const p of state.players) {
         p.x = clamp(p.x + p.vx * dt, PLAYER_R, FIELD_W - PLAYER_R);
         p.y = clamp(p.y + p.vy * dt, PLAYER_R, 1 - PLAYER_R);
@@ -1150,6 +1180,9 @@ window.RetroGames.soccer = {
 
       applyPending(dt);
 
+    }
+
+    function trenneSpieler() {
       // Spieler drücken sich gegenseitig weg. Die Verschiebungen werden erst
       // gesammelt und dann angewandt — sonst hinge das Ergebnis davon ab,
       // welcher Spieler im Array zuerst kommt.
@@ -1173,6 +1206,11 @@ window.RetroGames.soccer = {
         p.y = clamp(p.y + dy[i], PLAYER_R, 1 - PLAYER_R);
       }
 
+    }
+
+    // Ball führen, dribbeln, Tore prüfen und aufnehmen
+    function fuehreBall(dt) {
+      const b = state.ball;
       // Ball
       if (b.owner) {
         const o = b.owner;
@@ -1238,8 +1276,8 @@ window.RetroGames.soccer = {
         // Tor VOR der Ballaufnahme prüfen. Der Fangradius des Torwarts reicht
         // tiefer als das Tor — sonst fischt er Bälle heraus, die die Linie
         // längst überquert haben, und es fällt überhaupt kein Tor mehr.
-        if (inGoalMouth && b.y > 1) { scoreGoal(0); return; }
-        if (inGoalMouth && b.y < 0) { scoreGoal(1); return; }
+        if (inGoalMouth && b.y > 1) { scoreGoal(0); return true; }
+        if (inGoalMouth && b.y < 0) { scoreGoal(1); return true; }
 
         // Aufnehmen: der am nächsten stehende Spieler bekommt den Ball.
         // (Nicht der erste passende — das bevorzugte sonst systematisch die
@@ -1261,6 +1299,11 @@ window.RetroGames.soccer = {
         }
       }
 
+      return false;
+    }
+
+    function fuehreZweikampf(dt) {
+      const b = state.ball;
       // Zweikampf: Gegner am Ballführenden erhöhen den Druck.
       // Der Ballführende wird einmal zu Beginn festgehalten und der Ballwechsel
       // erst nach der Schleife ausgeführt — sonst könnte eine Mannschaft im
@@ -1295,6 +1338,9 @@ window.RetroGames.soccer = {
         if (stealer) { giveBall(stealer); sndSteal(); state.shake = 0.2; }
       }
 
+    }
+
+    function laufeUhr(dt) {
       // Die Torprüfung selbst steht oben im Zweig für den freien Ball — dort
       // vor der Ballaufnahme. Ein geführter Ball zählt bewusst nie als Tor,
       // sonst würde bloßes Vorwärtslaufen zum sicheren Treffer.
@@ -1691,8 +1737,8 @@ window.RetroGames.soccer = {
           case 'goal':     drawGoal(); break;
           case 'half':     drawMatch(); drawHalf(); break;
           case 'result':   drawMatch(); drawResult(); break;
-          case 'champion': drawChampion(); break;
-          case 'out':      drawOut(); break;
+          case 'champion': drawMatch(); drawChampion(); break;
+          case 'out':      drawMatch(); drawOut(); break;
         }
       },
 
@@ -1926,36 +1972,17 @@ window.RetroGames.soccer = {
       state.ball.x = ball[0]; state.ball.y = ball[1];
     }
 
-    function drawGoal() {
-      const r = pitchRect();
-      if (state.replay) {
-        zeichneMitschnitt(r, state.hist, state.replay.i);
-        drawHud();
-        drawReplayBadge('WIEDERHOLUNG');
-        return;
-      }
-
-      drawPitch(r); drawPlayers(r); drawHud();
-
-      // Nur noch TOR! — wer getroffen hat und wie es steht, sagt die Kopfzeile
-      // ohnehin schon. Dafür groß, gelb und mit Einschlag.
-      const pw = Math.min(w * 0.76, uni() * 0.66);
-      const ph = uni() * 0.48;
+    // Eine Box für alle Tafeln: Tor, Halbzeit, Ergebnis, Weltmeister, Aus.
+    // Vorher gab es zwei Sorten nebeneinander — eine abgerundete Box mit Menü
+    // und eine Vollbild-Abdunklung, bei der ein Klick irgendwohin bestätigte.
+    // Gleiches Aussehen, gleiche Bedienung, und nichts lässt sich mehr
+    // versehentlich wegklicken.
+    function zeichneBox(titel, punkte, o = {}) {
+      const pw = Math.min(w * (o.breit || 0.78), uni() * (o.breit || 0.7));
+      const zeilen = punkte.length;
+      const ph = uni() * (0.28 + 0.1 * zeilen + (o.extra || 0));
       const x0 = w / 2 - pw / 2, y0 = h / 2 - ph / 2;
 
-      // Das Panel fährt ein, statt einfach dazustehen
-      const seit0 = Math.max(0, GOAL_WAIT - state.goalWait);
-      const auf = Math.min(1, seit0 / 0.32);
-      const einzug = 1 - Math.pow(1 - auf, 3);
-      ctx.save();
-      ctx.translate(w / 2, h / 2);
-      ctx.scale(0.86 + 0.14 * einzug, 0.86 + 0.14 * einzug);
-      ctx.translate(-w / 2, -h / 2);
-      ctx.globalAlpha = einzug;
-
-      // Kein harter gelber Rahmen: Er stand in Konkurrenz zum Schriftzug und
-      // klebte am Inhalt. Stattdessen eine weiche, abgerundete Fläche, die
-      // sich über einen Schlagschatten vom Rasen löst, plus eine Haarlinie.
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,0.85)';
       ctx.shadowBlur = uni() * 0.05;
@@ -1969,36 +1996,60 @@ window.RetroGames.soccer = {
       ctx.lineWidth = Math.max(1, uni() * 0.002);
       ctx.stroke();
 
-      // Einschlag beim Tor, danach ein leises Atmen
-      const seit = Math.max(0, GOAL_WAIT - state.goalWait);
-      const pop = 1 + 0.5 * Math.exp(-5 * seit) * Math.cos(seit * 20);
-      const puls = 1 + 0.025 * Math.sin(state.t * 4);
+      const innen = pw * 0.86;
       ctx.save();
-      ctx.translate(w / 2, y0 + ph * 0.38);
-      ctx.scale(pop * puls, pop * puls);
-      ctx.shadowColor = '#ffb300';
-      ctx.shadowBlur = uni() * 0.06;
-      ctx.fillStyle = '#ffd54f';
-      ctx.font = font(uni() * 0.115);
-      ctx.fillText('TOR!', 0, 0);
+      if (o.gelb !== false) { ctx.shadowColor = '#ffb300'; ctx.shadowBlur = uni() * 0.045; }
+      ctx.fillStyle = o.gelb === false ? '#fff' : '#ffd54f';
+      fitText(titel, w / 2, y0 + ph * (o.titelY || 0.3), innen, uni() * (o.gross || 0.055));
       ctx.shadowBlur = 0;
       ctx.restore();
 
-      // Die Punkte kommen erst nach der Sperre — und werden auch erst dann
-      // anklickbar, denn hotspot() wird bis dahin nicht aufgerufen.
-      const menuAuf = clamp((seit0 - GOAL_LOCK) / 0.3, 0, 1);
-      if (menuAuf > 0) {
-        goalItems().forEach((it, i) => {
-          const y = y0 + ph * (0.67 + i * 0.16);
-          const sel = i === state.menuSel;
-          hotspot(x0 + pw * 0.08, y - ph * 0.065, pw * 0.84, ph * 0.13, i);
-          ctx.globalAlpha = menuAuf;
-          ctx.fillStyle = sel ? '#ffd54f' : '#666';
-          fitText(sel ? `> ${it} <` : it, w / 2, y + (1 - menuAuf) * ph * 0.06,
-                  pw * 0.86, uni() * 0.03);
-          ctx.globalAlpha = 1;
-        });
+      if (o.zwischen) o.zwischen(x0, y0, pw, ph, innen);
+
+      const erste = o.punkteY || (zeilen > 1 ? 0.58 : 0.66);
+      punkte.forEach((it, i) => {
+        const y = y0 + ph * (erste + i * 0.18);
+        const sel = i === state.menuSel;
+        if (!o.gesperrt) hotspot(x0 + pw * 0.08, y - ph * 0.075, pw * 0.84, ph * 0.15, i);
+        ctx.globalAlpha = o.punkteAlpha === undefined ? 1 : o.punkteAlpha;
+        ctx.fillStyle = sel ? '#ffd54f' : '#666';
+        fitText(sel ? `> ${it} <` : it, w / 2, y, innen, uni() * 0.03);
+        ctx.globalAlpha = 1;
+      });
+      return { x0, y0, pw, ph, innen };
+    }
+
+    function drawGoal() {
+      const r = pitchRect();
+      if (state.replay) {
+        zeichneMitschnitt(r, state.hist, state.replay.i);
+        drawHud();
+        drawReplayBadge('WIEDERHOLUNG');
+        return;
       }
+      drawPitch(r); drawPlayers(r); drawHud();
+
+      // Die Box fährt ein und nimmt in den ersten GOAL_LOCK Sekunden keine
+      // Eingabe an — erst lesen, dann drücken. Der Schriftzug schlägt beim Tor
+      // einmal ein und atmet danach leise weiter.
+      const seit = Math.max(0, GOAL_WAIT - state.goalWait);
+      const einzug = 1 - Math.pow(1 - Math.min(1, seit / 0.32), 3);
+      const menuAuf = clamp((seit - GOAL_LOCK) / 0.3, 0, 1);
+      const pop = 1 + 0.5 * Math.exp(-5 * seit) * Math.cos(seit * 20);
+      const puls = 1 + 0.025 * Math.sin(state.t * 4);
+
+      ctx.save();
+      ctx.translate(w / 2, h / 2);
+      ctx.scale(0.86 + 0.14 * einzug, 0.86 + 0.14 * einzug);
+      ctx.translate(-w / 2, -h / 2);
+      ctx.globalAlpha = einzug;
+      zeichneBox('TOR!', goalItems(), {
+        gross: 0.105 * pop * puls,
+        titelY: 0.33,
+        punkteAlpha: menuAuf,
+        gesperrt: menuAuf <= 0,
+        extra: 0.06,
+      });
       ctx.restore();
     }
 
@@ -2073,22 +2124,6 @@ window.RetroGames.soccer = {
       }
     }
 
-    function panel(title, sub) {
-      hotspot(0, 0, w, h, null);   // ganzer Bildschirm bestätigt
-      ctx.fillStyle = 'rgba(0,0,0,0.86)';
-      ctx.fillRect(0, 0, w, h);
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#fff';
-      ctx.shadowColor = '#4fc3f7'; ctx.shadowBlur = w * 0.02;
-      ctx.font = font(uni() * 0.07);
-      ctx.fillText(title, w / 2, h * 0.3);
-      ctx.shadowBlur = 0;
-      if (sub) {
-        ctx.fillStyle = '#8a9bb0';
-        ctx.font = font(uni() * 0.03);
-        ctx.fillText(sub, w / 2, h * 0.42);
-      }
-    }
 
     function hint(text) {
       ctx.fillStyle = '#555';
@@ -2267,32 +2302,39 @@ window.RetroGames.soccer = {
     }
 
     function drawIntro() {
-      const title = state.mode === 'cup' ? ROUNDS[state.round] : 'FREUNDSCHAFTSSPIEL';
-      panel(title, '');
-      // Namen bewusst neutral — die Zuordnung macht die Flagge, nicht die Farbe
-      const fw = uni() * 0.085, fh = fw * 0.62;
-      ctx.font = font(uni() * 0.042);
-      ctx.fillStyle = '#fff';
-      ctx.fillText(TEAMS[state.myTeam].n, w / 2, h * 0.46);
-      drawFlagIcon(w / 2 - fw / 2, h * 0.46 - uni() * 0.115, fw, fh, TEAMS[state.myTeam].f);
-      ctx.fillStyle = '#555';
-      ctx.font = font(uni() * 0.03);
-      ctx.fillText('GEGEN', w / 2, h * 0.545);
-      ctx.fillStyle = '#fff';
-      ctx.font = font(uni() * 0.042);
-      ctx.fillText(TEAMS[state.foeTeam].n, w / 2, h * 0.68);
-      drawFlagIcon(w / 2 - fw / 2, h * 0.68 - uni() * 0.115, fw, fh, TEAMS[state.foeTeam].f);
-      if (state.teamMode === 'versus') {
-        ctx.fillStyle = P_COL[1];
-        ctx.font = font(uni() * 0.021);
-        ctx.fillText(state.mode === 'cup'
-          ? 'SPIELER 2 STEUERT DEN AUSGELOSTEN GEGNER'
-          : 'SPIELER 2 STEUERT DIESE MANNSCHAFT', w / 2, h * 0.69);
-      }
+      const titel = state.mode === 'cup' ? ROUNDS[state.round] : 'FREUNDSCHAFTSSPIEL';
+      zeichneBox(titel, ['ANPFIFF'], {
+        gelb: false,
+        gross: 0.04,
+        titelY: 0.16,
+        extra: 0.36,
+        zwischen: (x0, y0, pw, ph, innen) => {
+          // Namen bewusst neutral — die Zuordnung macht die Flagge, nicht die Farbe
+          // Flagge über dem Namen, mit klarem Abstand — zu eng lag sie im Text
+          const fw = uni() * 0.075, fh = fw * 0.62;
+          const zeile = (team, y) => {
+            drawFlagIcon(w / 2 - fw / 2, y0 + ph * y - fh - uni() * 0.052, fw, fh, TEAMS[team].f);
+            ctx.fillStyle = '#fff';
+            fitText(TEAMS[team].n, w / 2, y0 + ph * y, innen, uni() * 0.034);
+          };
+          zeile(state.myTeam, 0.36);
+          ctx.fillStyle = '#555';
+          fitText('GEGEN', w / 2, y0 + ph * 0.46, innen, uni() * 0.022);
+          zeile(state.foeTeam, 0.70);
+          if (state.teamMode === 'versus') {
+            ctx.fillStyle = P_COL[1];
+            fitText(state.mode === 'cup'
+              ? 'SPIELER 2 STEUERT DEN AUSGELOSTEN GEGNER'
+              : 'SPIELER 2 STEUERT DIESE MANNSCHAFT',
+              w / 2, y0 + ph * 0.78, innen, uni() * 0.02);
+          }
+        },
+        punkteY: 0.88,
+      });
     }
 
     function drawHalf() {
-      panel('HALBZEIT', `${TEAMS[state.myTeam].n} ${state.score[0]} : ${state.score[1]} ${TEAMS[state.foeTeam].n}`);
+      zeichneBox('HALBZEIT', ['WEITER']);
     }
 
     // Wie heißt der Ausgang, und wie heißt der Weg hinaus? „WEITER" stand
@@ -2325,62 +2367,31 @@ window.RetroGames.soccer = {
         drawReplayBadge(`HÖHEPUNKTE   ${state.hl.clip + 1} / ${state.highlights.length}`);
         return;
       }
-
-      const pw = Math.min(w * 0.8, uni() * 0.7);
-      const ph = uni() * 0.42;
-      const x0 = w / 2 - pw / 2, y0 = h / 2 - ph / 2;
-      ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.85)';
-      ctx.shadowBlur = uni() * 0.05;
-      ctx.fillStyle = 'rgba(6,9,14,0.96)';
-      ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(x0, y0, pw, ph, uni() * 0.022);
-      else ctx.rect(x0, y0, pw, ph);
-      ctx.fill();
-      ctx.restore();
-      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
-      ctx.lineWidth = Math.max(1, uni() * 0.002);
-      ctx.stroke();
-
-      // Ausgang im selben Gelb wie TOR!. Spielstand und Mannschaften stehen
-      // schon in der Kopfzeile — hier wiederholt machten sie das Panel nur voll.
-      const innen = pw * 0.86;
-      ctx.save();
-      ctx.shadowColor = '#ffb300';
-      ctx.shadowBlur = uni() * 0.045;
-      ctx.fillStyle = '#ffd54f';
-      fitText(resultTitel(), w / 2, y0 + ph * 0.34, innen, uni() * 0.055);
-      ctx.shadowBlur = 0;
-      ctx.restore();
-
-      resultItems().forEach((it, i) => {
-        const y = y0 + ph * (0.63 + i * 0.18);
-        const sel = i === state.menuSel;
-        hotspot(x0 + pw * 0.08, y - ph * 0.075, pw * 0.84, ph * 0.15, i);
-        ctx.fillStyle = sel ? '#ffd54f' : '#666';
-        fitText(sel ? `> ${it} <` : it, w / 2, y, innen, uni() * 0.03);
-      });
+      // Spielstand und Mannschaften stehen schon in der Kopfzeile — hier
+      // wiederholt machten sie die Box nur voll.
+      zeichneBox(resultTitel(), resultItems());
     }
 
     function drawChampion() {
-      panel('WELTMEISTER!', TEAMS[state.myTeam].n);
-      ctx.fillStyle = '#ffb300';
-      ctx.font = font(uni() * 0.03);
-      ctx.fillText(`${ROUNDS.length} SPIELE, ${ROUNDS.length} SIEGE`, w / 2, h * 0.54);
-      naechstesAnsagen();
+      zeichneBox('WELTMEISTER!', ['NEUE WELTMEISTERSCHAFT'], {
+        extra: 0.04,
+        zwischen: (x0, y0, pw, ph, innen) => {
+          ctx.fillStyle = '#8a9bb0';
+          fitText(`${TEAMS[state.myTeam].n} · ${ROUNDS.length} SIEGE`,
+                  w / 2, y0 + ph * 0.45, innen, uni() * 0.026);
+        },
+      });
     }
 
     function drawOut() {
-      panel('AUSGESCHIEDEN', `${ROUNDS[state.round]} · ${TEAMS[state.myTeam].n}`);
-      naechstesAnsagen();
+      zeichneBox('AUSGESCHIEDEN', ['NEUE WELTMEISTERSCHAFT'], {
+        extra: 0.04,
+        zwischen: (x0, y0, pw, ph, innen) => {
+          ctx.fillStyle = '#8a9bb0';
+          fitText(ROUNDS[state.round], w / 2, y0 + ph * 0.45, innen, uni() * 0.026);
+        },
+      });
     }
 
-    // Was als Naechstes kommt, muss dastehen. Sonst beginnt nach dem Aus
-    // scheinbar grundlos noch ein Spiel -- gemeint ist ein neues Turnier.
-    function naechstesAnsagen() {
-      ctx.fillStyle = '#4fc3f7';
-      ctx.font = font(uni() * 0.026);
-      ctx.fillText('NEUE WELTMEISTERSCHAFT', w / 2, h * 0.58);
-    }
   }
 };
