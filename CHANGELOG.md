@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.9]
+
+### Behoben
+- **STREET SOCCER: In der Wiederholung hingen die Animationen.** Ein Spieler, der beim Tor gerade grätschte, blieb die ganze Zeitlupe über ein Oval — mitgeschnitten wurden nur Positionen, die Verformung kam aus dem laufenden Spiel, und das steht während der Torpause still. Der Mitschnitt enthält jetzt auch Hechtsprung, Grätsche, Angriff, Liegen und Blickrichtung
+- Neuer Prüfstandsfall: Der Mitschnitt trägt alle zwölf Werte je Spieler, und das Zeichnen der Wiederholung verändert den echten Spielzustand nicht
+
 ## [0.18.8]
 
 ### Behoben

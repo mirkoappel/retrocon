@@ -1026,11 +1026,15 @@ window.RetroGames.soccer = {
         return;
       }
 
-      // Mitschnitt für die Wiederholung. Nur Positionen — mehr braucht es
-      // nicht, um die Szene noch einmal zu zeichnen.
+      // Mitschnitt für die Wiederholung. Neben den Positionen auch alles, was
+      // die Figur verformt: Ohne die Zeitgeber blieb ein Spieler, der beim Tor
+      // gerade grätschte, die ganze Zeitlupe über ein Oval — die Verformung kam
+      // aus dem laufenden Spiel, und das steht während der Torpause still.
       state.hist.push({
         bx: b.x, by: b.y,
-        p: state.players.map(p => [p.x, p.y, p.fx, p.fy])
+        p: state.players.map(p => [p.x, p.y, p.fx, p.fy,
+                                   p.dive, p.down, p.downMax, p.tackle, p.poke,
+                                   p.dx, p.dy, p.ctrl])
       });
       if (state.hist.length > HIST_LEN) state.hist.shift();
 
@@ -1826,12 +1830,13 @@ window.RetroGames.soccer = {
       if (state.replay) {
         const i = Math.min(state.hist.length - 1, Math.floor(state.replay.i));
         const f = state.hist[i];
-        const sicherung = state.players.map(p => [p.x, p.y, p.fx, p.fy]);
+        const FELDER = ['x', 'y', 'fx', 'fy', 'dive', 'down', 'downMax', 'tackle', 'poke', 'dx', 'dy', 'ctrl'];
+        const sicherung = state.players.map(p => FELDER.map(k2 => p[k2]));
         const ball = [state.ball.x, state.ball.y];
-        state.players.forEach((p, k) => { const q = f.p[k]; p.x = q[0]; p.y = q[1]; p.fx = q[2]; p.fy = q[3]; });
+        state.players.forEach((p, k) => FELDER.forEach((k2, i) => { p[k2] = f.p[k][i]; }));
         state.ball.x = f.bx; state.ball.y = f.by;
         drawPitch(r); drawPlayers(r);
-        state.players.forEach((p, k) => { const q = sicherung[k]; p.x = q[0]; p.y = q[1]; p.fx = q[2]; p.fy = q[3]; });
+        state.players.forEach((p, k) => FELDER.forEach((k2, i) => { p[k2] = sicherung[k][i]; }));
         state.ball.x = ball[0]; state.ball.y = ball[1];
         drawHud();
         drawReplayBadge();
