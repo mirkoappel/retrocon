@@ -2,6 +2,17 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.1]
+
+### Geändert
+- **STREET SOCCER: Die Tore haben ein Netz und sind tiefer.** Der Ball bleibt beim Treffer sichtbar darin liegen, statt scheinbar durch das Tor hindurchzufliegen
+- **Eine Uhr, die von selbst weiterschaltet, ist jetzt sichtbar:** ein schrumpfender Balken unter dem Punkt, den sie auslösen wird — auf allen Tafeln, von der Toranzeige bis zum Ergebnis
+- In der Toranzeige steht wieder **WEITER oben und vorgewählt**; in der Halbzeit ist WEITER ebenfalls vorgewählt
+- Der Schriftzug WIEDERHOLUNG **pulsiert**, damit klar ist, dass man eine Zeitlupe sieht und nicht das laufende Spiel
+
+### Behoben
+- Die vorderen Torbalken sahen dicker aus als die seitlichen und hinteren: Die vordere Kante liegt auf der Torlinie, die das Spielfeld schon zeichnet — zwei Striche übereinander. Gezeichnet werden jetzt nur die drei hinteren Kanten
+
 ## [0.21.0]
 
 ### Geändert

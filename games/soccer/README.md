@@ -163,14 +163,14 @@ Ein Tor war nach 2,4 Sekunden vorbei — man bekam es kaum mit. Jetzt hält das 
 
 **Der Anstoß beginnt erst nach der Torpause** — nie hinter einer laufenden Wiederholung. Während der Pause stehen Ball und Spieler dort, wo das Tor fiel; erst `weiterNachTor()` setzt sie neu.
 
-**Drückt niemand, läuft die Wiederholung nach `AUTO_REPLAY` (5 s) von selbst an — und pfeift danach direkt wieder an.** Wer sie dagegen selbst aufruft, hat entschieden: Danach kommt keine automatische mehr hinterher. Wer nichts drückt, will offensichtlich nur zusehen. Selbst über das Menü ausgewählt kehrt sie dagegen in die Anzeige zurück. Sie ist deutlich als solche gekennzeichnet: unten mittig steht WIEDERHOLUNG, im selben Gelb wie TOR!. Ohne Punkt und ohne Blinken — es ist eine Beschriftung, kein Bedienelement. Ohne die Kennzeichnung hält man die Zeitlupe für das laufende Spiel und wundert sich, warum nichts reagiert.
+**Drückt niemand, läuft die Wiederholung nach `AUTO_REPLAY` (5 s) von selbst an — und pfeift danach direkt wieder an.** Wer sie dagegen selbst aufruft, hat entschieden: Danach kommt keine automatische mehr hinterher. Wer nichts drückt, will offensichtlich nur zusehen. Selbst über das Menü ausgewählt kehrt sie dagegen in die Anzeige zurück. Sie ist deutlich als solche gekennzeichnet: unten mittig steht WIEDERHOLUNG, im selben Gelb wie TOR!. Der Schriftzug **pulsiert**, damit man auf den ersten Blick sieht, dass es eine Zeitlupe ist. Ohne die Kennzeichnung hält man die Zeitlupe für das laufende Spiel und wundert sich, warum nichts reagiert.
 
 Jede Taste bricht sie ab und führt zurück auf die Anzeige. Dort gibt es zwei Menüpunkte, keine Tastenansage:
 
 | Punkt | Wirkung |
 |---|---|
-| **WIEDERHOLUNG** | die Szene noch einmal |
 | **WEITER** | Anstoß für die andere Mannschaft |
+| **WIEDERHOLUNG** | die Szene noch einmal |
 | — | ohne Eingabe geht es nach `GOAL_WAIT` (12 s) von selbst weiter |
 
 Abschaltbar über die Einstellung **WIEDERHOLUNG**; dann bleibt in der Torpause nur WEITER stehen.
@@ -179,7 +179,9 @@ Auf dem Panel steht nur **TOR!** — groß, gelb und mit Einschlag: Beim Tor fed
 
 Das Panel selbst ist eine weiche, abgerundete Fläche mit Schlagschatten und Haarlinie. Ein harter gelber Rahmen stand in Konkurrenz zum Schriftzug und klebte am Inhalt.
 
-**Der vorgewählte Punkt steht oben** — und das ist die Wiederholung. Ein versehentlicher Druck kann sie nicht auslösen, weil die Anzeige die ersten 1,2 Sekunden ohnehin keine Eingabe annimmt. Nach einer angesehenen Wiederholung springt die Auswahl auf WEITER: gesehen ist gesehen. Nach einer Wiederholung springt die Auswahl ebenfalls dorthin zurück. Ausgewertet wird über den Namen des Punktes, nicht über seinen Index: Ist die Wiederholung abgeschaltet, steht WEITER an erster Stelle.
+**Der vorgewählte Punkt steht oben** — und das ist WEITER: Der schnelle Druck soll anpfeifen, nicht zurückspulen. Nach einer angesehenen Wiederholung springt die Auswahl dorthin zurück; gesehen ist gesehen. Ausgewertet wird über den Namen des Punktes, nicht über seinen Index: Ist die Wiederholung abgeschaltet, steht WEITER an erster Stelle.
+
+**Läuft eine Uhr, erscheint unter dem Punkt, den sie auslösen wird, ein schrumpfender Balken** — nicht unter dem gerade gewählten. Gezeigt wird also, was gleich von selbst passiert. Ohne das geschieht nach ein paar Sekunden scheinbar aus dem Nichts etwas. Dasselbe auf allen Tafeln: Anpfiff, Halbzeit, Ergebnis, Weltmeister, Aus.
 
 Die Wiederholung läuft bis zu dem Punkt, an dem der Ball **wirklich im Netz liegt**, und hält dort `REPLAY_HALT` (0,7 s) als Standbild, bevor es weitergeht. Der Mitschnitt endet nämlich genau auf der Torlinie — dort wird im Spiel abgepfiffen —, deshalb werden beim Tor noch `GOAL_TAIL` Frames angehängt, in denen der Ball bis `NETZ_TIEFE` ins Tor rollt.
 
