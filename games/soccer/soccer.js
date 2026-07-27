@@ -129,6 +129,12 @@ window.RetroGames.soccer = {
     const REPLAY_SPEED = 0.45;  // Zeitlupe — 2,5 s Szene werden so zu 5,6 s
     const GOAL_WAIT    = 12;    // so lange bleibt die Toranzeige stehen, wenn niemand drückt
     const AUTO_REPLAY  = 5;     // drückt bis dahin niemand, läuft die Wiederholung von selbst
+    // Ein Spiel soll von Anfang bis Ende ohne einen einzigen Tastendruck
+    // durchlaufen — man soll der KI zusehen können wie im Fernsehen. Jede
+    // Tafel geht deshalb von selbst weiter; wer drückt, überspringt nur die
+    // Wartezeit.
+    const AUTO_HALF    = 7;     // Halbzeitpause
+    const AUTO_RESULT  = 9;     // Ergebnistafel
     // Die beiden eigenen Regler aus dem Einstellungsmenü. Fehlt `api.setting`
     // (Prüfstand, Einbettung), gelten die Vorgabewerte.
     const HALF_TIME  = api.setting?.('duration') ?? 180;   // Sekunden je Halbzeit
@@ -199,6 +205,8 @@ window.RetroGames.soccer = {
       half: 1, clock: HALF_TIME,
       golden: false, goldenT: 0,
       msg: '', msgTimer: 0,
+      tafel: 0,                      // Restzeit, bis eine Tafel von selbst weitergeht
+      watch: false,                  // Zuschauen-Modus: niemand steuert mit
       hist: [], replay: null,        // Mitschnitt und laufende Wiederholung
       passTo: null, passToT: 0,      // wer gerade angespielt wurde und wie lange er hinläuft
       goalWait: 0, goalTeam: 0, autoReplay: -1,   // Toranzeige: Restzeit, Torschütze, Countdown zur Wiederholung
@@ -392,6 +400,7 @@ window.RetroGames.soccer = {
     // gespielt wird. Wer länger nichts drückt, gibt ihn an die KI ab — sonst
     // steht die Figur nutzlos herum.
     function humanSlots() {
+      if (state.watch) return [];               // beim Zuschauen spielt nur die KI
       const conns = api.getConns();
       return [1, 2].filter(p => conns.has(p) && !slotIdle(p));
     }
@@ -1216,7 +1225,7 @@ window.RetroGames.soccer = {
       if (state.golden) { state.goldenT += dt; return; }   // Verlängerung läuft ohne Uhr
       if (state.clock <= 0) {
         state.clock = 0;
-        if (state.half < HALVES) { state.phase = 'half'; sndWhistle(); }
+        if (state.half < HALVES) { state.phase = 'half'; state.tafel = AUTO_HALF; sndWhistle(); }
         else finishMatch();
       }
     }
@@ -1269,7 +1278,7 @@ window.RetroGames.soccer = {
         kickoff(0);
         return;
       }
-      state.phase = 'result';
+      state.phase = 'result'; state.tafel = AUTO_RESULT;
       if (state.mode === 'friendly') {
         state.lastResult = a > b ? 'SIEG' : a < b ? 'NIEDERLAGE' : 'UNENTSCHIEDEN';
         (a > b ? sndWin : a < b ? sndLose : sndWhistle)();
@@ -1282,9 +1291,26 @@ window.RetroGames.soccer = {
       }
     }
 
+    // Zuschauen: zufällige Paarung, niemand steuert mit, endlos.
+    function starteZuschauen() {
+      state.watch = true;
+      state.mode = 'friendly';
+      state.twoPlayers = false;
+      state.teamMode = 'coop';
+      state.round = 0;
+      state.myTeam = Math.floor(Math.random() * TEAMS.length);
+      do { state.foeTeam = Math.floor(Math.random() * TEAMS.length); }
+      while (state.foeTeam === state.myTeam);
+      state.score = [0, 0];
+      state.half = 1;
+      state.phase = 'intro';
+      state.tafel = 3.5;                        // auch der Anpfiff wartet nicht auf uns
+      sndMenu();
+    }
+
     function nextCupRound() {
       state.round++;
-      if (state.round >= ROUNDS.length) { state.phase = 'champion'; sndWin(); return; }
+      if (state.round >= ROUNDS.length) { state.phase = 'champion'; state.tafel = AUTO_RESULT; sndWin(); return; }
       drawFoe();
       state.phase = 'intro';
     }
@@ -1299,6 +1325,7 @@ window.RetroGames.soccer = {
     // Als eigene Funktionen, damit Tastatur, Controller und Mausklick
     // denselben Weg nehmen.
     function activate() {
+      state.tafel = 0;
       switch (state.phase) {
         case 'goal':
           if (state.menuSel === 1) startReplay(false);
@@ -1306,9 +1333,13 @@ window.RetroGames.soccer = {
           return;
 
         case 'mode':
-          // Dritter Punkt: der Einstellungs-Screen der Konsole. So kommt man
+          // Vierter Punkt: der Einstellungs-Screen der Konsole. So kommt man
           // an Halbzeitlänge und Schwierigkeit, ohne erst anpfeifen zu müssen.
-          if (state.menuSel === 2) { api.openSettings?.(); sndMenu(); return; }
+          if (state.menuSel === 3) { api.openSettings?.(); sndMenu(); return; }
+          // Dritter Punkt: zusehen wie im Fernsehen. Kein Mensch am Ball, keine
+          // Auswahlbildschirme, und nach dem Abpfiff läuft gleich das nächste
+          // Spiel — man soll dafür nie eine Taste drücken müssen.
+          if (state.menuSel === 2) { starteZuschauen(); return; }
           state.mode = state.menuSel === 0 ? 'cup' : 'friendly';
           state.round = 0;
           state.menuSel = state.twoPlayers ? 1 : 0;
@@ -1356,13 +1387,15 @@ window.RetroGames.soccer = {
           sndWhistle(); return;
 
         case 'result':
+          if (state.watch) { starteZuschauen(); return; }   // gleich das nächste Spiel
           if (state.mode === 'friendly') { state.phase = 'mode'; state.menuSel = 0; }
           else if (state.lastResult === 'WEITER') nextCupRound();
-          else state.phase = 'out';
+          else { state.phase = 'out'; state.tafel = AUTO_RESULT; }
           return;
 
         case 'champion':
         case 'out':
+          state.watch = false;
           state.round = 0; state.phase = 'mode'; state.menuSel = 0; return;
       }
     }
@@ -1413,7 +1446,7 @@ window.RetroGames.soccer = {
 
         switch (state.phase) {
           case 'mode': {
-            const n = 3;                        // WORLD CUP · FREUNDSCHAFTSSPIEL · EINSTELLUNGEN
+            const n = 4;                        // WORLD CUP · FREUNDSCHAFTSSPIEL · ZUSCHAUEN · EINSTELLUNGEN
             if (m.dy) { state.menuSel = (state.menuSel + m.dy + n) % n; sndMenu(); }
             if (m.b) { goBack(); return; }
             if (m.a || m.start) activate();
@@ -1507,6 +1540,11 @@ window.RetroGames.soccer = {
         state.shake = Math.max(0, state.shake - dt * 1.8);
         if (state.phase === 'play') updateMatch(dt);
         else if (state.phase === 'goal') updateGoal(dt);
+        else if (state.tafel > 0) {
+          // Tafeln laufen von selbst weiter, damit ein Spiel ohne Zutun endet
+          state.tafel -= dt;
+          if (state.tafel <= 0) { state.tafel = 0; activate(); }
+        }
       },
 
       draw() {
@@ -1911,10 +1949,10 @@ window.RetroGames.soccer = {
 
       // Ohne Unterzeilen: Die Punkte erklären sich selbst, jede weitere Zeile
       // überlädt nur den ersten Bildschirm.
-      const items = ['WORLD CUP', 'FREUNDSCHAFTSSPIEL', 'EINSTELLUNGEN'];
+      const items = ['WORLD CUP', 'FREUNDSCHAFTSSPIEL', 'ZUSCHAUEN', 'EINSTELLUNGEN'];
       items.forEach((it, i) => {
         const sel = i === state.menuSel;
-        const y = h * (0.46 + i * 0.12);
+        const y = h * (0.43 + i * 0.115);
         hotspot(w * 0.15, y - h * 0.04, w * 0.7, h * 0.085, i);
         ctx.fillStyle = sel ? '#4fc3f7' : '#555';
         ctx.font = font(uni() * 0.045);

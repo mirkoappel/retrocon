@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.0]
+
+### Neu
+- **STREET SOCCER: ZUSCHAUEN.** Der KI zusehen wie im Fernsehen, ohne einen einzigen Tastendruck: zufällige Paarung, niemand steuert mit, und nach dem Abpfiff läuft gleich das nächste Spiel mit neuen Mannschaften
+- Dafür geht jetzt **jede Tafel von selbst weiter** — Halbzeit nach 7 s, Ergebnis nach 9 s, die Toranzeige über die Wiederholung. Wer drückt, überspringt nur die Wartezeit. Das gilt auch im normalen Spiel: Ein Match läuft von Anfang bis Ende durch, wenn niemand etwas drückt (nachgemessen 460 s vom Anpfiff bis zur Ergebnistafel)
+- Neuer Prüfstandsfall: 25 Minuten Zuschauen ohne Eingabe — drei Anschlussspiele, kein Frame mit menschlicher Steuerung, keine hängende Tafel
+
 ## [0.17.1]
 
 ### Geändert

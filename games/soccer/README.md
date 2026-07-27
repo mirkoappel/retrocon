@@ -23,6 +23,21 @@ Im **Freundschaftsspiel** wählt dabei jeder seine eigene Mannschaft: erst Spiel
 
 Im **World Cup** geht gegeneinander ebenfalls, nur wählt Spieler 2 dort nichts: die Gegner werden ausgelost, und er übernimmt jede Runde das gezogene Team. Es bleibt der Turnierlauf von Spieler 1 — der andere versucht, ihn zu stoppen.
 
+## Zuschauen
+
+Der KI zusehen wie im Fernsehen — **ohne einen einzigen Tastendruck**. Im Startmenü unter ZUSCHAUEN: zufällige Paarung, niemand steuert mit, und nach dem Abpfiff läuft gleich das nächste Spiel mit neuen Mannschaften.
+
+Damit das aufgeht, geht **jede Tafel von selbst weiter**; wer drückt, überspringt nur die Wartezeit:
+
+| Tafel | Wartezeit |
+|---|---|
+| Toranzeige | 5 s, dann Wiederholung, danach direkt Anstoß |
+| Halbzeit | `AUTO_HALF` (7 s) |
+| Ergebnis, Meister, Aus | `AUTO_RESULT` (9 s) |
+| Anpfiff im Zuschauen-Modus | 3,5 s |
+
+Das gilt auch im normalen Spiel: Ein Match läuft von Anfang bis Ende durch, wenn niemand etwas drückt — nachgemessen 460 Sekunden vom Anpfiff bis zur Ergebnistafel.
+
 ## Modi
 
 | Modus | Ablauf |
