@@ -273,6 +273,20 @@ Die KI nutzt denselben Sprung, sonst sähe man ihn nur beim eigenen Spieler.
 
 Nachgemessen über vier Spiele: **13 Sprünge pro Spiel, 37 % davon am Ball.** Der erste Entwurf war deutlich zu großzügig — 99 Sprünge pro Spiel und 10,1 Tore statt 2,4; ausschlaggebend waren die Mindestgeschwindigkeit des Balls und die Bedingung, dass er zu Fuß gerade nicht mehr erreichbar sein darf.
 
+## Spielerwechsel
+
+Einstellbar im Ingame-Menü unter **SPIELERWECHSEL**:
+
+| Wert | Wann das Spiel die Figur wechselt |
+|---|---|
+| **NUR SELBST** | nie — man behält seinen Spieler und wechselt mit A |
+| **BEI BALLGEWINN** (Vorgabe) | sobald ein eigener Spieler den Ball hat |
+| **AM BALL** | zusätzlich immer zu dem Spieler, der dem Ball am nächsten ist |
+
+`AM BALL` ist das, was viele aus anderen Fußballspielen kennen. Es ist bewusst **nicht** die Vorgabe: Im Alleingang wechselt einem die Figur damit ständig unter den Fingern, was verwirrt — deshalb steht es zur Wahl, statt fest verdrahtet zu sein.
+
+Mit A wechselt man in jeder Einstellung selbst zum nächsten eigenen Feldspieler, der nicht schon von einem anderen Menschen gesteuert wird.
+
 ## Zwei Stufen auf der B-Taste
 
 Ohne Ball entscheidet die **Dauer des Tastendrucks**:

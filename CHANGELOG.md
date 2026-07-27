@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.15.1]
+
+### Neu
+- **STREET SOCCER: Der Spielerwechsel ist einstellbar** (Ingame-Menü, SPIELERWECHSEL): **NUR SELBST** wechselt nie von allein, **BEI BALLGEWINN** übernimmt den Spieler mit dem Ball (bisheriges Verhalten, weiterhin Vorgabe), **AM BALL** wechselt zusätzlich immer zu dem Spieler, der dem Ball am nächsten ist
+- `AM BALL` ist das, was man aus anderen Fußballspielen kennt, aber bewusst nicht die Vorgabe — im Alleingang wechselt einem die Figur damit ständig unter den Fingern
+
 ## [0.15.0]
 
 ### Neu

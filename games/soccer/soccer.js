@@ -13,7 +13,7 @@ window.RetroGames.soccer = {
   // an ihre allgemeine Hilfe an.
   help: [
     { t1: 'A', t2: 'MIT BALL',  was: 'Schießen' },
-    { t1: 'A', t2: 'OHNE BALL', was: 'Spieler wechseln — der Wechsel passiert nie von selbst' },
+    { t1: 'A', t2: 'OHNE BALL', was: 'Spieler wechseln — wann das Spiel selbst wechselt, steht in den Einstellungen' },
     { t1: 'B', t2: 'MIT BALL',  was: 'Abspielen' },
     { t1: 'B', t2: 'KURZ · OHNE BALL', was: 'Angreifen — kurzer Schritt zum Ball, ohne Risiko' },
     { t1: 'B', t2: 'HALTEN · OHNE BALL', was: 'Grätschen — mehr Reichweite, danach liegt man kurz' },
@@ -30,6 +30,8 @@ window.RetroGames.soccer = {
       zeige: v => (v / 60).toFixed(0).replace('.', ',') + ' MIN' },
     { key: 'difficulty', label: 'SCHWIERIGKEIT', werte: ['leicht', 'normal', 'schwer'], vorgabe: 'normal',
       zeige: v => v.toUpperCase() },
+    { key: 'switch', label: 'SPIELERWECHSEL', werte: ['manuell', 'ballgewinn', 'amball'], vorgabe: 'ballgewinn',
+      zeige: v => v === 'manuell' ? 'NUR SELBST' : v === 'ballgewinn' ? 'BEI BALLGEWINN' : 'AM BALL' },
   ],
 
   artSvg: `
@@ -126,6 +128,11 @@ window.RetroGames.soccer = {
     // (Prüfstand, Einbettung), gelten die Vorgabewerte.
     const HALF_TIME  = api.setting?.('duration') ?? 180;   // Sekunden je Halbzeit
     const SCHWIERIG  = api.setting?.('difficulty') ?? 'normal';
+    // Wann das Spiel die Figur von sich aus wechselt:
+    //   manuell     — nie, man wechselt selbst mit A
+    //   ballgewinn  — sobald ein eigener Spieler den Ball hat
+    //   amball      — zusätzlich immer zum Spieler, der dem Ball am nächsten ist
+    const SWITCH_MODE = api.setting?.('switch') ?? 'ballgewinn';
     // Grundstärke der KI-Gegner; der Turnieraufschlag je Runde kommt dazu
     const SKILL_BASE = SCHWIERIG === 'leicht' ? 0.90 : SCHWIERIG === 'schwer' ? 1.12 : 1;
     const HALVES    = 2;
@@ -423,18 +430,21 @@ window.RetroGames.soccer = {
 
         const owner = (b.owner && b.owner.team === team && b.owner.role !== 'GK') ? b.owner : null;
 
-        // Wer den Ball hat, wird übernommen — möglichst von dem Slot, der ihn schon steuerte
-        if (owner) {
-          const slot = mine.find(s => prevOf.get(s) === owner) ?? mine[0];
-          owner.ctrl = slot;
-          taken.add(owner);
+        // Wen das Spiel von sich aus übernimmt, hängt an der Einstellung
+        // SPIELERWECHSEL. Ein Wechsel nach Ballnähe kann im Alleingang
+        // verwirren, weil die Figur unter den Fingern wechselt — deshalb ist
+        // er nicht die Vorgabe, aber für alle da, die ihn gewohnt sind.
+        let auto = null;
+        if (SWITCH_MODE !== 'manuell' && owner) auto = owner;
+        else if (SWITCH_MODE === 'amball') auto = nearestOfTeam(team, b);
+
+        if (auto && !taken.has(auto)) {
+          const slot = mine.find(s => prevOf.get(s) === auto) ?? mine[0];
+          auto.ctrl = slot;
+          taken.add(auto);
         }
-        // Ohne Ball wird NICHT nach Ballnähe umgeschaltet — das war im
-        // Alleingang verwirrend, weil einem die Figur ständig unter den
-        // Fingern wechselte. Man behält seinen Spieler und wechselt selbst
-        // mit B (siehe cycleControl).
         for (const slot of mine) {
-          if (owner && owner.ctrl === slot) continue;
+          if (auto && auto.ctrl === slot) continue;
           const prev = prevOf.get(slot);
           const pick = (prev && prev.team === team && !taken.has(prev))
             ? prev
