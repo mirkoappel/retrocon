@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.13.3]
+
+### Geändert
+- **STREET SOCCER: Nach einer Grätsche liegt man kurz** (0,35 s) — aber nur, wenn man den Ball verfehlt hat. Eine geglückte Grätsche belohnt sich selbst; sonst verlöre man den eben eroberten Ball sofort wieder. Nebenwirkung, nachgemessen: Die Ballabnahme von hinten fällt von rund 14 % auf rund 7 % der Verfolgungen; Torquote unverändert 2,6
+- **Die Verformung federt jetzt.** Statt einer einzelnen Beule eine gedämpfte Schwingung, die über die Kugelform hinaus in die Stauchung schwingt und ausschwingt — eine Beule sah aus wie ein gedrehtes Oval, erst das Nachfedern fühlt sich nach Material an
+
+### Behoben
+- `ELAST_N` wurde nach seiner ersten Verwendung deklariert — das Spiel wäre beim ersten Zeichnen abgestürzt. Vom Prüfstand gefangen, bevor es deployt wurde
+
 ## [0.13.2]
 
 ### Geändert

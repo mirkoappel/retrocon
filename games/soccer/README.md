@@ -199,20 +199,30 @@ Zum Vergleich der Steilheit: Mit `SKILL_STEP` = 0,11 endete das Finale bei 0,1 :
 
 Grätsche und Hechtsprung waren als **konstantes Oval** gezeichnet — über die ganze Aktion dieselbe Streckung (1,75 × 0,62 bzw. 2,15 × 0,52). Das sah nach einem lang gezogenen Körper aus, nicht nach einer Bewegung.
 
-Zwei Dinge machen daraus eine Animation:
+Drei Dinge machen daraus eine Bewegung aus Material:
 
-1. **Flächentreu.** Längs `k`, quer `1/k` — die Scheibe wird gedehnt, nicht größer. Genau wie ein Flummi, der beim Aufprall breit wird und dabei flach.
-2. **Über die Dauer.** `flummi(t, amp) = 1 + amp · sin(π · t^0,6)` — schnell auseinander, langsamer zurück in die Kugel. Der Exponent 0,6 zieht die Spitze nach vorn, damit der Absprung zackig wirkt und das Zurückfedern weich.
+1. **Flächentreu.** Längs `k`, quer `1/k` — die Scheibe wird gedehnt, nicht größer. Wie ein Flummi, der beim Aufprall breit wird und dabei flach.
+2. **Über die Dauer**, statt still zu stehen.
+3. **Sie federt.** `flummi(t, amp) = 1 + (amp/N) · sin(2π·f·t) · e^(−d·t)` mit f = 1,15 und d = 3,4 — eine gedämpfte Schwingung, die über die Kugelform **hinaus** in die Stauchung schwingt und ausschwingt. Eine einzelne Beule sah aus wie ein gedrehtes Oval; erst das Nachfedern fühlt sich nach Material an.
 
-| | Spitze | Dauer |
+Ablauf der Grätsche (0,55 s), längs:
+
+| Zeit | k | |
 |---|---|---|
-| Grätsche | 1,55 × 0,65 | 0,55 s |
-| Hechtsprung | 1,85 × 0,54 | 0,45 s |
-| am Boden liegend | federt von 1,45 zurück auf 1,00 | 0,7 s |
+| 0,00 s | 1,00 | rund |
+| 0,06 s | 1,54 | gedehnt, erster Ausschlag |
+| 0,19 s | 1,20 | kommt zurück |
+| 0,24 s | 0,99 | durch die Kugelform hindurch |
+| 0,33 s | 0,86 | quer gestaucht |
+| 0,55 s | 1,03 | ausgeschwungen |
+
+Der Hechtsprung läuft genauso, nur kürzer (0,45 s) und mit größerem Ausschlag (1,85). Wer liegt, federt beim Aufstehen zurück.
 
 ## Hechtsprung
 
 Das offensive Gegenstück zur Grätsche, auf derselben Taste (**B ohne Ball**) und nach derselben Bauweise: Der Spieler macht sich lang, hat währenddessen eine gestreckte Reichweite (`DIVE_REACH`) und liegt danach `DIVE_DOWN` Sekunden am Boden.
+
+Auch **nach einer Grätsche liegt man kurz** (`TACKLE_DOWN` = 0,35 s) — aber nur, wenn man den Ball verfehlt hat. Eine geglückte Grätsche belohnt sich selbst; sonst verlöre man den eben eroberten Ball sofort wieder, weil man reglos daneben liegt. Nachgemessen: Die Ballabnahme von hinten fällt dadurch von rund 14 % auf rund 7 % der Verfolgungen, die Torquote bleibt bei 2,6.
 
 Er nimmt den Ball dabei **nicht an**, sondern fälscht ihn Richtung Tor ab — und zielt im Sprung deutlich ungenauer als beim normalen Schuss (Streuung 2,4 statt 0,7 Torbreiten).
 

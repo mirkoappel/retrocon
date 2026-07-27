@@ -89,6 +89,11 @@ window.RetroGames.soccer = {
     const BALL_DRAG    = 0.92;  // Ballführender ist langsamer als ein freier Spieler
     const TACKLE_MAN   = PLAYER_R * 2.6;  // Grätsche erwischt auch den Mann, nicht nur den Ball
     const TACKLE_TIME  = 0.55;  // Dauer der Grätsche — für Mensch und KI dieselbe
+    const TACKLE_DOWN  = 0.35;  // danach liegt man kurz — eine Grätsche kostet etwas
+    // Verformung der Spielerscheibe (siehe flummi weiter unten)
+    const ELAST_F = 1.15;   // Schwingungen über die Dauer der Aktion
+    const ELAST_D = 3.4;    // Dämpfung
+    const ELAST_N = Math.exp(-ELAST_D / (4 * ELAST_F));   // so wird der erste Ausschlag genau amp
     // Hechtsprung: das offensive Gegenstück zur Grätsche. Man macht sich lang,
     // um eine Hereingabe doch noch zu erreichen — und liegt danach kurz.
     const DIVE_TIME    = 0.45;  // Dauer des Sprungs
@@ -271,7 +276,7 @@ window.RetroGames.soccer = {
             team, i, role: f.role,
             x: hp.x, y: hp.y, vx: 0, vy: 0,
             fx: 0, fy: team === 0 ? 1 : -1,   // Blickrichtung
-            ctrl: 0, steal: 0, lockout: 0, tackle: 0, gkHold: 0, dive: 0, down: 0, dx: 0, dy: 0
+            ctrl: 0, steal: 0, lockout: 0, tackle: 0, gkHold: 0, dive: 0, down: 0, downMax: 1, dx: 0, dy: 0
           });
         });
       }
@@ -526,7 +531,7 @@ window.RetroGames.soccer = {
       b.owner = null;
       b.vx = dx / len * HEADER_SPEED;
       b.vy = dy / len * HEADER_SPEED;
-      p.dive = 0; p.down = DIVE_DOWN;
+      p.dive = 0; p.down = DIVE_DOWN; p.downMax = DIVE_DOWN;
       p.lockout = DIVE_DOWN;
       state.shake = 0.25;
       sndShot();
@@ -859,14 +864,25 @@ window.RetroGames.soccer = {
       // und hätte einen Frame weniger Reaktionsverzug.
       for (const p of state.players) {
         p.lockout = Math.max(0, p.lockout - dt);
-        p.tackle  = Math.max(0, p.tackle - dt);
         p.down    = Math.max(0, p.down - dt);
+        // Nach der Grätsche liegt man kurz. Ohne das ist sie folgenlos und man
+        // grätscht einfach dauernd — jetzt kostet ein Fehlversuch Zeit.
+        const graetschte = p.tackle > 0;
+        p.tackle = Math.max(0, p.tackle - dt);
+        // Nur wer den Ball verfehlt hat, liegt danach. Eine geglückte
+        // Grätsche belohnt sich selbst — sonst verlöre man den eben eroberten
+        // Ball sofort wieder, weil man reglos daneben liegt.
+        if (graetschte && p.tackle <= 0 && state.ball.owner !== p) {
+          p.down = TACKLE_DOWN; p.downMax = TACKLE_DOWN;
+          p.lockout = Math.max(p.lockout, TACKLE_DOWN);
+        }
 
         // Im Sprung und am Boden ist nichts zu steuern
         if (p.dive > 0) {
           p.dive -= dt;
           p.vx = p.dx * DIVE_SPEED; p.vy = p.dy * DIVE_SPEED;
           if (dist(p, state.ball) < DIVE_REACH && !state.ball.owner) headerHit(p);
+          else if (p.dive <= 0) { p.down = DIVE_DOWN; p.downMax = DIVE_DOWN; }
           continue;
         }
         if (p.down > 0) { p.vx = 0; p.vy = 0; continue; }
@@ -1413,14 +1429,16 @@ window.RetroGames.soccer = {
       }
     }
 
-    // Spieler sind Scheiben, die sich dehnen — wie ein Flummi. Zwei Dinge
-    // machen daraus eine Bewegung statt eines langen Ovals:
-    // die Dehnung ist flächentreu (längs k, quer 1/k, die Fläche bleibt also
-    // gleich), und sie läuft über die Dauer der Aktion ab — schnell auseinander,
-    // langsamer zurück in die Kugel. Vorher stand ein konstantes Oval im Bild.
+    // Spieler sind Scheiben aus elastischem Material. Drei Dinge machen daraus
+    // eine Bewegung statt eines langen Ovals:
+    //   flächentreu — längs k, quer 1/k; die Scheibe wird gedehnt, nicht größer
+    //   über die Dauer — sie steht nicht still, sondern läuft ab
+    //   und sie federt: gedämpfte Schwingung, die über die Kugelform hinaus in
+    //   die Stauchung schwingt und ausschwingt. Eine einzelne Beule sah aus wie
+    //   ein gedrehtes Oval; erst das Nachfedern fühlt sich nach Material an.
     function flummi(t, amp) {
       const x = Math.min(1, Math.max(0, t));
-      return 1 + amp * Math.sin(Math.PI * Math.pow(x, 0.6));
+      return 1 + (amp / ELAST_N) * Math.sin(2 * Math.PI * ELAST_F * x) * Math.exp(-ELAST_D * x);
     }
 
     function drawPlayers(r) {
@@ -1445,8 +1463,9 @@ window.RetroGames.soccer = {
           k = flummi(1 - p.dive / DIVE_TIME, 0.85);
           ang = screenAngle(r, p.dx, p.dy);
         } else if (p.down > 0) {
-          // Beim Aufstehen federt die Scheibe in die Kugel zurück
-          k = 1 + 0.45 * (p.down / DIVE_DOWN);
+          // Am Boden: flach, und beim Aufstehen federt die Scheibe zurück
+          const u = 1 - p.down / (p.downMax || DIVE_DOWN);
+          k = 1 + 0.42 * Math.exp(-2.2 * u) * Math.cos(Math.PI * 1.1 * u);
           ang = screenAngle(r, p.fx, p.fy);
           alpha = 0.8;
         } else if (p.tackle > 0) {
@@ -1454,7 +1473,7 @@ window.RetroGames.soccer = {
           ang = screenAngle(r, p.fx, p.fy);
         }
 
-        if (k > 1.001) {
+        if (Math.abs(k - 1) > 0.01) {
           ctx.save();
           ctx.translate(q.X, q.Y);
           ctx.rotate(ang);
