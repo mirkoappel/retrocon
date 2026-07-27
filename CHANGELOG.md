@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.4]
+
+### Behoben
+- **STREET SOCCER: Im Hochformat standen beide Tore im Feld.** Dort zeigt die Feldlänge nach oben, das eigene Tor liegt unten und geht nach unten weg — die Rechnung aus dem Querformat war unbesehen übernommen. Der neue Test `soccer-tor-lage` misst die Lage am Gezeichneten und ist gegen zwei gebaute Fehler geprüft
+
+### Geändert
+- **Strafraum und Torraum sind gedrungener** (2,25 : 1 und 2,7 : 1 statt 2,45 : 1 und 3,8 : 1). Maßstab ist ein Tipp-Kick-Feld, wo die Kästen kompakter sind als auf dem Großfeld
+- Die Testattrappe merkt sich jetzt auch **Rechtecke und Linienzüge**, nicht nur Text — damit lässt sich Geometrie prüfen, ohne den Quelltext zu lesen
+
 ## [0.21.3]
 
 ### Geändert

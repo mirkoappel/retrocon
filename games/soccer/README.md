@@ -124,8 +124,8 @@ Der Strafraum ist kein Kasten mehr, sondern das, was auf einem Platz steht:
 
 | Markierung | Maß | Verhältnis |
 |---|---|---|
-| Strafraum | `BOX_W` 0,38 × `BOX_D` 0,155 | 2,45 : 1 — wie 40,32 m zu 16,5 m |
-| Torraum | `GOAL_AREA_W` 0,25 × `GOAL_AREA_D` 0,065 | 3,8 : 1, und **1,32 × Torbreite** |
+| Strafraum | `BOX_W` 0,36 × `BOX_D` 0,16 | 2,25 : 1 |
+| Torraum | `GOAL_AREA_W` 0,23 × `GOAL_AREA_D` 0,085 | 2,7 : 1, und **1,22 × Torbreite** |
 | Elfmeterpunkt | 11 m vor der Linie | `BOX_D × 0,667` |
 | Teilkreis | 9,15 m Radius, gezeichnet **nur außerhalb** des Strafraums | `BOX_D × 0,555` |
 | Anstoßkreis und -punkt | derselbe Radius | |
@@ -136,7 +136,12 @@ Zwei Maße folgen bewusst **nicht** dem Maßstab:
 - **Der Torraum richtet sich am Tor aus, nicht am Strafraum.** Unser Tor ist 33 % der Feldbreite breit, auf dem Großfeld sind es 11 %. Rechnet man die echten Verhältnisse durch (Torraum 2,5 × Tor, Strafraum 5,5 × Tor), käme ein Strafraum von 1,04 heraus — breiter als das ganze Feld. Vorher war der Torraum aus dem Strafraum abgeleitet und dadurch **0,80 × Torbreite**, also schmaler als das Tor, was es nicht gibt.
 - **Das Eckviertel ist gut dreimal zu groß.** Maßstäblich wäre es ein Kringel von zwei Pixeln.
 
-Beim Rest zählt das **Seitenverhältnis** mehr als die absolute Größe: Ein zu flacher Strafraum sieht auch dann in die Länge gezogen aus, wenn seine Breite stimmt. Gezeichnet wird über `feldzug` und `feldbogen` in **Feldkoordinaten** — dadurch sehen die Markierungen im Hoch- und im Querformat gleich aus, und die Bögen stimmen auch gedreht.
+Beim Rest zählt das **Seitenverhältnis** mehr als die absolute Größe: Ein zu flacher Strafraum sieht auch dann in die Länge gezogen aus, wenn seine Breite stimmt. Maßstab dafür ist ein Tipp-Kick-Feld, nicht das Großfeld — dort sind die Kästen bewusst gedrungener:
+
+| | Spiel | Tipp-Kick | Großfeld |
+|---|---|---|---|
+| Strafraum, Breite : Tiefe | **2,25** | 2,06 | 2,44 |
+| Torraum, Breite : Tiefe | **2,7** | 2,17 | 3,33 | Gezeichnet wird über `feldzug` und `feldbogen` in **Feldkoordinaten** — dadurch sehen die Markierungen im Hoch- und im Querformat gleich aus, und die Bögen stimmen auch gedreht.
 
 ## Rasen
 
@@ -147,6 +152,8 @@ Beim Zuschnitt zählt `1 + 2 × GOAL_DEPTH`, nicht die Feldlänge. Rechnet man n
 ## Tore
 
 Die Tore sind Kästen hinter der Torlinie (`GOAL_DEPTH`) mit einem gezeichneten Netz. Vorher war es ein weißer Balken — der Ball schien dadurch durch das Tor hindurchzufliegen, weil dahinter nichts war, in dem er liegenbleiben konnte. Beim Treffer wird er jetzt bewusst **ins Netz gelegt** (`NETZ_TIEFE`), nicht nur begrenzt.
+
+Das Tor liegt **hinter** der Torlinie. Im Hochformat zeigt die Feldlänge nach oben (`y = 0` unten), das eigene Tor liegt unten und geht nach unten weg — andersherum als im Querformat. Die Rechnung aus dem Querformat unbesehen übernommen, standen beide Tore im Feld. `soccer-tor-lage` prüft das am Gezeichneten: Der Test liest die Außenlinie und die Torkästen aus der Canvas-Attrappe und ist gegen zwei gebaute Fehler geprüft.
 
 Gezeichnet werden nur die **drei hinteren Kanten**. Die vordere liegt genau auf der Torlinie, die das Spielfeld ohnehin zieht; strichelt man sie mit, liegen zwei Striche übereinander und der vordere Balken sieht dicker aus als die anderen.
 
@@ -273,8 +280,8 @@ Das Feld liegt mit **0,58** zwischen Futsal (0,50) und Großfeld (0,648) — fla
 | | Spiel | Futsal | Großfeld |
 |---|---|---|---|
 | Breite / Länge | **0,58** | 0,50 | 0,648 |
-| Strafraum / Feldbreite | 0,66 | — | 0,59 |
-| Strafraumtiefe / Feldlänge | 0,155 | — | 0,157 |
+| Strafraum / Feldbreite | 0,62 | — | 0,59 |
+| Strafraumtiefe / Feldlänge | 0,16 | — | 0,157 |
 | **Torbreite / Feldbreite** | **0,33** | 0,15 | 0,108 |
 
 Das Tor ist bewusst rund dreimal so breit wie am Großfeld. Mit realistischer Torbreite deckt der Torwart mit seinem Fangradius praktisch das ganze Tor ab, und es fällt kein einziger Treffer mehr — das war messbar so. Aus demselben Grund sind auch die Spieler proportional viel größer als echte Fußballer.

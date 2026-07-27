@@ -45,14 +45,23 @@ function load(game, inject) {
 }
 
 // Canvas-Attrappe. Sie merkt sich alles, was gezeichnet wird — der Text ist
-// unser Fenster ins Spiel.
-function makeCtx(texts) {
+// unser Fenster ins Spiel. Wer auch die Geometrie pruefen will, gibt ein
+// zweites Feld mit: Dort landen die Rechtecke samt Farbe und die Linienzuege.
+function makeCtx(texts, kaesten, pfade) {
   return new Proxy({}, {
     get(t, p) {
       if (p in t) return t[p];
       if (p === 'createLinearGradient') return () => ({ addColorStop() {} });
       if (p === 'measureText') return () => ({ width: 10, actualBoundingBoxAscent: 8, actualBoundingBoxDescent: 0 });
       if (p === 'fillText') return s => texts.push(String(s));
+      if (p === 'fillRect' && kaesten) {
+        return (x, y, w, h) => kaesten.push({ x, y, w, h, farbe: String(t.fillStyle) });
+      }
+      if (pfade) {
+        if (p === 'beginPath') return () => { t.__pfad = []; };
+        if (p === 'moveTo' || p === 'lineTo') return (x, y) => { (t.__pfad ||= []).push([x, y]); };
+        if (p === 'stroke') return () => { if (t.__pfad && t.__pfad.length) pfade.push(t.__pfad); t.__pfad = []; };
+      }
       return () => {};
     },
     set(t, p, v) { t[p] = v; return true; }
@@ -71,7 +80,9 @@ const stick = (x, y) => ({ ...pad(), joystick: { x, y, active: true, analog: tru
 function session(game, { conns = new Map(), inject, setting, w = 1600, h = 900 } = {}) {
   const mod = load(game, inject);
   const texts = [];
-  const ctx = makeCtx(texts);
+  const kaesten = [];
+  const pfade = [];
+  const ctx = makeCtx(texts, kaesten, pfade);
   const g = mod.create(ctx, w, h, 1, {
     exit() {}, getConns: () => conns, audioCtx: null, setting, code: 'TEST'
   });
@@ -80,6 +91,11 @@ function session(game, { conns = new Map(), inject, setting, w = 1600, h = 900 }
     game: g,
     state: g.__state,
     screen() { texts.length = 0; g.draw(); return texts.join(' | '); },
+    // Ein Bild zeichnen und die Rechtecke zurueckgeben, statt den Text
+    kaesten() { kaesten.length = 0; g.draw(); return kaesten.slice(); },
+    pfade() { pfade.length = 0; g.draw(); return pfade.slice(); },
+    bild() { kaesten.length = 0; pfade.length = 0; g.draw(); return { kaesten: kaesten.slice(), pfade: pfade.slice() }; },
+    groesse(nw, nh) { g.resize(nw, nh); },
     send(gp) { g.input(1, gp, prev); prev = gp; },
     tap(slot = 1) {
       let c = pad({ a: true }); g.input(slot, c, prev); prev = c;

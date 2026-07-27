@@ -179,8 +179,12 @@ window.RetroSoccer.render = function (ctx, K) {
     const tiefe = GOAL_DEPTH * r.s;
     for (const gy of [0, 1]) {
       const g = fieldRect(r, FIELD_W / 2 - GOAL_W / 2, gy, FIELD_W / 2 + GOAL_W / 2, gy);
+      // Das Tor steht HINTER der Torlinie, also aus dem Feld heraus. Im
+      // Hochformat zeigt die Feldlaenge nach oben (y = 0 unten), das eigene
+      // Tor liegt unten und geht nach unten weg — andersherum als im
+      // Querformat. Vorher standen im Hochformat beide Tore im Feld.
       const kx = r.rot ? (gy === 0 ? g.x - tiefe : g.x) : g.x;
-      const ky = r.rot ? g.y : (gy === 0 ? g.y - tiefe : g.y);
+      const ky = r.rot ? g.y : (gy === 0 ? g.y : g.y - tiefe);
       const kw = r.rot ? tiefe : g.w;
       const kh = r.rot ? g.h : tiefe;
 
@@ -213,8 +217,8 @@ window.RetroSoccer.render = function (ctx, K) {
         ctx.moveTo(vorn, ky); ctx.lineTo(hinten, ky);
         ctx.lineTo(hinten, ky + kh); ctx.lineTo(vorn, ky + kh);
       } else {
-        const vorn = gy === 0 ? ky + kh : ky;
-        const hinten = gy === 0 ? ky : ky + kh;
+        const vorn = gy === 0 ? ky : ky + kh;
+        const hinten = gy === 0 ? ky + kh : ky;
         ctx.moveTo(kx, vorn); ctx.lineTo(kx, hinten);
         ctx.lineTo(kx + kw, hinten); ctx.lineTo(kx + kw, vorn);
       }

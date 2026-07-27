@@ -72,11 +72,11 @@ window.RetroGames.soccer = {
     // und resize() muss nichts umrechnen.
     const FIELD_W   = 0.58;   // zwischen Futsal (0,50) und Grossfeld (0,648)
     const GOAL_W    = 0.189;
-    // Strafraum. Das Seitenverhaeltnis zaehlt mehr als die absolute Groesse:
-    // Breite zu Tiefe liegt jetzt bei 2,45 : 1 wie auf einem echten Platz
-    // (40,32 m zu 16,5 m). Vorher war es 2,57 : 1 bei nur 0,13 Tiefe — der
-    // Kasten wirkte dadurch in die Laenge gezogen.
-    const BOX_W     = 0.38, BOX_D = 0.155;   // Strafraum
+    // Strafraum. Massgeblich ist das Seitenverhaeltnis, nicht die absolute
+    // Groesse: Ein flacher Kasten sieht in die Laenge gezogen aus, auch wenn
+    // seine Breite stimmt. 2,25 : 1 wie auf einem Tipp-Kick-Feld (dort 2,06,
+    // auf dem Grossfeld 2,44) — vorher waren es 2,57 : 1 bei nur 0,13 Tiefe.
+    const BOX_W     = 0.36, BOX_D = 0.16;    // Strafraum
     const PLAYER_R  = 0.021;
     const BALL_R    = 0.0105;
 
@@ -188,8 +188,8 @@ window.RetroGames.soccer = {
     // hier nicht: Sie ergäben einen Strafraum breiter als das ganze Feld, weil
     // unser Tor im Verhältnis viel größer ist als auf einem echten Platz.
     // Der Torraum richtet sich deshalb am TOR aus, nicht am Strafraum.
-    const GOAL_AREA_W  = 0.25;            // 1,32 x Tor
-    const GOAL_AREA_D  = 0.065;           // Verhaeltnis 3,8 : 1
+    const GOAL_AREA_W  = 0.23;            // 1,22 x Tor
+    const GOAL_AREA_D  = 0.085;           // Verhaeltnis 2,7 : 1
     const ELFMETER     = BOX_D * 0.667;   // 11 m vor der Linie
     const TEILKREIS_R  = BOX_D * 0.555;   // 9,15 m Radius
     const MITTE_R      = BOX_D * 0.555;   // derselbe Radius für den Anstoßkreis
