@@ -55,6 +55,7 @@ module.exports = {
       // Nach Ablauf der Sperre zaehlt der Druck wieder — vorgewaehlt ist die
       // Wiederholung, also muss sie anlaufen
       for (let f = 0; f < 90; f++) s.step();
+      s.send(pad({ dpad: { down: true } })); s.send(pad());
       s.send(pad({ a: true })); s.send(pad()); s.step();
       if (!S.replay) fehler.push('nach der Sperre reagiert die Anzeige nicht');
     }
@@ -65,13 +66,15 @@ module.exports = {
     else {
       const { s, S } = b;
       for (let f = 0; f < 90; f++) s.step();          // Sperre abwarten
-      // Der vorgewaehlte Punkt steht oben: die Wiederholung auf 0, WEITER darunter
-      if (S.menuSel !== 0) fehler.push(`vorgewaehlt ist ${S.menuSel}, erwartet WIEDERHOLUNG (0)`);
+      // Der vorgewaehlte Punkt steht oben: WEITER auf 0, Wiederholung darunter
+      if (S.menuSel !== 0) fehler.push(`vorgewaehlt ist ${S.menuSel}, erwartet WEITER (0)`);
+      s.send(pad({ dpad: { down: true } })); s.send(pad());
+      if (S.menuSel !== 1) fehler.push(`Blaettern landet auf ${S.menuSel}, erwartet WIEDERHOLUNG (1)`);
       s.send(pad({ a: true })); s.send(pad());
       if (!S.replay) fehler.push('Auswahl startet keine Wiederholung');
       for (let f = 0; f < 60 * 12; f++) { s.step(); if (!S.replay) break; }
       if (S.phase !== 'goal') fehler.push('nach der selbst gewaehlten Wiederholung geht es ungefragt weiter');
-      if (S.menuSel !== 1) fehler.push('nach der Wiederholung steht die Auswahl nicht auf WEITER');
+      if (S.menuSel !== 0) fehler.push('nach der Wiederholung steht die Auswahl nicht auf WEITER');
       s.send(pad({ a: true })); s.send(pad()); s.step();
       if (S.phase !== 'play') fehler.push(`nach WEITER ist die Phase ${S.phase}, erwartet play`);
     }
@@ -82,7 +85,8 @@ module.exports = {
     else {
       const { s, S } = d;
       for (let f = 0; f < 90; f++) s.step();          // Sperre abwarten
-      s.send(pad({ a: true })); s.send(pad());        // die vorgewaehlte Wiederholung
+      s.send(pad({ dpad: { down: true } })); s.send(pad());
+      s.send(pad({ a: true })); s.send(pad());        // Wiederholung waehlen
       if (!S.replay) fehler.push('Auswahl startet keine Wiederholung');
       for (let f = 0; f < 60 * 12; f++) { s.step(); if (!S.replay) break; }
       let zweite = false;

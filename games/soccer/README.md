@@ -116,6 +116,12 @@ Nachgemessen: Gleichschritt 88,5 % → **5,4 %**, vor der Grundstellung 0,4 % �
 
 **Was nicht ging:** Die seitliche Deckung auch nur jenseits jeder Schussdistanz träge zu machen, ließ die Torquote auf **34,8 Tore pro Spiel** springen. Ein Rest an Gleichlauf bleibt deshalb bewusst bestehen — es gibt einen Ball, und beide Torhüter reagieren richtig darauf.
 
+## Tore
+
+Die Tore sind Kästen hinter der Torlinie (`GOAL_DEPTH`) mit einem gezeichneten Netz. Vorher war es ein weißer Balken — der Ball schien dadurch durch das Tor hindurchzufliegen, weil dahinter nichts war, in dem er liegenbleiben konnte. Beim Treffer wird er jetzt bewusst **ins Netz gelegt** (`NETZ_TIEFE`), nicht nur begrenzt.
+
+Gezeichnet werden nur die **drei hinteren Kanten**. Die vordere liegt genau auf der Torlinie, die das Spielfeld ohnehin zieht; strichelt man sie mit, liegen zwei Striche übereinander und der vordere Balken sieht dicker aus als die anderen.
+
 ## Tafeln
 
 Anpfiff, Tor, Halbzeit, Ergebnis, Weltmeister und Aus benutzen **dieselbe Box** (`zeichneBox`): abgerundete Fläche mit Schlagschatten und Haarlinie, gelbe Überschrift, darunter Menüpunkte mit Klickflächen.

@@ -15,7 +15,8 @@ window.RetroSoccer = window.RetroSoccer || {};
 window.RetroSoccer.render = function (ctx, K) {
   let { w, h } = K;
   const {
-    state, clamp, kit, hotspot, goalItems, drawFlagIcon,
+    state, clamp, kit, hotspot, goalItems, drawFlagIcon, GOAL_DEPTH,
+    AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
     FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
     TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS,
     DIVE_TIME, DIVE_DOWN, GK_DIVE_TIME, TACKLE_TIME, POKE_TIME,
@@ -92,13 +93,52 @@ window.RetroSoccer.render = function (ctx, K) {
       ctx.strokeRect(bx.x, bx.y, bx.w, bx.h);
     }
 
-    // Tore, knapp hinter der Linie
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    const d = r.s * 0.022;
+    // Tore mit Netz. Vorher war es nur ein weisser Balken hinter der Linie —
+    // der Ball schien dadurch durch das Tor hindurchzufliegen, weil dahinter
+    // nichts war, in dem er liegenbleiben konnte.
+    const tiefe = GOAL_DEPTH * r.s;
     for (const gy of [0, 1]) {
       const g = fieldRect(r, FIELD_W / 2 - GOAL_W / 2, gy, FIELD_W / 2 + GOAL_W / 2, gy);
-      if (r.rot) ctx.fillRect(gy === 0 ? g.x - d : g.x, g.y, d, g.h);
-      else       ctx.fillRect(g.x, gy === 0 ? g.y : g.y - d, g.w, d);
+      const kx = r.rot ? (gy === 0 ? g.x - tiefe : g.x) : g.x;
+      const ky = r.rot ? g.y : (gy === 0 ? g.y - tiefe : g.y);
+      const kw = r.rot ? tiefe : g.w;
+      const kh = r.rot ? g.h : tiefe;
+
+      ctx.fillStyle = 'rgba(10,14,20,0.85)';
+      ctx.fillRect(kx, ky, kw, kh);
+
+      // Netz: feines Raster, quer und laengs
+      ctx.save();
+      ctx.beginPath(); ctx.rect(kx, ky, kw, kh); ctx.clip();
+      ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+      ctx.lineWidth = Math.max(1, r.s * 0.0014);
+      const masche = r.s * 0.0105;
+      ctx.beginPath();
+      for (let x = kx + masche; x < kx + kw; x += masche) { ctx.moveTo(x, ky); ctx.lineTo(x, ky + kh); }
+      for (let y = ky + masche; y < ky + kh; y += masche) { ctx.moveTo(kx, y); ctx.lineTo(kx + kw, y); }
+      ctx.stroke();
+      ctx.restore();
+
+      // Pfosten und Latte — bewusst NUR die drei hinteren Kanten. Die vordere
+      // liegt genau auf der Torlinie, die das Spielfeld ohnehin schon zieht;
+      // gestrichelt man sie mit, liegen zwei Striche uebereinander und der
+      // vordere Balken sieht dicker aus als die anderen.
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.lineWidth = Math.max(2, r.s * 0.005);
+      ctx.beginPath();
+      if (r.rot) {
+        // Querformat: Tor liegt links (gy 0) oder rechts (gy 1)
+        const vorn = gy === 0 ? kx + kw : kx;
+        const hinten = gy === 0 ? kx : kx + kw;
+        ctx.moveTo(vorn, ky); ctx.lineTo(hinten, ky);
+        ctx.lineTo(hinten, ky + kh); ctx.lineTo(vorn, ky + kh);
+      } else {
+        const vorn = gy === 0 ? ky + kh : ky;
+        const hinten = gy === 0 ? ky : ky + kh;
+        ctx.moveTo(kx, vorn); ctx.lineTo(kx, hinten);
+        ctx.lineTo(kx + kw, hinten); ctx.lineTo(kx + kw, vorn);
+      }
+      ctx.stroke();
     }
   }
 
@@ -208,12 +248,14 @@ window.RetroSoccer.render = function (ctx, K) {
   // Deutlich als Wiederholung gekennzeichnet — sonst hält man die Zeitlupe
   // für das laufende Spiel und wundert sich, warum nichts reagiert.
   function drawReplayBadge(text) {
-    // Unten mittig und in demselben Gelb wie TOR!. Ohne blinkenden Punkt und
-    // ohne Pulsieren — es ist eine Beschriftung, kein Bedienelement.
+    // Unten mittig, im selben Gelb wie TOR!, und pulsierend: So ist auf den
+    // ersten Blick klar, dass das eine Wiederholung ist und nicht das
+    // laufende Spiel.
     ctx.save();
     ctx.font = font(uni() * 0.032);
     ctx.shadowColor = '#ffb300';
     ctx.shadowBlur = uni() * 0.03;
+    ctx.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(state.t * 4));
     ctx.fillStyle = '#ffd54f';
     ctx.fillText(text, w / 2, h * 0.93);
     ctx.shadowBlur = 0;
@@ -288,6 +330,20 @@ window.RetroSoccer.render = function (ctx, K) {
       ctx.globalAlpha = o.punkteAlpha === undefined ? 1 : o.punkteAlpha;
       ctx.fillStyle = sel ? '#ffd54f' : '#666';
       fitText(sel ? `> ${it} <` : it, w / 2, y, innen, uni() * 0.03);
+
+      // Läuft eine Uhr, erscheint unter dem Punkt, den sie auslösen wird, ein
+      // schrumpfender Balken. Ohne ihn passiert nach ein paar Sekunden
+      // scheinbar aus dem Nichts etwas.
+      if (o.timer && o.timer.idx === i && o.timer.rest > 0) {
+        const voll = innen * 0.45;
+        const bw = voll * Math.max(0, Math.min(1, o.timer.rest));
+        const by = y + ph * 0.055;
+        const dick = Math.max(2, uni() * 0.005);
+        ctx.fillStyle = 'rgba(255,255,255,0.12)';
+        ctx.fillRect(w / 2 - voll / 2, by, voll, dick);
+        ctx.fillStyle = sel ? '#ffd54f' : '#4fc3f7';
+        ctx.fillRect(w / 2 - bw / 2, by, bw, dick);
+      }
       ctx.globalAlpha = 1;
     });
     return { x0, y0, pw, ph, innen };
@@ -317,7 +373,11 @@ window.RetroSoccer.render = function (ctx, K) {
     ctx.scale(0.86 + 0.14 * einzug, 0.86 + 0.14 * einzug);
     ctx.translate(-w / 2, -h / 2);
     ctx.globalAlpha = einzug;
-    zeichneBox('TOR!', goalItems(), {
+    const punkte = goalItems();
+    const autoIdx = state.autoReplay > 0 ? punkte.indexOf('WIEDERHOLUNG') : punkte.indexOf('WEITER');
+    const rest = state.autoReplay > 0 ? state.autoReplay / AUTO_REPLAY : state.goalWait / GOAL_WAIT;
+    zeichneBox('TOR!', punkte, {
+      timer: menuAuf > 0 && autoIdx >= 0 ? { idx: autoIdx, rest } : null,
       gross: 0.105 * pop * puls,
       titelY: 0.33,
       punkteAlpha: menuAuf,
@@ -498,6 +558,7 @@ window.RetroSoccer.render = function (ctx, K) {
       gelb: false,
       gross: 0.04,
       titelY: 0.16,
+      timer: { idx: 0, rest: state.tafel / AUTO_INTRO },
       extra: 0.36,
       zwischen: (x0, y0, pw, ph, innen) => {
         // Namen bewusst neutral — die Zuordnung macht die Flagge, nicht die Farbe
@@ -525,7 +586,7 @@ window.RetroSoccer.render = function (ctx, K) {
   }
 
   function drawHalf() {
-    zeichneBox('HALBZEIT', ['WEITER']);
+    zeichneBox('HALBZEIT', ['WEITER'], { timer: { idx: 0, rest: state.tafel / AUTO_HALF } });
   }
 
   // Wie heißt der Ausgang, und wie heißt der Weg hinaus? „WEITER" stand
@@ -560,11 +621,15 @@ window.RetroSoccer.render = function (ctx, K) {
     }
     // Spielstand und Mannschaften stehen schon in der Kopfzeile — hier
     // wiederholt machten sie die Box nur voll.
-    zeichneBox(resultTitel(), resultItems());
+    const rItems = resultItems();
+    zeichneBox(resultTitel(), rItems, {
+      timer: { idx: rItems.length - 1, rest: state.tafel / AUTO_RESULT },
+    });
   }
 
   function drawChampion() {
     zeichneBox('WELTMEISTER!', ['NEUE WELTMEISTERSCHAFT'], {
+      timer: { idx: 0, rest: state.tafel / AUTO_RESULT },
       extra: 0.04,
       zwischen: (x0, y0, pw, ph, innen) => {
         ctx.fillStyle = '#8a9bb0';
@@ -576,6 +641,7 @@ window.RetroSoccer.render = function (ctx, K) {
 
   function drawOut() {
     zeichneBox('AUSGESCHIEDEN', ['NEUE WELTMEISTERSCHAFT'], {
+      timer: { idx: 0, rest: state.tafel / AUTO_RESULT },
       extra: 0.04,
       zwischen: (x0, y0, pw, ph, innen) => {
         ctx.fillStyle = '#8a9bb0';

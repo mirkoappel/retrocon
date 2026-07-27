@@ -141,7 +141,8 @@ window.RetroGames.soccer = {
     const GOAL_LOCK    = 1.2;
     const HL_MAX       = 8;     // so viele Tore werden für die Höhepunkte aufbewahrt
     const GOAL_TAIL    = 26;    // Frames, die nach dem Torschuss angehängt werden
-    const NETZ_TIEFE   = 0.05;  // so weit rollt der Ball dabei ins Tor hinein
+    const GOAL_DEPTH   = 0.038; // Tiefe des Tors hinter der Linie
+    const NETZ_TIEFE   = GOAL_DEPTH * 0.62;  // so weit rollt der Ball ins Netz
     const REPLAY_HALT  = 0.7;   // so lange steht das Bild am Ende der Wiederholung
     // Was ein Mitschnitt je Spieler festhält
     const MITSCHNITT_FELDER = ['x', 'y', 'fx', 'fy', 'dive', 'down', 'downMax',
@@ -164,10 +165,9 @@ window.RetroGames.soccer = {
     const SWITCH_MODE = api.setting?.('switch') ?? 'ballgewinn';
     const REPLAY_ON   = (api.setting?.('replay') ?? 'an') === 'an';
     // Ohne Wiederholung hat die Torpause nur einen Punkt
-    // Der vorgewählte Punkt steht oben — das ist die Wiederholung. Ein
-    // versehentlicher Druck kann sie nicht auslösen, weil die Anzeige die
-    // ersten GOAL_LOCK Sekunden ohnehin keine Eingabe annimmt.
-    const goalItems = () => REPLAY_ON ? ['WIEDERHOLUNG', 'WEITER'] : ['WEITER'];
+    // Der vorgewählte Punkt steht oben, und das ist WEITER: Der schnelle
+    // Druck soll anpfeifen, nicht zurückspulen.
+    const goalItems = () => REPLAY_ON ? ['WEITER', 'WIEDERHOLUNG'] : ['WEITER'];
     const goalWeiterIdx = () => goalItems().indexOf('WEITER');
     // Grundstärke der KI-Gegner; der Turnieraufschlag je Runde kommt dazu
     const SKILL_BASE = SCHWIERIG === 'leicht' ? 0.90 : SCHWIERIG === 'schwer' ? 1.12 : 1;
@@ -1329,12 +1329,21 @@ window.RetroGames.soccer = {
       if (state.golden) { state.goldenT += dt; return; }   // Verlängerung läuft ohne Uhr
       if (state.clock <= 0) {
         state.clock = 0;
-        if (state.half < HALVES) { state.phase = 'half'; state.tafel = AUTO_HALF; sndWhistle(); }
+        if (state.half < HALVES) { state.phase = 'half'; state.tafel = AUTO_HALF; state.menuSel = 0; sndWhistle(); }
         else finishMatch();
       }
     }
 
     function scoreGoal(team) {
+      // Der Ball bleibt im Netz liegen. Ohne das flog er waehrend der ganzen
+      // Torpause weiter aus dem Bild heraus, als gaebe es kein Tor.
+      const b = state.ball;
+      b.vx = 0; b.vy = 0;
+      b.x = clamp(b.x, FIELD_W / 2 - GOAL_W / 2 + BALL_R, FIELD_W / 2 + GOAL_W / 2 - BALL_R);
+      // Bewusst hineinlegen, nicht nur begrenzen: Auf der Linie liegend sah es
+      // aus, als sei der Ball am Tor vorbeigeflogen.
+      b.y = b.y < 0.5 ? -NETZ_TIEFE * 0.75 : 1 + NETZ_TIEFE * 0.75;
+
       state.score[team]++;
       state.shake = 0.7;
       sndGoal();
@@ -1347,7 +1356,7 @@ window.RetroGames.soccer = {
       state.goalTeam = team;
       state.goalWait = GOAL_WAIT;
       state.replay = null;
-      state.menuSel = 0;                        // oben, also die Wiederholung
+      state.menuSel = goalWeiterIdx();          // oben, also WEITER
       state.goalLock = GOAL_LOCK;
       // Die Szene für die Höhepunkte aufbewahren, bevor der Mitschnitt beim
       // Anstoß gelöscht wird
@@ -1444,7 +1453,7 @@ window.RetroGames.soccer = {
 
     function nextCupRound() {
       state.round++;
-      if (state.round >= ROUNDS.length) { state.phase = 'champion'; state.tafel = AUTO_RESULT; sndWin(); return; }
+      if (state.round >= ROUNDS.length) { state.phase = 'champion'; state.tafel = AUTO_RESULT; state.menuSel = 0; sndWin(); return; }
       drawFoe();
       state.phase = 'intro'; state.tafel = AUTO_INTRO;
     }
@@ -1531,7 +1540,7 @@ window.RetroGames.soccer = {
           if (vonSelbst && state.mode === 'friendly') { naechstesSpiel(); return; }
           if (state.mode === 'friendly') { state.phase = 'mode'; state.menuSel = 0; }
           else if (state.lastResult === 'WEITER') nextCupRound();
-          else { state.phase = 'out'; state.tafel = AUTO_RESULT; }
+          else { state.phase = 'out'; state.tafel = AUTO_RESULT; state.menuSel = 0; }
           return;
 
         case 'champion':
@@ -1583,7 +1592,8 @@ window.RetroGames.soccer = {
     // Liegt in soccer.render.js. Der Kontext wird einmal hereingereicht; die
     // Maße führt resize() nach.
     const R = window.RetroSoccer.render(ctx, {
-      state, clamp, kit, hotspot, goalItems, drawFlagIcon,
+      state, clamp, kit, hotspot, goalItems, drawFlagIcon, GOAL_DEPTH,
+      AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
       FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
       TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS,
       DIVE_TIME, DIVE_DOWN, GK_DIVE_TIME, TACKLE_TIME, POKE_TIME,
