@@ -15,7 +15,8 @@ window.RetroGames.soccer = {
     { t1: 'A', t2: 'MIT BALL',  was: 'Schießen' },
     { t1: 'A', t2: 'OHNE BALL', was: 'Spieler wechseln — der Wechsel passiert nie von selbst' },
     { t1: 'B', t2: 'MIT BALL',  was: 'Abspielen' },
-    { t1: 'B', t2: 'OHNE BALL', was: 'Grätschen — erwischt den Ball und aus kurzer Distanz auch den Mann' },
+    { t1: 'B', t2: 'KURZ · OHNE BALL', was: 'Angreifen — kurzer Schritt zum Ball, ohne Risiko' },
+    { t1: 'B', t2: 'HALTEN · OHNE BALL', was: 'Grätschen — mehr Reichweite, danach liegt man kurz' },
     { t1: 'B', t2: 'VOR DEM TOR', was: 'Hechtsprung auf eine scharfe Hereingabe — danach liegt man kurz' },
     { t1: 'DRIBBELN', t2: '',   was: 'Mit Ball läuft man langsamer; der Ball folgt der Laufrichtung' },
     { t1: 'ANSTOSS', t2: '',    was: 'Der Anstoß wird zum Mitspieler gepasst' },
@@ -90,6 +91,11 @@ window.RetroGames.soccer = {
     const TACKLE_MAN   = PLAYER_R * 2.6;  // Grätsche erwischt auch den Mann, nicht nur den Ball
     const TACKLE_TIME  = 0.55;  // Dauer der Grätsche — für Mensch und KI dieselbe
     const TACKLE_DOWN  = 0.35;  // danach liegt man kurz — eine Grätsche kostet etwas
+    // Zwei Stufen auf derselben Taste: kurz antippen greift an, gehalten grätscht.
+    const LONG_PRESS   = 0.20;  // ab hier wird aus dem Angriff eine Grätsche
+    const POKE_TIME    = 0.24;  // Dauer des Angriffs
+    const POKE_BOOST   = 1.3;   // kurzer Schritt zum Ball
+    const POKE_RATE    = 2.6;   // Zweikampfdruck dabei (Grätsche 3,4, normal 1,5)
     // Hechtsprung: das offensive Gegenstück zur Grätsche. Man macht sich lang,
     // um eine Hereingabe doch noch zu erreichen — und liegt danach kurz.
     const DIVE_TIME    = 0.45;  // Dauer des Sprungs
@@ -272,7 +278,7 @@ window.RetroGames.soccer = {
             team, i, role: f.role,
             x: hp.x, y: hp.y, vx: 0, vy: 0,
             fx: 0, fy: team === 0 ? 1 : -1,   // Blickrichtung
-            ctrl: 0, steal: 0, lockout: 0, tackle: 0, gkHold: 0, dive: 0, down: 0, downMax: 1, dx: 0, dy: 0
+            ctrl: 0, steal: 0, lockout: 0, tackle: 0, poke: 0, bHold: -1, gkHold: 0, dive: 0, down: 0, downMax: 1, dx: 0, dy: 0
           });
         });
       }
@@ -283,7 +289,7 @@ window.RetroGames.soccer = {
       for (const p of state.players) {
         const hp = homePos(p.team, p.i);
         p.x = hp.x; p.y = hp.y; p.vx = 0; p.vy = 0;
-        p.steal = 0; p.lockout = 0; p.tackle = 0; p.gkHold = 0; p.dive = 0; p.down = 0;
+        p.steal = 0; p.lockout = 0; p.tackle = 0; p.poke = 0; p.bHold = -1; p.gkHold = 0; p.dive = 0; p.down = 0;
       }
       // Anstoßende Mannschaft stellt den Stürmer an den Ball und den
       // Mitspieler schräg dahinter — er bekommt gleich den Anstoßpass
@@ -504,6 +510,21 @@ window.RetroGames.soccer = {
       return d > CONTACT + 0.035 && d < 0.13;
     }
 
+    function startTackle(p) {
+      if (p.tackle > 0 || p.down > 0 || p.dive > 0) return;
+      p.tackle = TACKLE_TIME;
+      p.poke = 0;
+      sndKick();
+    }
+
+    // Angriff: der kurze Schritt zum Ball. Kein Risiko, keine Liegezeit —
+    // dafür weniger Reichweite und weniger Druck als die Grätsche.
+    function startPoke(p) {
+      if (p.tackle > 0 || p.down > 0 || p.dive > 0 || p.poke > 0) return;
+      p.poke = POKE_TIME;
+      sndMenu();
+    }
+
     function startDive(p) {
       p.dive = DIVE_TIME;
       // In Richtung Ball abspringen, nicht in Laufrichtung — man hechtet ja
@@ -635,6 +656,7 @@ window.RetroGames.soccer = {
     // Tempobonus über die ganze Dauer fühlte sich an wie Rennen, nicht wie
     // Rutschen — am Ende ist man langsamer als im Lauf.
     function tackleBoost(p) {
+      if (p.poke > 0) return POKE_BOOST;
       if (p.tackle <= 0) return 1;
       const t = 1 - p.tackle / TACKLE_TIME;
       return 0.88 + 0.62 * Math.exp(-3.0 * t);
@@ -807,10 +829,11 @@ window.RetroGames.soccer = {
           tx = owner.x; ty = owner.y;
           // Nah genug dran: auch die KI grätscht — sonst sieht man die
           // Aktion nur beim Menschen und Zweikämpfe wirken zahnlos
-          if (p.tackle <= 0 && dist(p, owner) < PLAYER_R * 4.5
-              && Math.random() < dt * 1.0 * skill(p.team)) {
-            p.tackle = TACKLE_TIME;
-            sndKick();
+          // Die KI greift meist nur an und grätscht seltener — genau die
+          // Abwägung, die der Mensch über die Tastendauer trifft.
+          if (p.tackle <= 0 && p.poke <= 0 && dist(p, owner) < PLAYER_R * 4.5) {
+            if (Math.random() < dt * 0.45 * skill(p.team)) startTackle(p);
+            else if (Math.random() < dt * 1.6 * skill(p.team)) startPoke(p);
           }
         }
         else {
@@ -823,10 +846,9 @@ window.RetroGames.soccer = {
             tx = owner.x + side * PLAYER_R * 3;
             ty = owner.y + (ownGoal === 0 ? -1 : 1) * PLAYER_R * 1.6;
             // Auch der zweite Verteidiger darf grätschen, wenn er dran ist
-            if (p.tackle <= 0 && dist(p, owner) < PLAYER_R * 4.5
-                && Math.random() < dt * 0.6 * skill(p.team)) {
-              p.tackle = TACKLE_TIME;
-              sndKick();
+            if (p.tackle <= 0 && p.poke <= 0 && dist(p, owner) < PLAYER_R * 4.5) {
+              if (Math.random() < dt * 0.28 * skill(p.team)) startTackle(p);
+              else if (Math.random() < dt * 1.0 * skill(p.team)) startPoke(p);
             }
           } else {
             tx = hp.x * 0.6 + b.x * 0.4;
@@ -872,6 +894,12 @@ window.RetroGames.soccer = {
         p.down    = Math.max(0, p.down - dt);
         // Nach der Grätsche liegt man kurz. Ohne das ist sie folgenlos und man
         // grätscht einfach dauernd — jetzt kostet ein Fehlversuch Zeit.
+        p.poke = Math.max(0, p.poke - dt);
+        // Gehaltene B-Taste: aus dem Angriff wird eine Grätsche
+        if (p.bHold >= 0) {
+          p.bHold += dt;
+          if (p.bHold >= LONG_PRESS) { startTackle(p); p.bHold = -1; }
+        }
         const graetschte = p.tackle > 0;
         p.tackle = Math.max(0, p.tackle - dt);
         // Nur wer den Ball verfehlt hat, liegt danach. Eine geglückte
@@ -1055,7 +1083,11 @@ window.RetroGames.soccer = {
           const atBall = db < CONTACT + 0.018;   // kurzer Ausfallschritt zum Ball
           const atMan  = q.tackle > 0 && dp < TACKLE_MAN;
           if (atBall || atMan) {
-            const rate = (q.tackle > 0 ? 3.4 : 1.5) * (q.ctrl ? 1.15 : skill(q.team))
+            // Wer nur danebensteht, erobert kaum etwas — sonst wäre die Taste
+            // Zierde: mit 1,5 gewann bloßes Danebenstehen den Ball in 0,6 s,
+            // und Angreifen oder Grätschen änderten daran messbar nichts.
+            const rate = (q.tackle > 0 ? 3.4 : q.poke > 0 ? POKE_RATE : 0.7)
+                       * (q.ctrl ? 1.15 : skill(q.team))
                        * (atBall ? 1 : 0.85);    // von hinten etwas zäher
             q.steal += dt * rate;
             const d = Math.min(db, dp);
@@ -1303,11 +1335,15 @@ window.RetroGames.soccer = {
               else cycleControl(player);
             }
             // B: mit Ball abspielen. Ohne Ball vor dem gegnerischen Tor der
-            // Hechtsprung auf eine Hereingabe, sonst die Grätsche.
+            // Hechtsprung, sonst kurz antippen = angreifen, gehalten = grätschen.
             if (edge(gp, prev, 'b')) {
               if (state.ball.owner === me) pass(me);
               else if (canDive(me)) startDive(me);
-              else { me.tackle = TACKLE_TIME; sndKick(); }
+              else me.bHold = 0;                    // Uhr läuft, entschieden wird beim Loslassen
+            }
+            if (!gp.b && prev?.b && me.bHold >= 0) {
+              if (me.bHold < LONG_PRESS) startPoke(me);
+              me.bHold = -1;
             }
             return;
           }
@@ -1478,6 +1514,11 @@ window.RetroGames.soccer = {
           k = 1 + 0.38 * (1 - weich) + 0.35 * Math.exp(-14 * u);   // erster Klatscher
           ang = screenAngle(r, p.fx, p.fy);
           alpha = 0.82;
+        } else if (p.poke > 0) {
+          // Angriff: ein kurzer Stich nach vorn — schnell raus, schnell zurück
+          const t = 1 - p.poke / POKE_TIME;
+          k = 1 + 0.3 * Math.sin(Math.PI * Math.pow(t, 0.7));
+          ang = screenAngle(r, p.fx, p.fy);
         } else if (p.tackle > 0) {
           // Wie beim Sprung: schnell lang machen und lang bleiben, solange man
           // rutscht. Eine federnde Schwingung sah aus wie Gummi statt wie ein

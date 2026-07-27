@@ -259,6 +259,25 @@ Die KI nutzt denselben Sprung, sonst sähe man ihn nur beim eigenen Spieler.
 
 Nachgemessen über vier Spiele: **13 Sprünge pro Spiel, 37 % davon am Ball.** Der erste Entwurf war deutlich zu großzügig — 99 Sprünge pro Spiel und 10,1 Tore statt 2,4; ausschlaggebend waren die Mindestgeschwindigkeit des Balls und die Bedingung, dass er zu Fuß gerade nicht mehr erreichbar sein darf.
 
+## Zwei Stufen auf der B-Taste
+
+Ohne Ball entscheidet die **Dauer des Tastendrucks**:
+
+| | Dauer | Wirkung | Risiko |
+|---|---|---|---|
+| **Angreifen** | kurz antippen | kurzer Schritt zum Ball (×1,3), Zweikampfdruck 2,6 | keins |
+| **Grätschen** | ab 0,20 s halten | Antritt und Rutschen, Reichweite auch zum **Mann**, Druck 3,4 | danach 0,35 s am Boden |
+
+Die KI trifft dieselbe Abwägung: Sie greift überwiegend an und grätscht nur selten.
+
+**Damit die Taste überhaupt zählt, wurde der passive Druck gesenkt** (1,5 → 0,7). Vorher gewann bloßes Danebenstehen den Ball in 0,6 s, und ob man drückte oder nicht, war messbar egal:
+
+| Verfolgung von hinten, 1,25 s | vorher | jetzt |
+|---|---|---|
+| nichts drücken | 22/40 und 30/40 | 6/40 und 3/40 |
+| kurz antippen | 25/40 und 25/40 | 28/40 und 26/40 |
+| halten | 22/40 und 27/40 | 22/40 und 28/40 |
+
 ## Zweikampf
 
 **Mit Ball am Fuß läuft man langsamer** (`BALL_DRAG` = 0,92). Ohne das ist ein Ballführender schlicht nicht einzuholen und jeder Zweikampf entschieden, bevor er beginnt.

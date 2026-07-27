@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.14.0]
+
+### Neu
+- **STREET SOCCER: Zwei Stufen auf der B-Taste.** Kurz antippen greift an — ein kurzer Schritt zum Ball, ohne Risiko. Ab 0,20 s gehalten wird daraus die Grätsche mit Antritt, mehr Reichweite und Liegezeit danach. Beide haben eigene Animationen: der Angriff ein kurzer Stich, die Grätsche das Strecken und Rutschen. Die KI trifft dieselbe Abwägung und greift überwiegend nur an
+
+### Geändert
+- **Der passive Zweikampfdruck ist von 1,5 auf 0,7 gesenkt.** Sonst wäre die Taste Zierde gewesen: Bloßes Danebenstehen gewann den Ball in 0,6 s, und ob man drückte oder nicht, machte messbar keinen Unterschied (22/40 ohne Taste gegen 25/40 mit). Jetzt gewinnt Danebenstehen 6/40, Angreifen 28/40 und Grätschen 22/40
+- Der Prüfstandsfall zum Zweikampf von hinten rechnet jetzt mit 40 statt 20 Versuchen je Abstand: Von hinten hilft nur die Grätsche, die Quote ist entsprechend klein und schwankte zwischen 2 % und 8 %
+
 ## [0.13.5]
 
 ### Geändert
