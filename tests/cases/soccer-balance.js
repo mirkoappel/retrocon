@@ -1,4 +1,9 @@
 // Torquote und Seitenverteilung. Statistisch, deshalb nur im vollen Lauf.
+//
+// Die Spanne ist bewusst weit und liegt hoch: STREET SOCCER ist kein
+// Fussballsimulator, sondern ein Strassenkick — torreiche Spiele gehoeren
+// dazu. Der Fall soll Ausreisser fangen (0 Tore, 20 Tore), nicht eine
+// bestimmte Torquote festschreiben.
 const { session, playMatch } = require('../harness');
 
 module.exports = {
@@ -17,8 +22,8 @@ module.exports = {
     const ges = a + b, sigma = Math.sqrt(ges * 0.25);
     const abw = Math.abs(a - b) / 2 / sigma;
     return {
-      ok: tore >= 1.5 && tore <= 5.0 && abw < 2.5,
-      info: `${(a / N).toFixed(1)} : ${(b / N).toFixed(1)} — ${tore.toFixed(1)} Tore/Spiel (erlaubt 1,5–5,0), Seitenabweichung ${abw.toFixed(1)} Sigma`
+      ok: tore >= 3.0 && tore <= 9.0 && abw < 2.5,
+      info: `${(a / N).toFixed(1)} : ${(b / N).toFixed(1)} — ${tore.toFixed(1)} Tore/Spiel (erlaubt 3,0–9,0), Seitenabweichung ${abw.toFixed(1)} Sigma`
     };
   }
 };

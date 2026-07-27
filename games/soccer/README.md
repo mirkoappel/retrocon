@@ -78,6 +78,23 @@ Die Menüs sind zusätzlich **mit der Maus bedienbar**: Ein Klick auf einen Eint
 
 Bei zwei Menschen bekommt jeder seinen eigenen Spieler — dieselbe Figur kann nie doppelt belegt werden. Die Markierungsringe zeigen wer wen steuert: Cyan = Spieler 1, Pink = Spieler 2.
 
+## Torhüter
+
+Beide Torhüter bewegten sich **im Gleichschritt** — 88,5 % der Spielzeit standen sie seitlich exakt gleich weit aus der Mitte, weil beide dasselbe Ziel ausrechneten. Und sie kamen praktisch nie heraus: 0,4 % der Zeit standen sie vor ihrer Grundstellung.
+
+Der naheliegende Weg — den entfernten Torwart träger decken lassen — war falsch. **Die seitliche Deckung ist der empfindlichste Wert im ganzen Spiel:** Jede Abschwächung (trägeres Nachziehen, eigener Versatz, kleinerer Faktor) kostete in der Messung drei bis vier Tore pro Spiel. Sie ist deshalb für beide identisch geblieben.
+
+Unterschieden wird über die **Tiefe**, und die kostet nichts, solange der Ball weit weg ist:
+
+| Lage des Balls | Torwart |
+|---|---|
+| am anderen Ende | steht bis `GK_OUT_FAR` (0,07) vor dem Tor und spielt mit |
+| im Anmarsch | zieht sich gleitend auf die Linie zurück |
+| Gegner im Strafraum | geht `GK_OUT` (0,05) heraus und verkürzt den Winkel |
+| freier Ball ganz nah | holt ihn selbst |
+
+Nachgemessen: Gleichschritt 88,5 % → **5,4 %**, vor der Grundstellung 0,4 % → **58 %**.
+
 ## Nach dem Tor
 
 Ein Tor war nach 2,4 Sekunden vorbei — man bekam es kaum mit. Jetzt hält das Spiel an und zeigt eine Anzeige mit Torschütze und Spielstand:

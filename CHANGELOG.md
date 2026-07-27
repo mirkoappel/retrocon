@@ -2,6 +2,18 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.17.0]
+
+### Behoben
+- **STREET SOCCER: Die Torhüter bewegten sich im Gleichschritt** — 88,5 % der Spielzeit standen sie seitlich exakt gleich, weil beide dasselbe Ziel ausrechneten. Und sie kamen praktisch nie heraus (0,4 % der Zeit vor ihrer Grundstellung). Jetzt 5,4 % Gleichschritt und 58 % vor der Grundstellung
+- Unterschieden wird über die **Tiefe**: Bei Ball am anderen Ende steht der Torwart weit vor dem Tor und spielt mit, bei Annäherung zieht er sich auf die Linie zurück, bei Gefahr im Strafraum kommt er heraus und verkürzt den Winkel. Die seitliche Deckung blieb für beide identisch — sie ist der empfindlichste Wert im Spiel, jede Abschwächung kostete drei bis vier Tore pro Spiel
+- **Die KI läuft dem Torwart nicht mehr in die Arme:** Sie weicht ihm weiträumiger aus als Feldspielern und schließt aus kurzer Distanz ab, statt noch einen Schritt zu machen
+
+### Geändert
+- **Klügeres Passspiel.** Das Passgewicht richtet sich nach der Weite (kurze Pässe wurden gedroschen, lange waren 0,8 s unterwegs), die Vorlage nach der Flugzeit statt pauschal 0,18 s, und **der Angespielte löst sich und geht dem Ball entgegen** — vorher lief er seine taktische Linie weiter, während der Ball dorthin rollte, wo er gerade war. Pässe über 0,20–0,35 kommen jetzt zu 48 % statt 43 % an, der Ball bleibt zu 60 % statt 49 % in der Mannschaft
+- **Die automatische Wiederholung ist wieder draußen** — die Auswahl über das Menü ist eindeutiger. Der Punkt vor dem Schriftzug WIEDERHOLUNG ist ebenfalls weg
+- Die Torquote im Prüfstand darf jetzt 3 bis 9 Tore pro Spiel betragen: STREET SOCCER ist ein Straßenkick, kein Simulator. Der Fall soll Ausreißer fangen, keine bestimmte Quote festschreiben
+
 ## [0.16.1]
 
 ### Geändert

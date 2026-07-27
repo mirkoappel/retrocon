@@ -32,23 +32,21 @@ module.exports = {
     if (!a) return { ok: false, info: 'in sechs Anlaeufen kein Tor erreicht' };
     {
       const { s, S } = a;
-      // Sie startet von selbst, aber nicht sofort — TOR! soll erst stehen
-      s.step();
-      if (S.replay) fehler.push('Wiederholung startet ohne Vorlauf');
-      for (let f = 0; f < 60 * 2; f++) s.step();
-      if (!S.replay) fehler.push('Wiederholung startet nicht von selbst');
-
-      // Abbrechen
-      s.send(pad({ a: true })); s.send(pad()); s.step();
-      if (S.replay) fehler.push('Wiederholung laesst sich nicht abbrechen');
-      if (S.phase !== 'goal') fehler.push('Abbrechen verlaesst die Torpause');
+      // Sie startet NICHT von selbst — die Auswahl im Menü ist besser, weil man
+      // sonst zwischen Zeitlupe und laufendem Spiel nicht unterscheidet
+      for (let f = 0; f < 60 * 3; f++) s.step();
+      if (S.replay) fehler.push('Wiederholung startet ungefragt');
+      if (S.phase !== 'goal') fehler.push('Torpause haelt nicht');
 
       // Danach ist das Menue bedienbar: zweiter Punkt startet sie erneut
       s.send(pad({ dpad: { down: true } })); s.send(pad());
       if (S.menuSel !== 1) fehler.push(`Blaettern landet auf ${S.menuSel}, erwartet 1`);
       s.send(pad({ a: true })); s.send(pad());
       if (!S.replay) fehler.push('Auswahl startet keine Wiederholung');
+      // Jede Taste bricht die laufende Wiederholung ab
       s.send(pad({ a: true })); s.send(pad()); s.step();
+      if (S.replay) fehler.push('Wiederholung laesst sich nicht abbrechen');
+      if (S.phase !== 'goal') fehler.push('Abbrechen verlaesst die Torpause');
 
       // WEITER pfeift wieder an
       S.menuSel = 0;
@@ -69,7 +67,7 @@ module.exports = {
     return {
       ok: fehler.length === 0,
       info: fehler.length ? fehler.join(' · ')
-        : 'startet nach Vorlauf von selbst, abbrechbar, erneut aufrufbar, WEITER pfeift an, abschaltbar'
+        : 'startet nur auf Auswahl, abbrechbar, WEITER pfeift an, abschaltbar'
     };
   }
 };

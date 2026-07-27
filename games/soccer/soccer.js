@@ -79,6 +79,8 @@ window.RetroGames.soccer = {
     const KEEPER_SPACE = 0.17;  // Abstand, den Gegner zum ballhaltenden Torwart wahren
     const IDLE_TAKEOVER = 8;    // Sekunden ohne Eingabe, dann übernimmt die KI
     const GK_REACT   = 0.28;    // Reaktionszeit, bevor der Torwart dem Schuss folgt
+    const GK_OUT     = 0.05;    // so weit geht er bei Gefahr im Strafraum heraus
+    const GK_OUT_FAR = 0.07;    // …und so weit, wenn der Ball am anderen Ende ist
     const STICK_DEAD = 0.12;    // Totzone des Analogsticks
     const STICK_FULL = 0.95;    // ab dieser Auslenkung volles Tempo
     const STICK_MIN  = 0.22;    // Tempo bei minimaler Auslenkung (Anteil)
@@ -126,7 +128,6 @@ window.RetroGames.soccer = {
     const HIST_LEN     = 150;   // Frames im Speicher für die Wiederholung (2,5 s)
     const REPLAY_SPEED = 0.45;  // Zeitlupe — 2,5 s Szene werden so zu 5,6 s
     const GOAL_WAIT    = 12;    // so lange bleibt die Toranzeige stehen, wenn niemand drückt
-    const AUTO_REPLAY  = 1.1;   // so lange steht TOR!, dann läuft die Wiederholung von selbst
     // Die beiden eigenen Regler aus dem Einstellungsmenü. Fehlt `api.setting`
     // (Prüfstand, Einbettung), gelten die Vorgabewerte.
     const HALF_TIME  = api.setting?.('duration') ?? 180;   // Sekunden je Halbzeit
@@ -198,6 +199,7 @@ window.RetroGames.soccer = {
       golden: false, goldenT: 0,
       msg: '', msgTimer: 0,
       hist: [], replay: null,        // Mitschnitt und laufende Wiederholung
+      passTo: null, passToT: 0,      // wer gerade angespielt wurde und wie lange er hinläuft
       goalWait: 0, goalTeam: 0, autoReplay: -1,   // Toranzeige: Restzeit, Torschütze, Countdown zur Wiederholung
       kickoffFor: 0, kickoffLock: 0, restart: 0,
       kickoffTo: null, kickoffToT: 0,   // Anstoßpass ist für diesen Spieler reserviert
@@ -627,13 +629,25 @@ window.RetroGames.soccer = {
         if (p.role === 'GK') doShoot(p);   // Abschlag nach vorn
         return;                            // Feldspieler dribbeln weiter
       }
-      // Auf den laufenden Mitspieler vorlegen
-      const lx = t.x + t.vx * 0.18, ly = t.y + t.vy * 0.18;
+      // Passgewicht nach Weite. Vorher flog jeder Pass mit PASS_SPEED: der
+      // kurze wurde gedroschen, der lange war 0,8 s unterwegs und viel zu kurz
+      // vorgelegt. Gemessen kamen nur 51 % der Pässe zwischen 0,10 und 0,20 an
+      // und 15 % der langen.
+      const roh = dist(p, t);
+      const sp = clamp(PASS_SPEED * (0.5 + roh * 1.5), 0.26, 0.8);
+      // Vorlage nach Flugzeit statt pauschal 0,18 s
+      const flug = roh / sp;
+      const lx = t.x + t.vx * flug, ly = t.y + t.vy * flug;
       const dx = lx - p.x, dy = ly - p.y;
       const len = Math.hypot(dx, dy) || 1;
       b.owner = null;
-      b.vx = dx / len * PASS_SPEED; b.vy = dy / len * PASS_SPEED;
+      b.vx = dx / len * sp; b.vy = dy / len * sp;
       p.lockout = 0.2;
+      // Der Angespielte löst sich und geht dem Ball entgegen. Ohne das läuft er
+      // seine taktische Linie weiter, während der Ball dorthin rollt, wo er
+      // gerade war — das war der Hauptgrund für die halbe Fehlpassquote.
+      state.passTo = t;
+      state.passToT = Math.min(1.6, flug + 0.5);
       sndPass();
     }
 
@@ -702,7 +716,13 @@ window.RetroGames.soccer = {
       const line = gy === 0 ? 0.035 : 0.965;
       // Auf der Linie mit dem Ball mitgehen, im Strafraum aktiv herauslaufen
       const inBox = Math.abs(b.y - gy) < BOX_D && Math.abs(b.x - FIELD_W / 2) < BOX_W / 2;
-      let tx = FIELD_W / 2 + (b.x - FIELD_W / 2) * 0.55, ty = line;
+      // Seitlich decken beide exakt gleich. Das ist der empfindlichste Wert im
+      // Spiel: Jede Abschwächung — trägeres Nachziehen, eigener Versatz,
+      // kleinerer Faktor — kostete in der Messung drei bis vier Tore pro Spiel.
+      // Unterschieden wird deshalb über die TIEFE.
+      const zuMir = Math.abs(b.y - gy);
+      let tx = FIELD_W / 2 + (b.x - FIELD_W / 2) * 0.55;
+      let ty = line;
 
       // Fliegt der Ball aufs Tor, den Kreuzungspunkt vorausberechnen statt
       // dem Ball hinterherzulaufen — sonst kommt der Torwart nie rechtzeitig an
@@ -718,9 +738,18 @@ window.RetroGames.soccer = {
       }
       tx = clamp(tx, FIELD_W / 2 - GOAL_W / 2 - 0.03, FIELD_W / 2 + GOAL_W / 2 + 0.03);
 
-      if (!b.owner && !toward && Math.abs(b.y - gy) < 0.07 && Math.abs(b.x - FIELD_W / 2) < BOX_W / 2) { tx = b.x; ty = b.y; }
-      else if (inBox && b.owner && b.owner.team !== p.team) {
-        ty = gy === 0 ? Math.min(0.10, b.y - 0.03) : Math.max(0.90, b.y + 0.03);
+      if (!b.owner && !toward && zuMir < 0.07 && Math.abs(b.x - FIELD_W / 2) < BOX_W / 2) {
+        tx = b.x; ty = b.y;                        // freien Ball selbst holen
+      } else if (!toward) {
+        // Ist der Ball weit weg, steht der Torwart weit vor seinem Tor und
+        // spielt mit; kommt er näher, zieht er sich auf die Linie zurück. Das
+        // unterscheidet die beiden Torhüter sichtbar, ohne einen von beiden
+        // schlechter zu machen — und es ist das Herauskommen, das vorher
+        // praktisch nie zu sehen war (0,4 % der Spielzeit vor der Linie).
+        const weit = clamp((zuMir - 0.38) / 0.25, 0, 1);
+        let vor = GK_OUT_FAR * weit;
+        if (inBox && b.owner && b.owner.team !== p.team) vor = Math.max(vor, GK_OUT);
+        ty = gy === 0 ? line + vor : line - vor;
       }
       moveToward(p, tx, ty, SPEED_GK * skill(p.team), dt);
 
@@ -771,7 +800,13 @@ window.RetroGames.soccer = {
       // Dadurch fallen sowohl Distanzschüsse bei freier Bahn als auch
       // Abschlüsse aus kurzer Distanz, wo vorher nur weitergedribbelt wurde.
       const lane = shotLane(p);
-      if (lane.len < SHOT_RANGE + 0.06 * skill(p.team) && lane.clear > LANE_MIN) {
+      // Ganz nah am Tor wird abgeschlossen, auch wenn die Bahn eng ist — sonst
+      // dribbelt die KI weiter und läuft dem Torwart in die Arme. Bewusst
+      // zurückhaltend dosiert: mit Rate 1,8 kostete allein diese Regel 1,7 Tore
+      // mehr pro Spiel.
+      if (lane.len < 0.10) {
+        if (Math.random() < dt * 0.6) { shoot(p, lane.tx); return; }
+      } else if (lane.len < SHOT_RANGE + 0.06 * skill(p.team) && lane.clear > LANE_MIN) {
         const urge = (1 - lane.len / SHOT_RANGE) * Math.min(1, lane.clear / 0.05);
         if (Math.random() < dt * (0.3 + 1.7 * urge) * skill(p.team)) { shoot(p, lane.tx); return; }
       }
@@ -792,7 +827,9 @@ window.RetroGames.soccer = {
       for (const o of state.players) {
         if (o.team === p.team) continue;
         const d = dist(p, o);
-        if (d < 0.12) { tx += (p.x - o.x) * 0.8; ty += (p.y - o.y) * 0.3; }
+        const reichweite = o.role === 'GK' ? 0.17 : 0.12;
+        const kraft = o.role === 'GK' ? 1.5 : 0.8;
+        if (d < reichweite) { tx += (p.x - o.x) * kraft; ty += (p.y - o.y) * (o.role === 'GK' ? 0.9 : 0.3); }
       }
       moveToward(p, tx, ty, SPEED * (0.94 + 0.06 * skill(p.team)) * BALL_DRAG, dt);
     }
@@ -808,6 +845,12 @@ window.RetroGames.soccer = {
       // Vor dem Tor nach einer Hereingabe langmachen — sonst sähe man den
       // Sprung nur beim Menschen
       if (canDive(p) && Math.random() < dt * 1.1 * skill(p.team)) { startDive(p); return; }
+
+      // Angespielt: dem Ball entgegengehen, statt die eigene Linie weiterzulaufen
+      if (state.passTo === p && !owner && state.passToT > 0) {
+        moveToward(p, b.x + b.vx * 0.12, b.y + b.vy * 0.12, SPEED, dt);
+        return;
+      }
 
       // Anstoßpass: der vorgesehene Abnehmer geht auf jeden Fall zum Ball
       if (state.kickoffTo === p && !owner) {
@@ -898,10 +941,6 @@ window.RetroGames.soccer = {
         if (state.replay.i >= state.hist.length - 1) { state.replay = null; state.menuSel = 0; }
         return;
       }
-      if (state.autoReplay > 0) {
-        state.autoReplay -= dt;
-        if (state.autoReplay <= 0) { state.autoReplay = -1; startReplay(); return; }
-      }
       state.goalWait -= dt;
       if (state.goalWait <= 0) weiterNachTor();
     }
@@ -918,6 +957,10 @@ window.RetroGames.soccer = {
       if (state.kickoffToT > 0) {
         state.kickoffToT -= dt;
         if (state.kickoffToT <= 0) state.kickoffTo = null;
+      }
+      if (state.passToT > 0) {
+        state.passToT -= dt;
+        if (state.passToT <= 0 || b.owner) { state.passTo = null; state.passToT = 0; }
       }
 
       if (state.restart > 0) {
@@ -1180,8 +1223,7 @@ window.RetroGames.soccer = {
       state.goalWait = GOAL_WAIT;
       state.replay = null;
       state.menuSel = 0;
-      // Die Wiederholung startet von selbst — man soll sie nicht suchen müssen
-      state.autoReplay = REPLAY_ON ? AUTO_REPLAY : -1;
+      state.autoReplay = -1;
       state.msg = ''; state.msgTimer = 0;
     }
 
