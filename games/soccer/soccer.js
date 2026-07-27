@@ -34,9 +34,11 @@ window.RetroGames.soccer = {
       zeige: v => v === 'an' ? 'AN' : 'AUS' },
     { key: 'lines', label: 'MARKIERUNGEN', werte: ['strasse', 'komplett'], vorgabe: 'strasse',
       zeige: v => v === 'strasse' ? 'STREET SOCCER' : 'KOMPLETT' },
-    { key: 'turf', label: 'RASEN', werte: ['einfarbig', 'quer', 'laengs', 'schach'], vorgabe: 'einfarbig',
-      zeige: v => ({ einfarbig: 'EINFARBIG', quer: 'QUERSTREIFEN',
-                     laengs: 'LÄNGSSTREIFEN', schach: 'SCHACHBRETT' }[v]) },
+    { key: 'turf', label: 'BELAG', werte: ['hellgruen', 'blau', 'rot'], vorgabe: 'hellgruen',
+      zeige: v => ({ hellgruen: 'RASEN', blau: 'KUNSTSTOFF BLAU',
+                     rot: 'KUNSTSTOFF ROT' }[v]) },
+    { key: 'mow', label: 'MUSTER', werte: ['keins', 'streifen'], vorgabe: 'keins',
+      zeige: v => v === 'keins' ? 'KEINS' : 'STREIFEN' },
     { key: 'switch', label: 'SPIELERWECHSEL', werte: ['manuell', 'ballgewinn', 'amball'], vorgabe: 'ballgewinn',
       zeige: v => v === 'manuell' ? 'NUR SELBST' : v === 'ballgewinn' ? 'BEI BALLGEWINN' : 'AM BALL' },
   ],
@@ -173,9 +175,10 @@ window.RetroGames.soccer = {
     //   amball      — zusätzlich immer zum Spieler, der dem Ball am nächsten ist
     const SWITCH_MODE = api.setting?.('switch') ?? 'ballgewinn';
     const REPLAY_ON   = (api.setting?.('replay') ?? 'an') === 'an';
-    // Der Rasen wird bei jedem Bild frisch gelesen, nicht einmal beim Start:
-    // So sieht man die Auswahl im Einstellungsmenü sofort.
-    const rasenArt    = () => api.setting?.('turf') ?? 'einfarbig';
+    // Belag und Muster werden bei jedem Bild frisch gelesen, nicht einmal
+    // beim Start: So sieht man die Auswahl im Einstellungsmenü sofort.
+    const rasenFarbe  = () => BELAEGE[api.setting?.('turf')] ?? BELAEGE.hellgruen;
+    const rasenArt    = () => (api.setting?.('mow') ?? 'keins') === 'streifen' ? 'quer' : 'keins';
     // Ein Kaefigplatz hat keinen Strafraum. Vorgabe sind deshalb die
     // schlichten Linien; den kompletten Platz gibt es auf Wunsch.
     const linienArt   = () => api.setting?.('lines') ?? 'strasse';
@@ -191,7 +194,7 @@ window.RetroGames.soccer = {
     const P_COL = ['#4fc3f7', '#f48fb1'];   // Markierung P1 / P2
     // Eine Farbe für alle Markierungen, deckend. Halbdurchsichtige Linien
     // sahen dort doppelt so kräftig aus, wo zwei aufeinanderlagen.
-    const LINE  = '#5c7a6a';
+    const LINE  = '#7da58c';   // Rueckfall; die Linienfarbe kommt aus dem Belag
     // Maße der Markierungen, abgeleitet aus dem Strafraum: Der entspricht
     // 16,5 m Tiefe und 40,3 m Breite, daraus ergibt sich der Rest.
     // Der Torraum MUSS breiter sein als das Tor — mit BOX_W * 0,454 war er
@@ -209,7 +212,16 @@ window.RetroGames.soccer = {
     const ECK_R        = 0.028;
     // Street Soccer: statt Strafraum nur ein Bogen vor dem Tor
     const STRASSE_R    = 0.17;
-    const TURF  = '#10231a', TURF_ALT = '#0d1d15';
+    // Beläge: Fläche, Bahnenfarbe, Linienfarbe. Die Bahnen sind dunkler als
+    // die Fläche, wie eine gegen den Strich gemähte Bahn. Die Linien tragen
+    // die Farbe des Belags — grünliche Markierungen auf einem roten
+    // Kunststoffplatz sähen aus wie ein Fehler.
+    const BELAEGE = {
+      hellgruen: ['#1d4229', '#183820', '#7da58c'],
+      blau:      ['#173a52', '#123045', '#7a97ad'],
+      rot:       ['#4a2020', '#3e1a1a', '#ad8585'],
+    };
+    const TURF  = BELAEGE.hellgruen[0], TURF_ALT = BELAEGE.hellgruen[1];
 
     // Aufstellung für die nach +y angreifende Mannschaft.
     // x als Anteil der Feldbreite, y als Anteil der Feldlänge.
@@ -1630,7 +1642,7 @@ window.RetroGames.soccer = {
       MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R, STRASSE_R,
       AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
       FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
-      TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, linienArt,
+      TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, rasenFarbe, linienArt,
       DIVE_TIME, DIVE_DOWN, GK_DIVE_TIME, TACKLE_TIME, POKE_TIME,
       GOAL_WAIT, GOAL_LOCK, MITSCHNITT_FELDER,
       w, h,

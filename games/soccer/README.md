@@ -149,16 +149,17 @@ Beim Rest zählt das **Seitenverhältnis** mehr als die absolute Größe: Ein zu
 
 Der Rasen ist der **Hintergrund des ganzen Schirms**, nicht die markierte Fläche: Das Feld liegt darin wie auf einem Tipp-Kick-Platz, mit Auslauf an allen vier Seiten.
 
-Das Mähmuster ist einstellbar, Vorgabe ist **EINFARBIG**:
+Belag und Muster sind getrennt einstellbar:
 
-| RASEN | Bahnen |
-|---|---|
-| EINFARBIG | keine — Vorgabe |
-| QUERSTREIFEN | entlang der Feldlänge |
-| LÄNGSSTREIFEN | entlang der Feldbreite |
-| SCHACHBRETT | beides, jedes zweite Feld |
+| BELAG | Fläche | Bahnen | Linien |
+|---|---|---|---|
+| RASEN — Vorgabe | `#1d4229` | `#183820` | `#7da58c` |
+| KUNSTSTOFF BLAU | `#173a52` | `#123045` | `#7a97ad` |
+| KUNSTSTOFF ROT | `#4a2020` | `#3e1a1a` | `#ad8585` |
 
-Die Bahnen hängen am **Feld**, nicht am Bildschirm: Anfang und Breite (`r.s / BAHNEN`) kommen aus den Feldkoordinaten, gekachelt wird darüber hinaus in beide Richtungen. Sonst hörte der Platz an der Außenlinie sichtbar auf oder das Muster verschöbe sich beim Drehen.
+**Die Linien tragen die Farbe des Belags.** Grünliche Markierungen auf einem roten Kunststoffplatz sehen aus wie ein Fehler, nicht wie eine Farbwahl.
+
+**Farbe und Textur sind unabhängig voneinander.** MUSTER ist KEINS (Vorgabe) oder STREIFEN — Bahnen quer zur Spielrichtung, so wie gemäht wird. Die Bahnen hängen am **Feld**, nicht am Bildschirm: Anfang und Breite (`r.s / BAHNEN`) kommen aus den Feldkoordinaten, gekachelt wird darüber hinaus in beide Richtungen. Sonst hörte der Platz an der Außenlinie sichtbar auf oder das Muster verschöbe sich beim Drehen.
 
 Beide Einstellungen werden **bei jedem Bild frisch gelesen**, nicht einmal beim Start — so sieht man die Auswahl im Einstellungsmenü sofort.
 

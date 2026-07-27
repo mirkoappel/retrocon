@@ -19,7 +19,7 @@ window.RetroSoccer.render = function (ctx, K) {
     MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R, STRASSE_R,
     AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
     FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
-    TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, linienArt,
+    TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, rasenFarbe, linienArt,
     DIVE_TIME, DIVE_DOWN, GK_DIVE_TIME, TACKLE_TIME, POKE_TIME,
     GOAL_WAIT, GOAL_LOCK, MITSCHNITT_FELDER,
   } = K;
@@ -106,6 +106,8 @@ window.RetroSoccer.render = function (ctx, K) {
   // aus den Feldkoordinaten, gekachelt wird darüber hinaus in beide Richtungen.
   const BAHNEN = 8;                               // Bahnen je Feldlänge
 
+  function belag() { return rasenFarbe ? rasenFarbe() : [TURF, TURF_ALT]; }
+
   // Alle Bahnindizes, die den Rasen auf einer Bildschirmachse überdecken
   function bahnen(g, achse, null0, richt, breit) {
     const a = ((achse === 'x' ? g.x : g.y) - null0) * richt / breit;
@@ -120,32 +122,17 @@ window.RetroSoccer.render = function (ctx, K) {
   }
 
   function rasenMuster(r, g) {
-    const art = rasenArt ? rasenArt() : 'einfarbig';
-    if (art === 'einfarbig') return;
+    const art = rasenArt ? rasenArt() : 'keins';
+    if (art !== 'quer') return;
 
     const breit = r.s / BAHNEN;
     const ecke = px(r, 0, 0);
     // Achse der Feldlänge auf dem Schirm — im Hochformat zeigt sie nach oben
     const lA = r.rot ? 'x' : 'y', l0 = r.rot ? ecke.X : ecke.Y, lR = r.rot ? 1 : -1;
-    const qA = r.rot ? 'y' : 'x', q0 = r.rot ? ecke.Y : ecke.X, qR = 1;
 
-    ctx.fillStyle = TURF_ALT;
-    if (art === 'schach') {
-      for (const i of bahnen(g, lA, l0, lR, breit)) {
-        const [a0, a1] = bahnKante(l0, lR, breit, i);
-        for (const j of bahnen(g, qA, q0, qR, breit)) {
-          if (((i + j) % 2 + 2) % 2 !== 0) continue;
-          const [b0, b1] = bahnKante(q0, qR, breit, j);
-          if (lA === 'x') ctx.fillRect(a0, b0, a1 - a0, b1 - b0);
-          else            ctx.fillRect(b0, a0, b1 - b0, a1 - a0);
-        }
-      }
-      return;
-    }
-    // quer: Bahnen entlang der Feldlänge. laengs: entlang der Feldbreite.
-    const achse = art === 'quer' ? lA : qA;
-    const null0 = art === 'quer' ? l0 : q0;
-    const richt = art === 'quer' ? lR : qR;
+    // Bahnen entlang der Feldlänge — quer zur Spielrichtung, wie gemäht wird.
+    ctx.fillStyle = belag()[1];
+    const achse = lA, null0 = l0, richt = lR;
     for (const i of bahnen(g, achse, null0, richt, breit)) {
       if (((i % 2) + 2) % 2 !== 0) continue;
       const [p0, p1] = bahnKante(null0, richt, breit, i);
@@ -156,15 +143,15 @@ window.RetroSoccer.render = function (ctx, K) {
 
   function drawPitch(r) {
     const g = r.rasen || r;
-    ctx.fillStyle = TURF;
+    ctx.fillStyle = belag()[0];
     ctx.fillRect(g.x, g.y, g.w, g.h);
     rasenMuster(r, g);
 
     // Alle Markierungen in derselben Farbe und Stärke. Vorher waren sie
     // halbdurchsichtig, und wo zwei Linien aufeinanderlagen — Strafraum auf
     // Torlinie — sah es doppelt so kräftig aus.
-    ctx.strokeStyle = LINE;
-    ctx.fillStyle = LINE;
+    ctx.strokeStyle = belag()[2] || LINE;
+    ctx.fillStyle = belag()[2] || LINE;
     ctx.lineWidth = Math.max(1.5, r.s * 0.0042);
     ctx.lineCap = 'butt';
 
@@ -237,7 +224,7 @@ window.RetroSoccer.render = function (ctx, K) {
       // Netz: feines Raster, quer und laengs
       ctx.save();
       ctx.beginPath(); ctx.rect(kx, ky, kw, kh); ctx.clip();
-      ctx.strokeStyle = LINE;
+      ctx.strokeStyle = belag()[2] || LINE;
       ctx.lineWidth = Math.max(1, r.s * 0.0014);
       const masche = r.s * 0.0105;
       ctx.beginPath();

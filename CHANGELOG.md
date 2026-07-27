@@ -2,6 +2,17 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.6]
+
+### Hinzugefügt
+- **STREET SOCCER: drei Beläge.** RASEN (Vorgabe, helleres Grün) sowie KUNSTSTOFF BLAU und ROT. Die Linien tragen die Farbe des Belags — grünliche Markierungen auf einem roten Platz sähen aus wie ein Fehler
+
+### Geändert
+- **Aus RASEN werden BELAG und MUSTER** — Farbe und Textur unabhängig voneinander. MUSTER kennt KEINS (Vorgabe) und STREIFEN; Längsstreifen und Schachbrett sind wieder raus
+
+### Behoben
+- **Der Test „WM wird von Runde zu Runde schwerer" fiel in 6 von 12 Läufen durch**, ohne dass sich am Spiel etwas geändert hatte. Mit 10 Spielen je Runde streute die Messung um 1,08 Tore, die Schranke 0,3 lag also mitten im Rauschen. Über 500 Spiele je Runde gemessen liegt die Tordifferenz bei −0,10 / −0,59 / −0,94 / −1,13, der Abfall damit bei 1,04 ± 0,15. Der Test läuft jetzt über 150 Spiele je Runde gegen eine Schranke von 0,15 — 3,1 Sigma Abstand
+
 ## [0.21.5]
 
 ### Hinzugefügt

@@ -17,7 +17,7 @@ function bild(art) {
   return {
     // Ein Kasten aus vier Ecken in Linienfarbe: Aussenlinie, Strafraum,
     // Torraum. Die Torpfosten sind auch vier Punkte, aber weiss.
-    kaesten4: pfade.filter(z => z.punkte.length === 4 && z.farbe === '#5c7a6a').length,
+    kaesten4: pfade.filter(z => z.punkte.length === 4 && z.farbe === '#7da58c').length,
     tore: kaesten.filter(k => k.farbe === TOR_FARBE).length,
     zuege: pfade.length
   };
