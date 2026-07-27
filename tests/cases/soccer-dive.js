@@ -1,5 +1,9 @@
 // Hechtsprung: muss vorkommen, aber die Ausnahme bleiben — und er nimmt den
 // Ball nie an, sondern fälscht ihn ab.
+//
+// Gezählt werden nur FELDSPIELER. Seit der Torwart ebenfalls hechtet (und das
+// deutlich häufiger, weil jeder Schuss ihn dazu bringen kann), fiel der Fall
+// sonst über seine Sprünge — die gehören in `soccer-torwart`, nicht hierher.
 const { session, playMatch } = require('../harness');
 
 module.exports = {
@@ -12,6 +16,7 @@ module.exports = {
       const warDive = new Map();
       playMatch(s, () => {
         for (const p of S.players) {
+          if (p.role === 'GK') continue;
           const vorher = warDive.get(p) || 0;
           if (p.dive > 0 && vorher <= 0) spruenge++;
           warDive.set(p, p.dive);

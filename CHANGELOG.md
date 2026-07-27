@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.5]
+
+### Behoben
+- **STREET SOCCER: Nach einer selbst gewählten Wiederholung kam noch eine automatische hinterher.** Die Uhr für die automatische lief weiter, während man die eigene ansah. Wer sie selbst aufruft, hat entschieden — jetzt bleibt es dabei
+- Zugesichert und geprüft: **Der Anstoß beginnt erst nach der Torpause**, nie hinter einer laufenden Wiederholung. Während der Pause stehen Ball und Spieler dort, wo das Tor fiel
+
+### Geändert
+- Zwei Prüfstandsfälle waren unzuverlässig geworden, beide durch zu enge Grenzen von mir: Der Hechtsprung-Fall zählte seit v0.18.1 die Torwart-Sprünge mit und schlug bei 35–38 statt der erlaubten 35 an (er zählt jetzt nur Feldspieler); der Zweikampf-Fall schwankte bei einer echten Quote um 3 % zwischen 0,8 % und 8 % (jetzt 60 statt 40 Versuche je Abstand, und er prüft nur noch, dass es überhaupt vorkommt)
+- Neuer Fall `soccer-torwart`: Gleichschritt, Herauskommen, Hechtsprünge und Fänge
+
 ## [0.18.4]
 
 ### Geändert

@@ -120,7 +120,9 @@ Nachgemessen: Gleichschritt 88,5 % → **5,4 %**, vor der Grundstellung 0,4 % �
 
 Ein Tor war nach 2,4 Sekunden vorbei — man bekam es kaum mit. Jetzt hält das Spiel an und zeigt eine Anzeige mit Torschütze und Spielstand:
 
-**Drückt niemand, läuft die Wiederholung nach `AUTO_REPLAY` (5 s) von selbst an — und pfeift danach direkt wieder an.** Wer nichts drückt, will offensichtlich nur zusehen. Selbst über das Menü ausgewählt kehrt sie dagegen in die Anzeige zurück. Sie ist deutlich als solche gekennzeichnet: unten mittig ein pulsender Punkt und WIEDERHOLUNG, im selben Gelb wie TOR!. Ohne die Kennzeichnung hält man die Zeitlupe für das laufende Spiel und wundert sich, warum nichts reagiert.
+**Der Anstoß beginnt erst nach der Torpause** — nie hinter einer laufenden Wiederholung. Während der Pause stehen Ball und Spieler dort, wo das Tor fiel; erst `weiterNachTor()` setzt sie neu.
+
+**Drückt niemand, läuft die Wiederholung nach `AUTO_REPLAY` (5 s) von selbst an — und pfeift danach direkt wieder an.** Wer sie dagegen selbst aufruft, hat entschieden: Danach kommt keine automatische mehr hinterher. Wer nichts drückt, will offensichtlich nur zusehen. Selbst über das Menü ausgewählt kehrt sie dagegen in die Anzeige zurück. Sie ist deutlich als solche gekennzeichnet: unten mittig ein pulsender Punkt und WIEDERHOLUNG, im selben Gelb wie TOR!. Ohne die Kennzeichnung hält man die Zeitlupe für das laufende Spiel und wundert sich, warum nichts reagiert.
 
 Jede Taste bricht sie ab und führt zurück auf die Anzeige. Dort gibt es zwei Menüpunkte, keine Tastenansage:
 

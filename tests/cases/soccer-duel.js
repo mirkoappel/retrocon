@@ -5,7 +5,10 @@
 // Von hinten hilft nur die Graetsche, denn der Ball liegt auf der abgewandten
 // Seite -- und die KI graetscht selten. Die Quote ist deshalb klein und
 // schwankt stark: mit 20 Versuchen je Abstand kamen in zwei Laeufen 8 % und
-// 2 % heraus. Darum 40 Versuche und eine Untergrenze, die das aushaelt.
+// 2 % heraus, mit 40 Versuchen 0,8 % bis 8 %. Bei einer echten Quote um 3 %
+// ist die Zahl der Treffer schlicht klein. Darum 60 Versuche je Abstand und
+// eine Untergrenze, die nur noch "kommt ueberhaupt vor" prueft -- der Fall
+// soll das Zurueckfallen auf 0 von 120 fangen, keine Quote festschreiben.
 const { session } = require('../harness');
 
 function chase(gap) {
@@ -34,14 +37,14 @@ module.exports = {
     const zeilen = [];
     for (const gap of [0.05, 0.08, 0.12]) {
       let w = 0;
-      for (let i = 0; i < 40; i++) if (chase(gap)) w++;
-      won += w; n += 40;
-      zeilen.push(`${gap.toFixed(2)}:${w}/40`);
+      for (let i = 0; i < 60; i++) if (chase(gap)) w++;
+      won += w; n += 60;
+      zeilen.push(`${gap.toFixed(2)}:${w}/60`);
     }
     const quote = won / n;
     return {
-      ok: quote >= 0.015 && quote <= 0.35,
-      info: `${zeilen.join('  ')}  =  ${(100 * quote).toFixed(1)} % (erlaubt 1,5–35 %)`
+      ok: quote > 0 && quote <= 0.35,
+      info: `${zeilen.join('  ')}  =  ${(100 * quote).toFixed(1)} % (muss vorkommen, hoechstens 35 %)`
     };
   }
 };

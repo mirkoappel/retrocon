@@ -62,6 +62,37 @@ module.exports = {
       if (S.phase !== 'play') fehler.push(`nach WEITER ist die Phase ${S.phase}, erwartet play`);
     }
 
+    // ── Selbst gewaehlt: danach keine automatische hinterher ──
+    const d = tor(undefined);
+    if (!d) fehler.push('kein drittes Tor erreicht');
+    else {
+      const { s, S } = d;
+      s.send(pad({ dpad: { down: true } })); s.send(pad());
+      s.send(pad({ a: true })); s.send(pad());
+      if (!S.replay) fehler.push('Auswahl startet keine Wiederholung');
+      for (let f = 0; f < 60 * 12; f++) { s.step(); if (!S.replay) break; }
+      let zweite = false;
+      for (let f = 0; f < 60 * 11; f++) { s.step(); if (S.replay) { zweite = true; break; } if (S.phase !== 'goal') break; }
+      if (zweite) fehler.push('nach der selbst gewaehlten kommt noch eine automatische');
+    }
+
+    // ── Der Anstoss darf nicht hinter einer Wiederholung liegen ──
+    const e = tor(undefined);
+    if (!e) fehler.push('kein viertes Tor erreicht');
+    else {
+      const { s, S } = e;
+      const beim = { x: S.ball.x, y: S.ball.y };
+      let frueh = 0;
+      for (let f = 0; f < 60 * 20; f++) {
+        if (S.phase !== 'goal') break;
+        s.step();
+        // Solange die Torpause laeuft, steht der Ball noch dort, wo das Tor fiel
+        if (S.phase === 'goal' && S.restart > 0) frueh++;
+      }
+      if (frueh > 0) fehler.push('der Anstoss laeuft schon waehrend der Torpause');
+      if (Math.abs(beim.x - S.ball.x) > 0.5) fehler.push('der Ball wird zu frueh versetzt');
+    }
+
     // ── Abgeschaltet: keine Wiederholung, auch nicht von selbst ──
     const c = tor(k => (k === 'replay' ? 'aus' : k === 'duration' ? 180 : k === 'switch' ? 'ballgewinn' : 'normal'));
     if (!c) fehler.push('mit abgeschalteter Wiederholung kein Tor erreicht');
@@ -75,7 +106,7 @@ module.exports = {
     return {
       ok: fehler.length === 0,
       info: fehler.length ? fehler.join(' · ')
-        : 'laeuft nach 5 s von selbst an und pfeift danach direkt an; selbst gewaehlt kehrt sie in die Anzeige zurueck; abschaltbar'
+        : 'laeuft nach 5 s von selbst an und pfeift danach direkt an; selbst gewaehlt keine automatische hinterher; der Anstoss beginnt erst danach; abschaltbar'
     };
   }
 };

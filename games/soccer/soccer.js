@@ -1288,13 +1288,18 @@ window.RetroGames.soccer = {
     // danach gleich weiter — wer nichts drückt, will offensichtlich nur zusehen.
     // Selbst ausgewählt, kehrt sie in die Anzeige zurück.
     function startReplay(auto = false) {
-      if (state.hist.length < 30) return;
+      if (state.phase !== 'goal' || state.hist.length < 30) return;
+      // Wer sie selbst aufruft, hat entschieden — danach kommt keine
+      // automatische mehr hinterher.
+      if (!auto) state.autoReplay = -1;
       state.replay = { i: 0, auto };
       sndMenu();
     }
 
     function weiterNachTor() {
+      // Der Anstoß beginnt erst hier — nie während einer Wiederholung.
       state.replay = null;
+      state.autoReplay = -1;
       state.phase = 'play';
       state.hist.length = 0;
       kickoff(state.kickoffFor, RESTART_KICK);
