@@ -126,8 +126,8 @@ Jede Taste bricht sie ab und führt zurück auf die Anzeige. Dort gibt es zwei M
 
 | Punkt | Wirkung |
 |---|---|
-| **WEITER** | Anstoß für die andere Mannschaft |
 | **WIEDERHOLUNG** | die Szene noch einmal |
+| **WEITER** | Anstoß für die andere Mannschaft |
 | — | ohne Eingabe geht es nach `GOAL_WAIT` (12 s) von selbst weiter |
 
 Abschaltbar über die Einstellung **WIEDERHOLUNG**; dann bleibt in der Torpause nur WEITER stehen.
@@ -136,7 +136,7 @@ Auf dem Panel steht nur **TOR!** — groß, gelb und mit Einschlag: Beim Tor fed
 
 Das Panel selbst ist eine weiche, abgerundete Fläche mit Schlagschatten und Haarlinie. Ein harter gelber Rahmen stand in Konkurrenz zum Schriftzug und klebte am Inhalt.
 
-Nach einer Wiederholung springt die Auswahl zurück auf WEITER, sonst startet der nächste Druck versehentlich die nächste.
+Vorgewählt ist immer **WEITER**, auch wenn die Wiederholung darüber steht — der schnelle Druck soll anpfeifen, nicht zurückspulen. Nach einer Wiederholung springt die Auswahl ebenfalls dorthin zurück. Ausgewertet wird über den Namen des Punktes, nicht über seinen Index: Ist die Wiederholung abgeschaltet, steht WEITER an erster Stelle.
 
 Die Wiederholung läuft aus einem **Mitschnitt der letzten 2,5 Sekunden** (`HIST_LEN` = 150 Frames) und dauert bei 0,45-facher Geschwindigkeit 5,6 Sekunden. Der erste Entwurf zeigte 3,5 Sekunden bei 0,34-fach — 10,3 Sekunden Zeitlupe, das zog sich. Aufgezeichnet werden nur Positionen und Blickrichtungen — mehr braucht es nicht, um die Szene noch einmal zu zeichnen, und gezeichnet wird sie mit demselben Code wie das laufende Spiel: Die Positionen werden kurz aus dem Mitschnitt gesetzt und danach zurückgeschrieben.
 

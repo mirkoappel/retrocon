@@ -149,7 +149,10 @@ window.RetroGames.soccer = {
     const SWITCH_MODE = api.setting?.('switch') ?? 'ballgewinn';
     const REPLAY_ON   = (api.setting?.('replay') ?? 'an') === 'an';
     // Ohne Wiederholung hat die Torpause nur einen Punkt
-    const goalItems = () => REPLAY_ON ? ['WEITER', 'WIEDERHOLUNG'] : ['WEITER'];
+    // Wiederholung zuerst, weiter darunter. Ausgewählt ist trotzdem WEITER —
+    // der schnelle Druck soll anpfeifen, nicht noch einmal zurückspulen.
+    const goalItems = () => REPLAY_ON ? ['WIEDERHOLUNG', 'WEITER'] : ['WEITER'];
+    const goalWeiterIdx = () => goalItems().indexOf('WEITER');
     // Grundstärke der KI-Gegner; der Turnieraufschlag je Runde kommt dazu
     const SKILL_BASE = SCHWIERIG === 'leicht' ? 0.90 : SCHWIERIG === 'schwer' ? 1.12 : 1;
     const HALVES    = 2;
@@ -978,7 +981,7 @@ window.RetroGames.soccer = {
           // selbst gewählten zurück in die Anzeige, und dort steht die Auswahl
           // wieder auf WEITER — sonst startet der nächste Druck noch eine.
           if (war.auto) { weiterNachTor(); return; }
-          state.menuSel = 0;
+          state.menuSel = goalWeiterIdx();
         }
         return;
       }
@@ -1274,7 +1277,7 @@ window.RetroGames.soccer = {
       state.goalTeam = team;
       state.goalWait = GOAL_WAIT;
       state.replay = null;
-      state.menuSel = 0;
+      state.menuSel = goalWeiterIdx();
       state.autoReplay = REPLAY_ON ? AUTO_REPLAY : -1;
       state.msg = ''; state.msgTimer = 0;
     }
@@ -1357,7 +1360,9 @@ window.RetroGames.soccer = {
       state.tafel = 0;
       switch (state.phase) {
         case 'goal':
-          if (state.menuSel === 1) startReplay(false);
+          // Über den Namen, nicht über den Index: Ist die Wiederholung
+          // abgeschaltet, steht WEITER an erster Stelle.
+          if (goalItems()[state.menuSel] === 'WIEDERHOLUNG') startReplay(false);
           else weiterNachTor();
           return;
 
