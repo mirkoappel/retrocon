@@ -44,11 +44,26 @@ module.exports = {
       if (S.phase !== 'play') fehler.push(`nach der automatischen Wiederholung ist die Phase ${S.phase}, erwartet play`);
     }
 
+    // ── Nicht versehentlich wegklickbar ──
+    const w = tor(undefined);
+    if (!w) fehler.push('kein Tor fuer die Sperrpruefung erreicht');
+    else {
+      const { s, S } = w;
+      // Im Spielfieber weiterdruecken: darf die Anzeige nicht wegklicken
+      for (let f = 0; f < 40; f++) { s.send(pad({ a: true })); s.send(pad()); s.step(); }
+      if (S.phase !== 'goal') fehler.push('Toranzeige laesst sich sofort wegdruecken');
+      // Nach Ablauf der Sperre zaehlt der Druck wieder
+      for (let f = 0; f < 90; f++) s.step();
+      s.send(pad({ a: true })); s.send(pad()); s.step();
+      if (S.phase !== 'play') fehler.push('nach der Sperre reagiert die Anzeige nicht');
+    }
+
     // ── Selbst ausgewählt: zurück in die Anzeige ──
     const b = tor(undefined);
     if (!b) fehler.push('kein zweites Tor erreicht');
     else {
       const { s, S } = b;
+      for (let f = 0; f < 90; f++) s.step();          // Sperre abwarten
       // Der vorgewaehlte Punkt steht oben: WEITER auf 0, Wiederholung darunter
       if (S.menuSel !== 0) fehler.push(`vorgewaehlt ist ${S.menuSel}, erwartet WEITER (0)`);
       s.send(pad({ dpad: { down: true } })); s.send(pad());
@@ -67,6 +82,7 @@ module.exports = {
     if (!d) fehler.push('kein drittes Tor erreicht');
     else {
       const { s, S } = d;
+      for (let f = 0; f < 90; f++) s.step();          // Sperre abwarten
       s.send(pad({ dpad: { down: true } })); s.send(pad());
       s.send(pad({ a: true })); s.send(pad());
       if (!S.replay) fehler.push('Auswahl startet keine Wiederholung');
@@ -106,7 +122,7 @@ module.exports = {
     return {
       ok: fehler.length === 0,
       info: fehler.length ? fehler.join(' · ')
-        : 'laeuft nach 5 s von selbst an und pfeift danach direkt an; selbst gewaehlt keine automatische hinterher; der Anstoss beginnt erst danach; abschaltbar'
+        : 'nicht wegklickbar in den ersten 1,2 s; laeuft nach 5 s von selbst an und pfeift danach direkt an; selbst gewaehlt keine automatische hinterher; der Anstoss beginnt erst danach; abschaltbar'
     };
   }
 };

@@ -131,6 +131,10 @@ window.RetroGames.soccer = {
     const REPLAY_SPEED = 0.45;  // Zeitlupe — 2,5 s Szene werden so zu 5,6 s
     const GOAL_WAIT    = 12;    // so lange bleibt die Toranzeige stehen, wenn niemand drückt
     const AUTO_REPLAY  = 5;     // drückt bis dahin niemand, läuft die Wiederholung von selbst
+    // So lange nimmt die Toranzeige gar keine Eingabe an und zeigt auch noch
+    // keine Menüpunkte. Wer im Spielfieber weiterdrückt, klickt sie sonst weg,
+    // bevor er sie überhaupt gelesen hat.
+    const GOAL_LOCK    = 1.2;
     // Ein Spiel soll von Anfang bis Ende ohne einen einzigen Tastendruck
     // durchlaufen — man soll der KI zusehen können wie im Fernsehen. Jede
     // Tafel geht deshalb von selbst weiter; wer drückt, überspringt nur die
@@ -215,7 +219,7 @@ window.RetroGames.soccer = {
       tafel: 0,                      // Restzeit, bis eine Tafel von selbst weitergeht
       hist: [], replay: null,        // Mitschnitt und laufende Wiederholung
       passTo: null, passToT: 0,      // wer gerade angespielt wurde und wie lange er hinläuft
-      goalWait: 0, goalTeam: 0, autoReplay: -1,   // Toranzeige: Restzeit, Torschütze, Countdown zur Wiederholung
+      goalWait: 0, goalTeam: 0, autoReplay: -1, goalLock: 0,   // Toranzeige: Restzeit, Torschütze, Countdown zur Wiederholung
       kickoffFor: 0, kickoffLock: 0, restart: 0,
       kickoffTo: null, kickoffToT: 0,   // Anstoßpass ist für diesen Spieler reserviert
       lastAct: new Map(),   // letzte echte Eingabe je Spieler-Slot
@@ -986,6 +990,7 @@ window.RetroGames.soccer = {
         }
         return;
       }
+      state.goalLock = Math.max(0, state.goalLock - dt);
       // Drückt niemand, läuft die Wiederholung von selbst an
       if (state.autoReplay > 0) {
         state.autoReplay -= dt;
@@ -1279,6 +1284,7 @@ window.RetroGames.soccer = {
       state.goalWait = GOAL_WAIT;
       state.replay = null;
       state.menuSel = goalWeiterIdx();
+      state.goalLock = GOAL_LOCK;
       state.autoReplay = REPLAY_ON ? AUTO_REPLAY : -1;
       state.msg = ''; state.msgTimer = 0;
     }
@@ -1526,6 +1532,7 @@ window.RetroGames.soccer = {
               if (m.a || m.b || m.start) state.replay = null;
               return;
             }
+            if (state.goalLock > 0) return;        // erst lesen, dann drücken
             if (m.dy) { state.menuSel = (state.menuSel + m.dy + goalItems().length) % goalItems().length; sndMenu(); }
             if (m.a || m.start) activate();
             return;
@@ -1801,28 +1808,15 @@ window.RetroGames.soccer = {
     // Deutlich als Wiederholung gekennzeichnet — sonst hält man die Zeitlupe
     // für das laufende Spiel und wundert sich, warum nichts reagiert.
     function drawReplayBadge() {
-      // Unten mittig und in demselben Gelb wie TOR! — oben links stand sie im
-      // Weg des Spielfelds und wirkte wie ein zweites Bedienelement.
-      const t = 'WIEDERHOLUNG';
-      ctx.font = font(uni() * 0.032);
-      const tw = ctx.measureText(t).width;
-      const r0 = uni() * 0.012;
-      const luecke = uni() * 0.022;
-      const x0 = w / 2 - (r0 * 2 + luecke + tw) / 2;
-      const y = h * 0.93;
-
+      // Unten mittig und in demselben Gelb wie TOR!. Ohne blinkenden Punkt und
+      // ohne Pulsieren — es ist eine Beschriftung, kein Bedienelement.
       ctx.save();
-      ctx.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(state.t * 5));
-      ctx.fillStyle = '#ffd54f';
-      ctx.beginPath(); ctx.arc(x0 + r0, y - uni() * 0.011, r0, 0, Math.PI * 2); ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.textAlign = 'left';
+      ctx.font = font(uni() * 0.032);
       ctx.shadowColor = '#ffb300';
       ctx.shadowBlur = uni() * 0.03;
       ctx.fillStyle = '#ffd54f';
-      ctx.fillText(t, x0 + r0 * 2 + luecke, y);
+      ctx.fillText('WIEDERHOLUNG', w / 2, h * 0.93);
       ctx.shadowBlur = 0;
-      ctx.textAlign = 'center';
       ctx.restore();
     }
 
@@ -1850,6 +1844,16 @@ window.RetroGames.soccer = {
       const pw = Math.min(w * 0.76, uni() * 0.66);
       const ph = uni() * 0.48;
       const x0 = w / 2 - pw / 2, y0 = h / 2 - ph / 2;
+
+      // Das Panel fährt ein, statt einfach dazustehen
+      const seit0 = Math.max(0, GOAL_WAIT - state.goalWait);
+      const auf = Math.min(1, seit0 / 0.32);
+      const einzug = 1 - Math.pow(1 - auf, 3);
+      ctx.save();
+      ctx.translate(w / 2, h / 2);
+      ctx.scale(0.86 + 0.14 * einzug, 0.86 + 0.14 * einzug);
+      ctx.translate(-w / 2, -h / 2);
+      ctx.globalAlpha = einzug;
 
       // Kein harter gelber Rahmen: Er stand in Konkurrenz zum Schriftzug und
       // klebte am Inhalt. Stattdessen eine weiche, abgerundete Fläche, die
@@ -1882,14 +1886,22 @@ window.RetroGames.soccer = {
       ctx.shadowBlur = 0;
       ctx.restore();
 
-      goalItems().forEach((it, i) => {
-        const y = y0 + ph * (0.67 + i * 0.16);
-        const sel = i === state.menuSel;
-        hotspot(x0 + pw * 0.08, y - ph * 0.065, pw * 0.84, ph * 0.13, i);
-        ctx.fillStyle = sel ? '#ffd54f' : '#666';
-        ctx.font = font(uni() * 0.03);
-        ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
-      });
+      // Die Punkte kommen erst nach der Sperre — und werden auch erst dann
+      // anklickbar, denn hotspot() wird bis dahin nicht aufgerufen.
+      const menuAuf = clamp((seit0 - GOAL_LOCK) / 0.3, 0, 1);
+      if (menuAuf > 0) {
+        goalItems().forEach((it, i) => {
+          const y = y0 + ph * (0.67 + i * 0.16);
+          const sel = i === state.menuSel;
+          hotspot(x0 + pw * 0.08, y - ph * 0.065, pw * 0.84, ph * 0.13, i);
+          ctx.globalAlpha = menuAuf;
+          ctx.fillStyle = sel ? '#ffd54f' : '#666';
+          ctx.font = font(uni() * 0.03);
+          ctx.fillText(sel ? `> ${it} <` : it, w / 2, y + (1 - menuAuf) * ph * 0.06);
+          ctx.globalAlpha = 1;
+        });
+      }
+      ctx.restore();
     }
 
     function drawHud() {

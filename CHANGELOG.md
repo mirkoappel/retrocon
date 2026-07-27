@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.6]
+
+### Behoben
+- **STREET SOCCER: Die Toranzeige ließ sich versehentlich wegdrücken.** Wer im Spielfieber weiterdrückte, klickte sie weg, bevor er sie gelesen hatte. Sie nimmt jetzt in den ersten 1,2 Sekunden gar keine Eingabe an, fährt dabei ein, und die Menüpunkte erscheinen erst danach — damit sind sie auch erst dann anklickbar
+
+### Geändert
+- Der blinkende Punkt vor WIEDERHOLUNG am unteren Bildschirmrand ist weg, ebenso das Pulsieren — es ist eine Beschriftung, kein Bedienelement
+
 ## [0.18.5]
 
 ### Behoben
