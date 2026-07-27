@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.13.4]
+
+### Geändert
+- **STREET SOCCER: Der Hechtsprung hebt jetzt ab.** In der Draufsicht las er sich wie eine Grätsche — ein gedehntes Oval am Boden. Jetzt bleibt ein **Schatten am Boden**, während der Körper sich löst, 12 % größer wird und wieder landet; danach folgt der Aufschlag mit kurzem Breitklatschen. Die federnde Schwingung gehört zum Aufprall, nicht in die Luft — mitten im Flug zu wackeln sah nach Wackelpudding aus
+- **Flaggen nachgebessert.** USA war falsch aufgebaut: sieben Streifen und ein zu breiter blauer Block ohne Sterne, was eher nach Frankreich aussah. Jetzt 13 Streifen, Gösch über sieben davon und 2/5 der Breite, dazu ein Punktraster als Sternenfeld
+- Drei weitere waren nicht unterscheidbar: **Mexiko** und Italien haben dieselbe Bauart bei einem Farbabstand von nur 25 von 255 — Mexiko bekommt sein Wappen; **Kroatien** sah aus wie die Niederlande und bekommt sein Schachbrett; **Uruguay** war ohne Gösch nur ein Streifenmuster und bekommt seine Sonne
+- **Die Tastenhinweise in den Menüs sind weg** („A · WÄHLEN   B · ZURÜCK" und acht weitere). A und B bedeuten überall dasselbe; stehen bleibt nur, was man nicht erraten kann — etwa „SPIELER 2 WÄHLT"
+
 ## [0.13.3]
 
 ### Geändert

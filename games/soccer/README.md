@@ -98,6 +98,18 @@ Zusätzlich ist der Anstoßball **dem vorgesehenen Abnehmer reserviert** (`kicko
 
 **Anstoß-Pause.** Vor dem Anpfiff, nach der Halbzeit und nach jedem Tor steht das Spiel kurz still (`RESTART_KICK` 1,6 s bzw. `RESTART_GOAL` 2,4 s) und zeigt „ANSTOSS" beziehungsweise „TOR!". Ohne diese Pause lief das Spiel unter dem Torjubel sofort weiter und man bekam den Neubeginn nicht mit. Die Uhr steht während der Pause ebenfalls, es geht also keine Spielzeit verloren.
 
+## Flaggen
+
+Sie werden schlicht gezeichnet — Streifen, Kreuz, Scheibe, Raute. Wappen und Sterne wären in Menügröße ohnehin Matsch. Drei brauchten trotzdem ein Zusatzzeichen, weil sie sonst nicht auseinanderzuhalten sind:
+
+| | Problem | Zeichen |
+|---|---|---|
+| MEXIKO | dieselbe Bauart wie Italien, mittlerer Farbabstand nur 25 von 255 | Wappen als dunkler Kreis in der Mitte |
+| KROATIEN | rot-weiß-blau waagerecht wie die Niederlande | Schachbrett, 4 × 2 Felder |
+| URUGUAY | ohne Gösch nur Streifen | Sonne in der weißen Gösch |
+
+**USA** war schlicht falsch: sieben Streifen und ein zu breiter blauer Block ohne Sterne — das las sich eher als Frankreich. Jetzt 13 Streifen, Gösch über sieben davon und 2/5 der Breite, dazu ein versetztes Punktraster als Sternenfeld.
+
 ## Mannschaften
 
 16 Nationen. Jede hat **zwei getrennte Farbwelten**:
@@ -216,7 +228,16 @@ Ablauf der Grätsche (0,55 s), längs:
 | 0,33 s | 0,86 | quer gestaucht |
 | 0,55 s | 1,03 | ausgeschwungen |
 
-Der Hechtsprung läuft genauso, nur kürzer (0,45 s) und mit größerem Ausschlag (1,85). Wer liegt, federt beim Aufstehen zurück.
+**Der Hechtsprung läuft anders** — er ist kein Gummi, sondern ein Sprung:
+
+| Phase | Was passiert |
+|---|---|
+| 0,00–0,08 s | Absprung: streckt sich schnell auf 1,85 und **bleibt** gestreckt |
+| 0,08–0,23 s | in der Luft: der Körper löst sich vom Schatten, wird 12 % größer, der Schatten am Boden schrumpft |
+| 0,23–0,45 s | zurück auf den Schatten |
+| danach 0,7 s | Aufschlag (kurz auf 1,73 breit geklatscht), liegen bei 1,38, dann aufstehen |
+
+Ohne die **Höhe** las sich der Sprung in der Draufsicht wie eine Grätsche: ein gedehntes Oval am Boden. Erst der Schatten, von dem sich der Körper löst, macht daraus ein Abheben. Und die federnde Schwingung gehört zum Aufprall, nicht in die Luft — mitten im Flug zu wackeln sah nach Wackelpudding aus.
 
 ## Hechtsprung
 

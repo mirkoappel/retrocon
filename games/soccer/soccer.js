@@ -153,9 +153,9 @@ window.RetroGames.soccer = {
       { n: 'NIEDERLANDE', c: '#fb8c00', a: '#f5f5f5', f: { t: 'h', c: ['#ae1c28', '#ffffff', '#21468b'] } },
       { n: 'PORTUGAL',    c: '#e53935', a: '#66bb6a', f: { t: 'v', c: ['#046a38', '#da291c'], w: [2, 3] } },
       { n: 'BELGIEN',     c: '#ff7043', a: '#fdd835', f: { t: 'v', c: ['#000000', '#fdda24', '#ef3340'] } },
-      { n: 'KROATIEN',    c: '#ec407a', a: '#f5f5f5', f: { t: 'h', c: ['#ff0000', '#ffffff', '#171796'] } },
-      { n: 'URUGUAY',     c: '#4fc3f7', a: '#f5f5f5', f: { t: 'h', c: ['#ffffff', '#0038a8', '#ffffff', '#0038a8', '#ffffff'] } },
-      { n: 'MEXIKO',      c: '#66bb6a', a: '#f5f5f5', f: { t: 'v', c: ['#006847', '#ffffff', '#ce1126'] } },
+      { n: 'KROATIEN',    c: '#ec407a', a: '#f5f5f5', f: { t: 'h', c: ['#ff0000', '#ffffff', '#171796'], m: 'check' } },
+      { n: 'URUGUAY',     c: '#4fc3f7', a: '#f5f5f5', f: { t: 'h', c: ['#ffffff', '#0038a8', '#ffffff', '#0038a8', '#ffffff'], m: 'sun' } },
+      { n: 'MEXIKO',      c: '#66bb6a', a: '#f5f5f5', f: { t: 'v', c: ['#006847', '#ffffff', '#ce1126'], m: 'emblem' } },
       { n: 'JAPAN',       c: '#9575cd', a: '#ef5350', f: { t: 'di', c: ['#ffffff', '#bc002d'] } },
       { n: 'NIGERIA',     c: '#9ccc65', a: '#f5f5f5', f: { t: 'v', c: ['#008751', '#ffffff', '#008751'] } },
       { n: 'USA',         c: '#f5f5f5', a: '#5c6bc0', f: { t: 'us', c: [] } }
@@ -1456,35 +1456,55 @@ window.RetroGames.soccer = {
         ctx.strokeStyle = 'rgba(0,0,0,0.55)';
         ctx.lineWidth = Math.max(1, r.s * 0.002);
 
-        // Hechtsprung, Liegen und Grätsche: dieselbe Scheibe, nur gedehnt.
+        // Hechtsprung, Liegen und Grätsche: dieselbe Scheibe, nur verformt.
         // Bildschirm-y ist gespiegelt, deshalb der Winkel über screenAngle.
-        let k = 1, ang = 0, alpha = 1;
+        let k = 1, ang = 0, alpha = 1, hoehe = 0, gross = 1;
         if (p.dive > 0) {
-          k = flummi(1 - p.dive / DIVE_TIME, 0.85);
+          // Ein Sprung, keine Gummiwurst: schnell strecken und gestreckt
+          // bleiben, solange man fliegt. Die federnde Schwingung gehört zum
+          // Aufprall, nicht in die Luft.
+          const t = 1 - p.dive / DIVE_TIME;
+          k = 1 + 0.85 * Math.min(1, t / 0.18);
+          // In der Draufsicht liest sich „abheben" nur über Höhe: der Körper
+          // löst sich vom Schatten, wird kurz größer und kommt wieder herunter.
+          const bogen = Math.sin(Math.PI * t);
+          hoehe = bogen;
+          gross = 1 + bogen * 0.12;
           ang = screenAngle(r, p.dx, p.dy);
         } else if (p.down > 0) {
-          // Am Boden: flach, und beim Aufstehen federt die Scheibe zurück
+          // Aufschlag, liegen, aufstehen — in einem Zug
           const u = 1 - p.down / (p.downMax || DIVE_DOWN);
-          k = 1 + 0.42 * Math.exp(-2.2 * u) * Math.cos(Math.PI * 1.1 * u);
+          const auf = Math.max(0, Math.min(1, (u - 0.72) / 0.28));
+          const weich = auf * auf * (3 - 2 * auf);            // sanft aufstehen
+          k = 1 + 0.38 * (1 - weich) + 0.35 * Math.exp(-14 * u);   // erster Klatscher
           ang = screenAngle(r, p.fx, p.fy);
-          alpha = 0.8;
+          alpha = 0.82;
         } else if (p.tackle > 0) {
           k = flummi(1 - p.tackle / TACKLE_TIME, 0.55);
           ang = screenAngle(r, p.fx, p.fy);
         }
 
         if (Math.abs(k - 1) > 0.01) {
-          ctx.save();
-          ctx.translate(q.X, q.Y);
-          ctx.rotate(ang);
-          ctx.scale(k, 1 / k);
-          ctx.globalAlpha = alpha;
-          ctx.beginPath(); ctx.arc(0, 0, rad, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.lineWidth = Math.max(1, r.s * 0.002) * k;
-          ctx.stroke();
-          ctx.globalAlpha = 1;
-          ctx.restore();
+          const koerper = (X, Y, sk, a, lw) => {
+            ctx.save();
+            ctx.translate(X, Y);
+            ctx.rotate(ang);
+            ctx.scale(k * sk, sk / k);
+            ctx.globalAlpha = a;
+            ctx.beginPath(); ctx.arc(0, 0, rad, 0, Math.PI * 2);
+            ctx.fill();
+            if (lw) { ctx.lineWidth = lw * k; ctx.stroke(); }
+            ctx.globalAlpha = 1;
+            ctx.restore();
+          };
+          if (hoehe > 0.02) {
+            // Schatten bleibt am Boden und wird kleiner, je höher der Sprung
+            const merk = ctx.fillStyle;
+            ctx.fillStyle = 'rgba(0,0,0,0.45)';
+            koerper(q.X, q.Y, 1 - hoehe * 0.25, 0.5, 0);
+            ctx.fillStyle = merk;
+          }
+          koerper(q.X, q.Y - hoehe * rad * 1.5, gross, alpha, Math.max(1, r.s * 0.002));
         } else {
           ctx.beginPath(); ctx.arc(q.X, q.Y, rad, 0, Math.PI * 2); ctx.fill();
           ctx.stroke();
@@ -1607,7 +1627,6 @@ window.RetroGames.soccer = {
         ctx.font = font(uni() * 0.045);
         ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
       });
-      hint('A · AUSWÄHLEN');
     }
 
     function drawCountMenu() {
@@ -1624,7 +1643,6 @@ window.RetroGames.soccer = {
         ctx.font = font(uni() * 0.042);
         ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
       });
-      hint('A · WEITER   B · ZURÜCK');
     }
 
     function drawSideMenu() {
@@ -1641,7 +1659,6 @@ window.RetroGames.soccer = {
         ctx.font = font(uni() * 0.042);
         ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
       });
-      hint('A · WEITER   B · ZURÜCK');
     }
 
     // Flagge zeichnen. Bewusst schlicht: Streifen, Kreuz, Scheibe, plus zwei
@@ -1679,14 +1696,49 @@ window.RetroGames.soccer = {
         ctx.closePath(); ctx.fill();
         ctx.fillStyle = c[2];
         ctx.beginPath(); ctx.arc(x + fw / 2, y + fh / 2, fh * 0.19, 0, Math.PI * 2); ctx.fill();
-      } else if (fl.t === 'us') {              // Streifen mit Gösch
-        for (let i = 0; i < 7; i++) {
+      } else if (fl.t === 'us') {
+        // 13 Streifen, Gösch über sieben davon und 2/5 der Breite — vorher
+        // waren es sieben Streifen und ein zu breiter blauer Block ohne
+        // Sterne, der eher nach Frankreich aussah als nach den USA.
+        const n = 13;
+        for (let i = 0; i < n; i++) {
           ctx.fillStyle = i % 2 ? '#ffffff' : '#b22234';
-          ctx.fillRect(x, y + i * fh / 7, fw, fh / 7 + 1);
+          ctx.fillRect(x, y + i * fh / n, fw, fh / n + 1);
         }
+        const gw = fw * 0.40, gh = fh * 7 / n;
         ctx.fillStyle = '#3c3b6e';
-        ctx.fillRect(x, y, fw * 0.42, fh * 4 / 7);
+        ctx.fillRect(x, y, gw, gh);
+        // Sterne als Punktraster. Einzelne Sterne wären in dieser Größe Matsch,
+        // das Raster liest sich trotzdem als Sternenfeld.
+        ctx.fillStyle = '#ffffff';
+        const sr = Math.max(0.6, gh * 0.055);
+        for (let row = 0; row < 5; row++) {
+          for (let col = 0; col < 6; col++) {
+            if ((row + col) % 2) continue;            // versetztes Raster
+            ctx.beginPath();
+            ctx.arc(x + gw * (col + 1) / 7, y + gh * (row + 1) / 6, sr, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
       }
+      // Zusatzzeichen. Ohne sie sind Italien und Mexiko sowie Kroatien und die
+      // Niederlande in dieser Größe nicht auseinanderzuhalten.
+      if (fl.m === 'check') {                  // kroatisches Schachbrett
+        const cw2 = fw * 0.055, n = 4;
+        for (let r2 = 0; r2 < 2; r2++) for (let c2 = 0; c2 < n; c2++) {
+          ctx.fillStyle = (r2 + c2) % 2 ? '#ffffff' : '#d32f2f';
+          ctx.fillRect(x + fw / 2 - n * cw2 / 2 + c2 * cw2, y + fh * 0.22 + r2 * cw2, cw2 + 0.5, cw2 + 0.5);
+        }
+      } else if (fl.m === 'emblem') {          // Wappen in der Mitte
+        ctx.fillStyle = 'rgba(70,50,20,0.85)';
+        ctx.beginPath(); ctx.arc(x + fw / 2, y + fh / 2, fh * 0.15, 0, Math.PI * 2); ctx.fill();
+      } else if (fl.m === 'sun') {             // Sonne in der Gösch
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x, y, fw * 0.36, fh * 0.36);
+        ctx.fillStyle = '#f6b40e';
+        ctx.beginPath(); ctx.arc(x + fw * 0.18, y + fh * 0.18, fh * 0.11, 0, Math.PI * 2); ctx.fill();
+      }
+
       ctx.restore();
       ctx.strokeStyle = 'rgba(255,255,255,0.4)';
       ctx.lineWidth = Math.max(1, fw * 0.015);
@@ -1723,9 +1775,9 @@ window.RetroGames.soccer = {
         ctx.font = font(uni() * 0.017);
         ctx.fillText(t.n, cx + cw / 2, cy + ch * 0.72);
       });
-      hint(pick ? 'A · WÄHLEN   B · ZURÜCK'
-                : (versus ? 'SPIELER 2 WÄHLT   A · ANPFIFF   B · ZURÜCK'
-                          : 'A · ANPFIFF   B · ZURÜCK'));
+      // Kein Tastenspickzettel — A und B bedeuten überall dasselbe. Stehen
+      // bleibt nur, was man nicht erraten kann: wer gerade dran ist.
+      if (!pick && versus) hint('SPIELER 2 WÄHLT');
     }
 
     function drawIntro() {
@@ -1751,12 +1803,10 @@ window.RetroGames.soccer = {
           ? 'SPIELER 2 STEUERT DEN AUSGELOSTEN GEGNER'
           : 'SPIELER 2 STEUERT DIESE MANNSCHAFT', w / 2, h * 0.69);
       }
-      hint('A · ANPFIFF');
     }
 
     function drawHalf() {
       panel('HALBZEIT', `${TEAMS[state.myTeam].n} ${state.score[0]} : ${state.score[1]} ${TEAMS[state.foeTeam].n}`);
-      hint('A · WEITER');
     }
 
     function drawResult() {
@@ -1770,7 +1820,6 @@ window.RetroGames.soccer = {
         ctx.font = font(uni() * 0.028);
         ctx.fillText(`NÄCHSTE RUNDE: ${ROUNDS[state.round + 1]}`, w / 2, h * 0.54);
       }
-      hint('A · WEITER');
     }
 
     function drawChampion() {
@@ -1778,12 +1827,10 @@ window.RetroGames.soccer = {
       ctx.fillStyle = '#ffb300';
       ctx.font = font(uni() * 0.03);
       ctx.fillText(`${ROUNDS.length} SPIELE, ${ROUNDS.length} SIEGE`, w / 2, h * 0.54);
-      hint('A · NEUES TURNIER');
     }
 
     function drawOut() {
       panel('AUSGESCHIEDEN', `${ROUNDS[state.round]} · ${TEAMS[state.myTeam].n}`);
-      hint('A · NEUES TURNIER');
     }
   }
 };
