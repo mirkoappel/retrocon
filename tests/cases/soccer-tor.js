@@ -49,14 +49,15 @@ module.exports = {
     if (!b) fehler.push('kein zweites Tor erreicht');
     else {
       const { s, S } = b;
-      // WEITER ist vorgewaehlt, die Wiederholung steht darueber
-      if (S.menuSel !== 1) fehler.push(`vorgewaehlt ist ${S.menuSel}, erwartet WEITER (1)`);
-      s.send(pad({ dpad: { up: true } })); s.send(pad());
-      if (S.menuSel !== 0) fehler.push(`Blaettern landet auf ${S.menuSel}, erwartet WIEDERHOLUNG (0)`);
+      // Der vorgewaehlte Punkt steht oben: WEITER auf 0, Wiederholung darunter
+      if (S.menuSel !== 0) fehler.push(`vorgewaehlt ist ${S.menuSel}, erwartet WEITER (0)`);
+      s.send(pad({ dpad: { down: true } })); s.send(pad());
+      if (S.menuSel !== 1) fehler.push(`Blaettern landet auf ${S.menuSel}, erwartet WIEDERHOLUNG (1)`);
       s.send(pad({ a: true })); s.send(pad());
       if (!S.replay) fehler.push('Auswahl startet keine Wiederholung');
       for (let f = 0; f < 60 * 12; f++) { s.step(); if (!S.replay) break; }
       if (S.phase !== 'goal') fehler.push('nach der selbst gewaehlten Wiederholung geht es ungefragt weiter');
+      if (S.menuSel !== 0) fehler.push('nach der Wiederholung steht die Auswahl nicht auf WEITER');
       s.send(pad({ a: true })); s.send(pad()); s.step();
       if (S.phase !== 'play') fehler.push(`nach WEITER ist die Phase ${S.phase}, erwartet play`);
     }

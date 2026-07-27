@@ -149,9 +149,10 @@ window.RetroGames.soccer = {
     const SWITCH_MODE = api.setting?.('switch') ?? 'ballgewinn';
     const REPLAY_ON   = (api.setting?.('replay') ?? 'an') === 'an';
     // Ohne Wiederholung hat die Torpause nur einen Punkt
-    // Wiederholung zuerst, weiter darunter. Ausgewählt ist trotzdem WEITER —
-    // der schnelle Druck soll anpfeifen, nicht noch einmal zurückspulen.
-    const goalItems = () => REPLAY_ON ? ['WIEDERHOLUNG', 'WEITER'] : ['WEITER'];
+    // Der vorgewählte Punkt steht oben. Vorgewählt ist WEITER, weil der
+    // schnelle Druck anpfeifen soll und nicht zurückspulen — also steht WEITER
+    // oben und die Wiederholung darunter.
+    const goalItems = () => REPLAY_ON ? ['WEITER', 'WIEDERHOLUNG'] : ['WEITER'];
     const goalWeiterIdx = () => goalItems().indexOf('WEITER');
     // Grundstärke der KI-Gegner; der Turnieraufschlag je Runde kommt dazu
     const SKILL_BASE = SCHWIERIG === 'leicht' ? 0.90 : SCHWIERIG === 'schwer' ? 1.12 : 1;

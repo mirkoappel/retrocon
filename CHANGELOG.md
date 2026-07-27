@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.4]
+
+### Geändert
+- **STREET SOCCER: In der Toranzeige steht wieder WEITER oben.** Maßgeblich ist, dass der **vorgewählte** Punkt oben steht, und vorgewählt ist WEITER — der schnelle Druck soll anpfeifen, nicht zurückspulen
+
 ## [0.18.3]
 
 ### Geändert
