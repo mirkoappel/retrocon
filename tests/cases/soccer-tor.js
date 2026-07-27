@@ -1,5 +1,6 @@
-// Nach einem Tor bleibt die Anzeige stehen, die Wiederholung startet von selbst
-// und lässt sich abbrechen. Vorher war ein Tor nach 2,4 s vorbei.
+// Nach einem Tor bleibt die Anzeige stehen. Drückt niemand, läuft die
+// Wiederholung nach AUTO_REPLAY von selbst an und pfeift danach direkt an.
+// Selbst ausgewählt kehrt sie in die Anzeige zurück.
 const { session, pad } = require('../harness');
 
 function bisZumTor(einstellung) {
@@ -27,39 +28,44 @@ module.exports = {
   run() {
     const fehler = [];
 
-    // ── Mit Wiederholung (Vorgabe) ──
+    // ── Niemand drückt: von selbst, danach direkt weiter ──
     const a = tor(undefined);
     if (!a) return { ok: false, info: 'in sechs Anlaeufen kein Tor erreicht' };
     {
       const { s, S } = a;
-      // Sie startet NICHT von selbst — die Auswahl im Menü ist besser, weil man
-      // sonst zwischen Zeitlupe und laufendem Spiel nicht unterscheidet
       for (let f = 0; f < 60 * 3; f++) s.step();
-      if (S.replay) fehler.push('Wiederholung startet ungefragt');
+      if (S.replay) fehler.push('Wiederholung startet zu frueh');
       if (S.phase !== 'goal') fehler.push('Torpause haelt nicht');
 
-      // Danach ist das Menue bedienbar: zweiter Punkt startet sie erneut
+      for (let f = 0; f < 60 * 4; f++) { s.step(); if (S.replay) break; }
+      if (!S.replay) fehler.push('Wiederholung startet nicht von selbst');
+
+      for (let f = 0; f < 60 * 12; f++) { s.step(); if (S.phase === 'play') break; }
+      if (S.phase !== 'play') fehler.push(`nach der automatischen Wiederholung ist die Phase ${S.phase}, erwartet play`);
+    }
+
+    // ── Selbst ausgewählt: zurück in die Anzeige ──
+    const b = tor(undefined);
+    if (!b) fehler.push('kein zweites Tor erreicht');
+    else {
+      const { s, S } = b;
       s.send(pad({ dpad: { down: true } })); s.send(pad());
       if (S.menuSel !== 1) fehler.push(`Blaettern landet auf ${S.menuSel}, erwartet 1`);
       s.send(pad({ a: true })); s.send(pad());
       if (!S.replay) fehler.push('Auswahl startet keine Wiederholung');
-      // Jede Taste bricht die laufende Wiederholung ab
-      s.send(pad({ a: true })); s.send(pad()); s.step();
-      if (S.replay) fehler.push('Wiederholung laesst sich nicht abbrechen');
-      if (S.phase !== 'goal') fehler.push('Abbrechen verlaesst die Torpause');
-
-      // WEITER pfeift wieder an
+      for (let f = 0; f < 60 * 12; f++) { s.step(); if (!S.replay) break; }
+      if (S.phase !== 'goal') fehler.push('nach der selbst gewaehlten Wiederholung geht es ungefragt weiter');
       S.menuSel = 0;
       s.send(pad({ a: true })); s.send(pad()); s.step();
       if (S.phase !== 'play') fehler.push(`nach WEITER ist die Phase ${S.phase}, erwartet play`);
     }
 
-    // ── Abgeschaltet ──
-    const b = tor(k => (k === 'replay' ? 'aus' : k === 'duration' ? 180 : k === 'switch' ? 'ballgewinn' : 'normal'));
-    if (!b) fehler.push('mit abgeschalteter Wiederholung kein Tor erreicht');
+    // ── Abgeschaltet: keine Wiederholung, auch nicht von selbst ──
+    const c = tor(k => (k === 'replay' ? 'aus' : k === 'duration' ? 180 : k === 'switch' ? 'ballgewinn' : 'normal'));
+    if (!c) fehler.push('mit abgeschalteter Wiederholung kein Tor erreicht');
     else {
-      const { s, S } = b;
-      for (let f = 0; f < 60 * 3; f++) s.step();
+      const { s, S } = c;
+      for (let f = 0; f < 60 * 8; f++) s.step();
       if (S.replay) fehler.push('abgeschaltet, laeuft aber trotzdem');
       if (S.phase !== 'goal') fehler.push('Torpause haelt nicht');
     }
@@ -67,7 +73,7 @@ module.exports = {
     return {
       ok: fehler.length === 0,
       info: fehler.length ? fehler.join(' · ')
-        : 'startet nur auf Auswahl, abbrechbar, WEITER pfeift an, abschaltbar'
+        : 'laeuft nach 5 s von selbst an und pfeift danach direkt an; selbst gewaehlt kehrt sie in die Anzeige zurueck; abschaltbar'
     };
   }
 };

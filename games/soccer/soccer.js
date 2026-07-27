@@ -128,6 +128,7 @@ window.RetroGames.soccer = {
     const HIST_LEN     = 150;   // Frames im Speicher für die Wiederholung (2,5 s)
     const REPLAY_SPEED = 0.45;  // Zeitlupe — 2,5 s Szene werden so zu 5,6 s
     const GOAL_WAIT    = 12;    // so lange bleibt die Toranzeige stehen, wenn niemand drückt
+    const AUTO_REPLAY  = 5;     // drückt bis dahin niemand, läuft die Wiederholung von selbst
     // Die beiden eigenen Regler aus dem Einstellungsmenü. Fehlt `api.setting`
     // (Prüfstand, Einbettung), gelten die Vorgabewerte.
     const HALF_TIME  = api.setting?.('duration') ?? 180;   // Sekunden je Halbzeit
@@ -936,10 +937,21 @@ window.RetroGames.soccer = {
     function updateGoal(dt) {
       if (state.replay) {
         state.replay.i += REPLAY_SPEED;
-        // Nach der Wiederholung steht die Auswahl wieder auf WEITER — sonst
-        // startet der nächste Druck versehentlich noch eine Wiederholung
-        if (state.replay.i >= state.hist.length - 1) { state.replay = null; state.menuSel = 0; }
+        if (state.replay.i >= state.hist.length - 1) {
+          const war = state.replay;
+          state.replay = null;
+          // Nach der automatischen Wiederholung geht es direkt weiter. Nach der
+          // selbst gewählten zurück in die Anzeige, und dort steht die Auswahl
+          // wieder auf WEITER — sonst startet der nächste Druck noch eine.
+          if (war.auto) { weiterNachTor(); return; }
+          state.menuSel = 0;
+        }
         return;
+      }
+      // Drückt niemand, läuft die Wiederholung von selbst an
+      if (state.autoReplay > 0) {
+        state.autoReplay -= dt;
+        if (state.autoReplay <= 0) { state.autoReplay = -1; startReplay(true); return; }
       }
       state.goalWait -= dt;
       if (state.goalWait <= 0) weiterNachTor();
@@ -1223,14 +1235,17 @@ window.RetroGames.soccer = {
       state.goalWait = GOAL_WAIT;
       state.replay = null;
       state.menuSel = 0;
-      state.autoReplay = -1;
+      state.autoReplay = REPLAY_ON ? AUTO_REPLAY : -1;
       state.msg = ''; state.msgTimer = 0;
     }
 
     // Wiederholung in Zeitlupe aus dem Mitschnitt
-    function startReplay() {
+    // `auto` unterscheidet die beiden Fälle: Von selbst gestartet, geht es
+    // danach gleich weiter — wer nichts drückt, will offensichtlich nur zusehen.
+    // Selbst ausgewählt, kehrt sie in die Anzeige zurück.
+    function startReplay(auto = false) {
       if (state.hist.length < 30) return;
-      state.replay = { i: 0 };
+      state.replay = { i: 0, auto };
       sndMenu();
     }
 
@@ -1286,7 +1301,7 @@ window.RetroGames.soccer = {
     function activate() {
       switch (state.phase) {
         case 'goal':
-          if (state.menuSel === 1) startReplay();
+          if (state.menuSel === 1) startReplay(false);
           else weiterNachTor();
           return;
 

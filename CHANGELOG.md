@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.17.1]
+
+### Geändert
+- **STREET SOCCER: Die Wiederholung läuft wieder von selbst an — aber erst nach 5 Sekunden**, wenn bis dahin niemand WEITER gedrückt hat, und danach geht es **direkt weiter**. Wer nichts drückt, will offensichtlich nur zusehen. Selbst über das Menü ausgewählt kehrt sie weiterhin in die Anzeige zurück
+
 ## [0.17.0]
 
 ### Behoben
