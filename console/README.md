@@ -153,6 +153,20 @@ console/
     game.js           Canvas + RAF-Loop + Ingame-Menü + Pause-System
 ```
 
+## Zwischenspeicher
+
+GitHub Pages liefert `cache-control: max-age=600`. Ohne Gegenmaßnahme kann der Browser bis zu zehn Minuten lang eine **alte Spieldatei zu einer neuen `index.html`** mischen — ein längst behobener Fehler sieht dann aus, als wäre er zurück.
+
+Deshalb trägt jede eigene Datei die Version im Namen:
+
+```html
+<script src="../games/soccer/soccer.js?v=0.18.8"></script>
+```
+
+Beim Versionssprung wird der Anhang mitgezogen; der Prüfstandsfall `konsole-cache` schlägt an, wenn eine Datei zurückbleibt.
+
+**Nicht abgedeckt** sind die ES-Module unter `console/` — deren `import`-Pfade müssten dafür einzeln versioniert werden, was bei jedem Sprung 16 Zeilen beträfe. Sie ändern sich seltener als die Spiele; im Zweifel hilft ein harter Neuladen.
+
 ## Boot
 
 Terminal-Ausgabe oben links, monospace, Zeilen erscheinen zeitversetzt. Nach der letzten Zeile blinkt „PRESS ANY KEY TO START" im selben Stil. Erster Klick/Tap/Taste:

@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.8]
+
+### Behoben
+- **Der Browser konnte eine alte Spieldatei zu einer neuen `index.html` mischen.** GitHub Pages liefert `cache-control: max-age=600`, und die Spieldateien werden getrennt von der Seite geladen — bis zu zehn Minuten nach einem Deploy sah ein längst behobener Fehler dadurch aus, als wäre er zurück. Jede eigene Datei trägt jetzt die Version im Namen (`soccer.js?v=0.18.8`)
+- Neuer Prüfstandsfall `konsole-cache`: Er schlägt an, wenn eine Datei beim Versionssprung ohne Anhang zurückbleibt
+
+### Bekannt
+- Die ES-Module unter `console/` sind davon nicht erfasst — dafür müsste jeder `import`-Pfad einzeln versioniert werden (16 Zeilen je Sprung). Sie ändern sich seltener als die Spiele
+
 ## [0.18.7]
 
 ### Geändert
