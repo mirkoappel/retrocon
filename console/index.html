@@ -64,8 +64,12 @@
       </div>
       <div class="menu-row" id="row-einstellungen">
         <h2 class="slide-title">EINSTELLUNGEN</h2>
-        <div id="settings-list"></div>
-        <p class="slide-hint">← → WÄHLEN · A / ENTER ÄNDERN</p>
+        <div id="settings-carousel">
+          <div class="carousel-arrow left"></div>
+          <div id="settings-track"></div>
+          <div class="carousel-arrow right"></div>
+        </div>
+        <p class="slide-hint">← → BLÄTTERN · A / ENTER ÄNDERN · ↑ ↓ ZURÜCK</p>
       </div>
       <div class="menu-row">
         <h2 class="slide-title">CREDITS</h2>
@@ -95,7 +99,14 @@
         <div class="ig-slide" id="ig-slide-menu">
           <div class="ig-item selected" data-idx="0">WEITER</div>
           <div class="ig-item" data-idx="1">SPIEL BEENDEN</div>
-          <div class="ig-item" data-idx="2">HILFE</div>
+          <div class="ig-item" data-idx="2">EINSTELLUNGEN</div>
+          <div class="ig-item" data-idx="3">HILFE</div>
+        </div>
+
+        <div class="ig-slide" id="ig-slide-settings">
+          <h2 class="slide-title" id="ig-settings-title">EINSTELLUNGEN</h2>
+          <div id="ig-settings-list"></div>
+          <p class="slide-hint" id="ig-settings-hint">↑ ↓ WÄHLEN · A / ENTER ÄNDERN</p>
         </div>
 
         <div class="ig-slide" id="ig-slide-help">
@@ -121,7 +132,7 @@
   </div>
 </div>
 
-<div id="footer">v0.12.0</div>
+<div id="footer">v0.12.1</div>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>

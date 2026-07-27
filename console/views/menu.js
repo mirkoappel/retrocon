@@ -1,14 +1,14 @@
 // Hauptmenü: 2D-Navigation (Karussell horizontal, Rows vertikal).
 import { startGame, exitGame, getCurrentGame } from './game.js';
-import { OPTIONS, getSetting, cycleSetting } from '../services/settings.js';
+import { GLOBAL_OPTIONS, getGlobal, cycleGlobal } from '../services/settings.js';
 
 const ROWS = ['RETROCON', 'CONTROLLER', 'SPIELE', 'EINSTELLUNGEN', 'CREDITS'];
 const SPIELE_ROW = 2;
 const SETTINGS_ROW = 3;
-const SETTING_KEYS = Object.keys(OPTIONS);
+let settingEntries = [];   // nur globale Regler — spielspezifische liegen im Spiel
 
 let track, carousel, rowsEl, rowsTrack, labelUp, labelDown, arrowUp, arrowDown;
-let settingsList;
+let settingsCarousel, settingsTrack;
 let gameIds = [];
 let carouselIdx = 0;
 let settingIdx = 0;
@@ -16,36 +16,59 @@ let rowIdx = 0;
 
 // Auf der Einstellungs-Zeile wählen ← → den Eintrag und A ändert ihn — dieselbe
 // Aufteilung wie beim Spiele-Karussell, weil ↑ ↓ für den Zeilenwechsel belegt sind.
+//
+// Zwei Blöcke, bewusst getrennt: Was der Konsole gehört (Lautstärke, Bildröhre,
+// Vollbild) steht oben, darunter je Spiel dessen eigene Regler. Die Konsole
+// kennt die Spielbegriffe nicht — sie liest, was ein Spiel deklariert hat.
 function buildSettings() {
-  settingsList.innerHTML = '';
-  SETTING_KEYS.forEach((k, i) => {
+  settingsTrack.innerHTML = '';
+  settingEntries = [];
+
+  const karte = (o) => {
+    const i = settingEntries.length;
+    settingEntries.push({ key: o.key, zeige: o.zeige });
     const el = document.createElement('div');
     el.className = 'setting';
-    el.dataset.key = k;
-    el.innerHTML = `<span class="name">${OPTIONS[k].label}</span><span class="wert"></span>`;
+    el.innerHTML = `<span class="name">${o.label}</span><span class="wert"></span>`;
     el.addEventListener('click', () => {
       if (rowIdx !== SETTINGS_ROW) return;
-      if (settingIdx === i) cycleSetting(k);
-      else settingIdx = i;
+      if (settingIdx === i) cycleEntry(i); else settingIdx = i;
       refresh();
     });
-    settingsList.appendChild(el);
-  });
+    settingsTrack.appendChild(el);
+  };
+
+  // Ausschließlich, was der Konsole gehört. Was nur ein Spiel angeht, steht
+  // im Ingame-Menü dieses Spiels — dort ist es auch eindeutig zugeordnet.
+  for (const [k, o] of Object.entries(GLOBAL_OPTIONS)) karte({ ...o, key: k });
+}
+
+function cycleEntry(i) {
+  if (settingEntries[i]) cycleGlobal(settingEntries[i].key);
 }
 
 function refreshSettings() {
-  [...settingsList.children].forEach((el, i) => {
-    const k = el.dataset.key;
-    el.classList.toggle('selected', i === settingIdx && rowIdx === SETTINGS_ROW);
-    el.querySelector('.wert').textContent = OPTIONS[k].zeige(getSetting(k));
+  const karten = [...settingsTrack.children];
+  karten.forEach((el, i) => {
+    const e = settingEntries[i];
+    el.classList.toggle('selected', i === settingIdx);
+    el.querySelector('.wert').textContent = e.zeige(getGlobal(e.key));
   });
+  const aktiv = karten[settingIdx];
+  if (aktiv) {
+    const offset = aktiv.offsetLeft + aktiv.offsetWidth / 2 - settingsCarousel.clientWidth / 2;
+    settingsTrack.style.transform = `translateX(${-offset}px)`;
+  }
+  settingsCarousel.classList.toggle('has-prev', settingIdx > 0);
+  settingsCarousel.classList.toggle('has-next', settingIdx < karten.length - 1);
 }
 
 export function initMenu() {
   gameIds = Object.keys(window.RetroGames || {});
   track      = document.getElementById('carousel-track');
   carousel   = document.getElementById('carousel');
-  settingsList = document.getElementById('settings-list');
+  settingsCarousel = document.getElementById('settings-carousel');
+  settingsTrack    = document.getElementById('settings-track');
   rowsEl    = document.getElementById('menu-rows');
   rowsTrack = document.getElementById('menu-rows-track');
   labelUp   = document.getElementById('row-label-up');
@@ -95,11 +118,17 @@ export function initMenu() {
     else if (e.deltaY < 0 && rowIdx > 0)           { rowIdx--; refresh(); }
   }, { passive: true });
 
-  document.querySelector('.carousel-arrow.left') .addEventListener('click', () => {
+  document.querySelector('#carousel .carousel-arrow.left') .addEventListener('click', () => {
     if (carouselIdx > 0) { carouselIdx--; refresh(); }
   });
-  document.querySelector('.carousel-arrow.right').addEventListener('click', () => {
+  document.querySelector('#carousel .carousel-arrow.right').addEventListener('click', () => {
     if (carouselIdx < gameIds.length - 1) { carouselIdx++; refresh(); }
+  });
+  document.querySelector('#settings-carousel .carousel-arrow.left') .addEventListener('click', () => {
+    if (settingIdx > 0) { settingIdx--; refresh(); }
+  });
+  document.querySelector('#settings-carousel .carousel-arrow.right').addEventListener('click', () => {
+    if (settingIdx < settingEntries.length - 1) { settingIdx++; refresh(); }
   });
 
   buildSettings();
@@ -120,15 +149,15 @@ export function initMenu() {
         e.preventDefault(); break;
       case 'ArrowRight': case 'd': case 'D':
         if (rowIdx === SPIELE_ROW && carouselIdx < gameIds.length - 1) { carouselIdx++; refresh(); }
-        if (rowIdx === SETTINGS_ROW) { settingIdx = (settingIdx + 1) % SETTING_KEYS.length; refresh(); }
+        if (rowIdx === SETTINGS_ROW && settingIdx < settingEntries.length - 1) { settingIdx++; refresh(); }
         e.preventDefault(); break;
       case 'ArrowLeft': case 'a': case 'A':
         if (rowIdx === SPIELE_ROW && carouselIdx > 0) { carouselIdx--; refresh(); }
-        if (rowIdx === SETTINGS_ROW) { settingIdx = (settingIdx - 1 + SETTING_KEYS.length) % SETTING_KEYS.length; refresh(); }
+        if (rowIdx === SETTINGS_ROW && settingIdx > 0) { settingIdx--; refresh(); }
         e.preventDefault(); break;
       case 'Enter': case ' ':
         if (rowIdx === SPIELE_ROW) startGame(gameIds[carouselIdx]);
-        if (rowIdx === SETTINGS_ROW) { cycleSetting(SETTING_KEYS[settingIdx]); refresh(); }
+        if (rowIdx === SETTINGS_ROW) { cycleEntry(settingIdx); refresh(); }
         e.preventDefault(); break;
     }
   });
@@ -194,8 +223,8 @@ export function handleMenuInput(activeScreen, gp, prev) {
   }
 
   if (rowIdx === SETTINGS_ROW) {
-    if (gp.a && !prev?.a)                     { cycleSetting(SETTING_KEYS[settingIdx]); refresh(); }
-    if (gp.dpad.right && !prev?.dpad?.right)  { settingIdx = (settingIdx + 1) % SETTING_KEYS.length; refresh(); }
-    if (gp.dpad.left  && !prev?.dpad?.left)   { settingIdx = (settingIdx - 1 + SETTING_KEYS.length) % SETTING_KEYS.length; refresh(); }
+    if (gp.a && !prev?.a)                     { cycleEntry(settingIdx); refresh(); }
+    if (gp.dpad.right && !prev?.dpad?.right && settingIdx < settingEntries.length - 1) { settingIdx++; refresh(); }
+    if (gp.dpad.left  && !prev?.dpad?.left  && settingIdx > 0)                        { settingIdx--; refresh(); }
   }
 }

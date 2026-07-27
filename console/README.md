@@ -28,7 +28,7 @@ Das Menü ist als vertikale **Slide-Liste** aufgebaut. Horizontal scrollt das Sp
 | 0 | RETROCON | Logo-Animation |
 | 1 | CONTROLLER | QR-Codes für P1 + P2, Verbindungsstatus |
 | 2 | SPIELE | Karussell aller registrierten Spiele |
-| 3 | EINSTELLUNGEN | Lautstärke, Spieldauer, Schwierigkeit, Bildröhre, Vollbild |
+| 3 | EINSTELLUNGEN | Nur Globales: Lautstärke, Bildröhre, Vollbild |
 | 4 | CREDITS | (bald verfügbar) |
 
 ### Navigation
@@ -70,19 +70,47 @@ Spiele erfahren davon nichts weiter als `api.getConns()`; sie starten die KI fü
 
 ## Einstellungen
 
-Auf der Einstellungs-Zeile wählen **← →** den Eintrag und **A / Enter** ändert ihn — dieselbe Aufteilung wie beim Spiele-Karussell, weil ↑ ↓ für den Zeilenwechsel belegt sind. Mausklick wählt einen Eintrag, der zweite Klick ändert ihn.
+Zwei Ebenen, die **nicht vermischt** werden:
 
-| Eintrag | Werte | Wirkt auf |
+| Ebene | Wo | Was | Gespeichert unter |
+|---|---|---|---|
+| **Global** | Konsolenmenü, Zeile EINSTELLUNGEN | Lautstärke, Bildröhre, Vollbild | `retrocon.settings` |
+| **Spielspezifisch** | Ingame-Menü des laufenden Spiels | Was nur dieses Spiel angeht | `retrocon.game.<id>` |
+
+Die Konsole kennt keine Spielbegriffe. Was ein Spiel anbietet, deklariert es selbst:
+
+```js
+window.RetroGames.soccer = {
+  settings: [
+    { key: 'duration', label: 'HALBZEIT', werte: [60, 90, 120, 180, 300],
+      vorgabe: 180, zeige: v => (v / 60).toFixed(0) + ' MIN' },
+  ],
+};
+```
+
+Im Spiel gelesen über `api.setting('duration')`. Fehlt `api.setting` (Prüfstand, Einbettung), muss der Vorgabewert greifen:
+
+```js
+const HALF_TIME = api.setting?.('duration') ?? 180;
+```
+
+Ein Spiel braucht für einen eigenen Regler also nichts am Menü zu ändern — und das Konsolenmenü bleibt frei von Dingen, die nur ein einzelnes Spiel betreffen.
+
+### Globale Einstellungen bedienen
+
+Waagerecht als Karussell, dieselbe Achse wie bei den Spielen: **← →** blättert durch die Regler, **A / Enter** ändert den ausgewählten, **↑ ↓** verlässt die Zeile. Eine senkrechte Liste stritte sich hier mit der Zeilennavigation. Mausklick wählt eine Karte, der zweite Klick ändert sie.
+
+| Eintrag | Werte | Wirkung |
 |---|---|---|
 | LAUTSTÄRKE | 0–100 % | Master-Gain vor dem Ausgang, quadratisch geregelt |
-| SPIELDAUER | 50 / 75 / 100 / 150 / 200 % | `api.settings.durationFactor` — Fußball-Halbzeit, Katapult-Spielzeit |
-| SCHWIERIGKEIT | LEICHT / NORMAL / SCHWER | `api.settings.skillBase` — Grundstärke der KI-**Gegner** (0,90 / 1,00 / 1,12) |
 | BILDRÖHRE | AN / AUS | Scanline-Overlay (`body.no-scanlines`) |
 | VOLLBILD | AN / AUS | `requestFullscreen()` |
 
-Die Werte liegen in `localStorage` unter `retrocon.settings` — ohne das setzte jeder Neustart alles zurück. Beim Laden wird nur übernommen, was auch als Option existiert; ein alter Stand schleppt so keine Werte mit, die es nicht mehr gibt.
-
 **Lautstärke ohne Eingriff in die Spiele:** Alle Spiele verbinden ihre Klänge auf `audioCtx.destination`. Sie bekommen deshalb nicht den AudioContext selbst, sondern eine Hülle (`Proxy`), deren `destination` ein Master-Gain ist. Der Regler wirkt damit überall, ohne dass ein einziges Spiel angefasst werden musste.
+
+### Spiel-Einstellungen bedienen
+
+ESC → EINSTELLUNGEN. Der Screen trägt den Namen des laufenden Spiels und zeigt nur dessen Regler; **↑ ↓** wählt, **A / Enter** ändert, **B / ESC** zurück. Dauer und Stärke liest ein Spiel beim Start — die Änderung gilt deshalb ab dem nächsten Spiel, und der Hinweis unter der Liste sagt das auch.
 
 ## Ingame-Menü
 
@@ -96,9 +124,10 @@ Das Menü nutzt denselben Slide-Mechanismus wie das Hauptmenü:
 |---|---|
 | WEITER | Spiel fortsetzen (auch: ESC / B) |
 | SPIEL BEENDEN | Zurück zum SPIELE-Slide, letztes Spiel im Fokus |
-| HILFE | → Slide 1 |
+| EINSTELLUNGEN | → Slide 1, die Regler dieses Spiels |
+| HILFE | → Slide 2 |
 
-**Slide 1 — Steuerung**
+**Slide 2 — Steuerung**
 
 Übersicht aller Eingabemethoden. Zurück per Pfeil-Hoch, W, Backspace, ESC, B oder Klick auf „← ZURÜCK".
 

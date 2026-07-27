@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.12.1]
+
+### Geändert
+- **Globale und spielspezifische Einstellungen sauber getrennt.** SPIELDAUER und SCHWIERIGKEIT gehörten nie ins Konsolenmenü — dort stehen jetzt ausschließlich Lautstärke, Bildröhre und Vollbild
+- Spielspezifische Regler liegen im **Ingame-Menü des laufenden Spiels** (ESC → EINSTELLUNGEN). Der Screen trägt den Namen des Spiels und zeigt nur dessen Regler
+- Jedes Spiel **deklariert seine Regler selbst** (`settings` am Modul) und liest sie über `api.setting(key)`. Die Konsole zeigt und speichert sie nur, unter `retrocon.game.<id>` — sie kennt weder Halbzeitlänge noch Turnierstärke
+- STREET SOCCER bietet HALBZEIT (1–5 Minuten) und SCHWIERIGKEIT, CATAPULT die SPIELZEIT
+- **Die globalen Einstellungen sind jetzt ein Karussell**, dieselbe Achse wie bei den Spielen: ← → blättert, A / Enter ändert, ↑ ↓ verlässt die Zeile. Als senkrechte Liste stritt sich die Bedienung mit der Zeilennavigation
+
 ## [0.12.0]
 
 ### Neu

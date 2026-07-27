@@ -4,7 +4,7 @@ import { initBoot } from './views/boot.js';
 import { renderQRs, setPlayerConnected } from './views/setup.js';
 import { initMenu, handleMenuInput, resetMenu, goToRow } from './views/menu.js';
 import { initGame, startGame, exitGame, getCurrentGame, isIngameMenuOpen, handleIngameMenuInput, openIgMenu } from './views/game.js';
-import { loadSettings, getSetting, onSettingChange } from './services/settings.js';
+import { loadSettings, getGlobal, onGlobalChange } from './services/settings.js';
 import { setMasterVolume } from './services/audio.js';
 
 let activeScreen = 'boot';
@@ -25,8 +25,8 @@ initBoot(
 );
 // Einstellungen gelten, bevor irgendetwas gezeichnet oder gehört wird
 loadSettings();
-applySetting('scanlines', getSetting('scanlines'));
-onSettingChange(applySetting);
+applyGlobal('scanlines', getGlobal('scanlines'));
+onGlobalChange(applyGlobal);
 
 initGame();
 initMenu();
@@ -49,9 +49,9 @@ onData((player, gp, prev) => {
   }
 });
 
-// Einen Einstellungswert wirksam machen. Lautstärke und Bildröhre wirken
-// sofort, Spieldauer und Schwierigkeit liest jedes Spiel beim Start.
-function applySetting(key, wert) {
+// Einen globalen Einstellungswert wirksam machen. Spielspezifische Regler
+// gehen die Konsole nichts an — die liest jedes Spiel beim Start selbst.
+function applyGlobal(key, wert) {
   if (key === 'volume')    setMasterVolume(wert);
   if (key === 'scanlines') document.body.classList.toggle('no-scanlines', !wert);
   if (key === 'fullscreen') {

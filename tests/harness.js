@@ -60,12 +60,12 @@ const pad = o => ({
 const stick = (x, y) => ({ ...pad(), joystick: { x, y, active: true, analog: true } });
 
 // Eine laufende Partie mit den Handgriffen, die jeder Test braucht.
-function session(game, { conns = new Map(), inject, settings, w = 1600, h = 900 } = {}) {
+function session(game, { conns = new Map(), inject, setting, w = 1600, h = 900 } = {}) {
   const mod = load(game, inject);
   const texts = [];
   const ctx = makeCtx(texts);
   const g = mod.create(ctx, w, h, 1, {
-    exit() {}, getConns: () => conns, audioCtx: null, settings, code: 'TEST'
+    exit() {}, getConns: () => conns, audioCtx: null, setting, code: 'TEST'
   });
   let prev = null;
   return {

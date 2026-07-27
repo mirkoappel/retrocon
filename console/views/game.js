@@ -1,7 +1,7 @@
 // Game-View: Canvas, Loop, Start/Exit, In-Game-Overlay (Slide-Menü).
 import { conns, lastInput, code, localPlayers, addLocalPlayer } from '../services/connection.js';
 import { getAudioContext } from '../services/audio.js';
-import { gameSettings } from '../services/settings.js';
+import { getGameSetting, cycleGameSetting, gameOptions } from '../services/settings.js';
 import { resetMenu, goToGame } from './menu.js';
 
 // Kein Import von app.js — DOM direkt manipulieren bricht die zirkuläre Abhängigkeit
@@ -15,8 +15,10 @@ let currentGameId = null;
 let rafId = null;
 let paused = false;
 let canvas, ctx, gameView, toast, igOverlay, igSlidesEl, igTrack, igSlides, igNavTop, igNavArrow, igNavLabel, igItems;
+let igSetList, igSetTitle;
 let toastTimer = null;
-let igSlideIdx = 0;   // 0 = Pause-Menü, 1 = Hilfe
+let igSlideIdx = 0;   // 0 = Pause-Menü, 1 = Einstellungen, 2 = Hilfe
+let igSetIdx = 0;     // ausgewählter Regler auf der Einstellungs-Seite
 let igMenuIdx  = 0;   // ausgewählter Eintrag im Pause-Menü
 
 // P1: Pfeiltasten + Enter, P2: WASD + Leertaste
@@ -29,7 +31,7 @@ const KB = {
   2: { up:'KeyW', down:'KeyS', left:'KeyA', right:'KeyD', a:['Space'], b:['KeyQ'] },
 };
 
-const IG_ITEMS = ['WEITER', 'SPIEL BEENDEN', 'HILFE'];
+const IG_ITEMS = ['WEITER', 'SPIEL BEENDEN', 'EINSTELLUNGEN', 'HILFE'];
 
 // Ein Platz gehört der KI, bis ihn jemand übernimmt. P1 ist per addLocalPlayer(1)
 // dauerhaft vergeben; P2 beansprucht, wer im Spiel WASD drückt.
@@ -76,6 +78,8 @@ export function initGame() {
   igNavArrow  = document.getElementById('ig-nav-arrow');
   igNavLabel  = document.getElementById('ig-nav-label');
   igItems     = igOverlay.querySelectorAll('.ig-item');
+  igSetList   = document.getElementById('ig-settings-list');
+  igSetTitle  = document.getElementById('ig-settings-title');
 
   igItems.forEach((el, i) => el.addEventListener('click', () => {
     if (igSlideIdx !== 0) return;
@@ -112,7 +116,20 @@ function handleEsc() {
 }
 
 function handleIgKey(e) {
-  if (igSlideIdx === 1) {
+  if (igSlideIdx === 1) {                       // Einstellungen des Spiels
+    if (e.code === 'ArrowUp'   || e.code === 'KeyW') { igSettingsKey(-1); e.preventDefault(); return; }
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') { igSettingsKey(1);  e.preventDefault(); return; }
+    if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space') {
+      const opts = gameOptions(currentGameId);
+      if (opts[igSetIdx]) { cycleGameSetting(currentGameId, opts[igSetIdx].key); refreshIgSettings(); }
+      e.preventDefault(); e.stopImmediatePropagation(); return;
+    }
+    if (e.code === 'Escape' || e.code === 'KeyB' || e.code === 'Backspace') {
+      igSlideIdx = 0; refreshIg(); e.preventDefault();
+    }
+    return;
+  }
+  if (igSlideIdx === 2) {
     if (e.code === 'Escape' || e.code === 'KeyB' || e.code === 'Backspace' ||
         e.code === 'ArrowUp' || e.code === 'KeyW') {
       igSlideIdx = 0; refreshIg(); e.preventDefault();
@@ -134,7 +151,52 @@ function handleIgKey(e) {
 function selectIgMenuItem() {
   if (igMenuIdx === 0) { resumeGame(); }
   else if (igMenuIdx === 1) { closeIgOverlay(); exitGame(); }
-  else if (igMenuIdx === 2) { igSlideIdx = 1; refreshIg(); }
+  else if (igMenuIdx === 2) { igSlideIdx = 1; buildIgSettings(); refreshIg(); }
+  else if (igMenuIdx === 3) { igSlideIdx = 2; refreshIg(); }
+}
+
+// Die Regler des laufenden Spiels. Was hier steht, deklariert das Spiel selbst
+// — die Konsole zeigt es nur an und speichert es unter dem Spielnamen.
+function buildIgSettings() {
+  const opts = gameOptions(currentGameId);
+  igSetTitle.textContent = (window.RetroGames?.[currentGameId]?.name || 'SPIEL');
+  igSetList.innerHTML = '';
+  igSetIdx = Math.min(igSetIdx, Math.max(0, opts.length - 1));
+  opts.forEach((o, i) => {
+    const el = document.createElement('div');
+    el.className = 'ig-setting';
+    el.innerHTML = `<span class="name">${o.label}</span><span class="wert"></span>`;
+    el.addEventListener('click', () => {
+      if (igSetIdx === i) cycleGameSetting(currentGameId, o.key);
+      else igSetIdx = i;
+      refreshIgSettings();
+    });
+    igSetList.appendChild(el);
+  });
+  if (!opts.length) {
+    igSetList.innerHTML = '<p class="slide-placeholder">KEINE EIGENEN EINSTELLUNGEN</p>';
+  }
+  refreshIgSettings();
+}
+
+function refreshIgSettings() {
+  const opts = gameOptions(currentGameId);
+  [...igSetList.querySelectorAll('.ig-setting')].forEach((el, i) => {
+    el.classList.toggle('selected', i === igSetIdx);
+    el.querySelector('.wert').textContent = opts[i].zeige(getGameSetting(currentGameId, opts[i].key));
+  });
+  // Ehrlich bleiben: Dauer und Stärke liest ein Spiel beim Start
+  const hint = document.getElementById('ig-settings-hint');
+  if (hint) hint.textContent = opts.length
+    ? '↑ ↓ WÄHLEN · A / ENTER ÄNDERN · GILT AB DEM NÄCHSTEN SPIEL'
+    : '';
+}
+
+function igSettingsKey(step) {
+  const opts = gameOptions(currentGameId);
+  if (!opts.length) return;
+  igSetIdx = (igSetIdx + step + opts.length) % opts.length;
+  refreshIgSettings();
 }
 
 function refreshIg() {
@@ -177,7 +239,17 @@ export const getCurrentGame    = () => currentGame;
 export const isIngameMenuOpen  = () => paused;
 
 export function handleIngameMenuInput(gp, prev) {
-  if (igSlideIdx === 1) {
+  if (igSlideIdx === 1) {                       // Einstellungen des Spiels
+    if (gp.dpad?.up   && !prev?.dpad?.up)   igSettingsKey(-1);
+    if (gp.dpad?.down && !prev?.dpad?.down) igSettingsKey(1);
+    if (gp.a && !prev?.a) {
+      const opts = gameOptions(currentGameId);
+      if (opts[igSetIdx]) { cycleGameSetting(currentGameId, opts[igSetIdx].key); refreshIgSettings(); }
+    }
+    if ((gp.b && !prev?.b) || (gp.select && !prev?.select)) { igSlideIdx = 0; refreshIg(); }
+    return;
+  }
+  if (igSlideIdx === 2) {
     if ((gp.b && !prev?.b) || (gp.select && !prev?.select) ||
         (gp.dpad?.up && !prev?.dpad?.up)) {
       igSlideIdx = 0; refreshIg();
@@ -215,7 +287,9 @@ export function startGame(name) {
       return m;
     },
     audioCtx: getAudioContext(),
-    settings: gameSettings(),
+    // Spielspezifische Regler: das Spiel fragt seine eigenen ab, unter seinem
+    // eigenen Namen. Globale Einstellungen wirken ohne Zutun der Spiele.
+    setting: key => getGameSetting(name, key),
     code
   });
   for (const [p, gp] of lastInput) currentGame.input?.(p, gp, null);

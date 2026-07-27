@@ -7,6 +7,12 @@ window.RetroGames.catapult = {
   minPlayers: 1,
   maxPlayers: 2,
 
+  // Eigener Regler, von der Konsole nur angezeigt und gespeichert
+  settings: [
+    { key: 'duration', label: 'SPIELZEIT', werte: [120, 180, 300, 600], vorgabe: 300,
+      zeige: v => (v / 60) + ' MIN' },
+  ],
+
   // Preview-Grafik für die Menü-Karte (inline SVG)
   artSvg: `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet">
@@ -41,7 +47,7 @@ window.RetroGames.catapult = {
     const SKY_TOP = '#0a0e14', SKY_BOT = '#141b24';
     const ROCK = '#1b2430', ROCK_EDGE = '#2c3a4c';
 
-    const MATCH_TIME = 300 * (api.settings?.durationFactor ?? 1);  // Sekunden bis Zeitablauf
+    const MATCH_TIME = api.setting?.('duration') ?? 300;   // Sekunden bis Zeitablauf
     const RELOAD     = 2.0;     // Nachladezeit nach dem Schuss
     const CHARGE_T   = 1.1;     // Sekunden von 0 auf volle Kraft
     const ANGLE_MIN  = 15, ANGLE_MAX = 75;

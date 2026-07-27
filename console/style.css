@@ -22,17 +22,69 @@ body.no-scanlines::after { display: none; }
   margin: 1.2rem 0 1.4rem;
   min-width: min(26rem, 80vw);
 }
-.setting {
-  display: flex; justify-content: space-between; align-items: baseline;
-  gap: 2rem; padding: 0.55rem 0.9rem;
-  border: 1px solid #222; cursor: pointer;
-  font-size: 0.7rem; letter-spacing: 0.2rem; color: #666;
+/* Einstellungen als Karussell — dieselbe Achse wie bei den Spielen:
+   ← → blättert durch die Regler, ↑ ↓ verlässt die Zeile. Eine senkrechte
+   Liste stritte sich hier mit der Zeilennavigation. */
+#settings-carousel {
+  position: relative;
+  width: min(900px, 92vw);
+  height: clamp(190px, 30vh, 260px);
+  display: flex;
+  align-items: center;
+  /* wie beim Spiele-Karussell: die aktive Karte zentriert menu.js per
+     translateX auf Basis von offsetLeft */
+  justify-content: flex-start;
+  overflow: hidden;
+  margin: 1.4rem 0 0.6rem;
 }
-.setting:hover { border-color: #444; color: #999; }
-.setting.selected { border-color: #fff; color: #fff; }
-.setting .wert { color: inherit; letter-spacing: 0.15rem; }
-.setting.selected .wert::before { content: '‹ '; }
-.setting.selected .wert::after  { content: ' ›'; }
+#settings-track {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  transition: transform 0.35s cubic-bezier(0.3, 0.8, 0.2, 1);
+  will-change: transform;
+}
+.setting {
+  flex-shrink: 0;
+  width: clamp(200px, 26vw, 270px);
+  background: #0a0a0a;
+  border: 2px solid #222;
+  border-radius: 10px;
+  padding: 20px 18px 22px;
+  text-align: center;
+  opacity: 0.35;
+  transform: scale(0.82);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.setting.selected {
+  opacity: 1;
+  transform: scale(1);
+  border-color: #4fc3f7;
+  box-shadow: 0 0 32px rgba(79,195,247,0.35), inset 0 0 20px rgba(79,195,247,0.05);
+}
+/* Zugehörigkeit steht auf der Karte — so bleibt sichtbar, was der Konsole
+   gehört und was dem Spiel, ohne dass beides in einer Liste verschwimmt */
+.setting .bereich {
+  font-size: 0.5rem; letter-spacing: 0.3rem; color: #555;
+  margin-bottom: 14px;
+}
+.setting.selected .bereich { color: #4fc3f7; }
+.setting .name {
+  display: block;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: 0.72rem; letter-spacing: 0.08rem; color: #999;
+  margin-bottom: 18px;
+}
+.setting.selected .name { color: #fff; }
+.setting .wert {
+  display: block;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: 0.95rem; letter-spacing: 0.05rem; color: #666;
+}
+.setting.selected .wert { color: #4fc3f7; text-shadow: 0 0 16px rgba(79,195,247,0.5); }
+.setting.selected .wert::before { content: '‹ '; color: #4fc3f7; }
+.setting.selected .wert::after  { content: ' ›'; color: #4fc3f7; }
 
 /* ── Screen-System ─────────────────────────────────────── */
 .screen { display: none; height: 100dvh; }
@@ -384,8 +436,10 @@ body.no-scanlines::after { display: none; }
 }
 .carousel-arrow.left  { left: 16px;  transform: translateY(-50%) rotate(-135deg); }
 .carousel-arrow.right { right: 16px; transform: translateY(-50%) rotate(45deg); }
-#carousel.has-prev .carousel-arrow.left  { opacity: 0.8; pointer-events: auto; }
-#carousel.has-next .carousel-arrow.right { opacity: 0.8; pointer-events: auto; }
+#carousel.has-prev .carousel-arrow.left,
+#settings-carousel.has-prev .carousel-arrow.left  { opacity: 0.8; pointer-events: auto; }
+#carousel.has-next .carousel-arrow.right,
+#settings-carousel.has-next .carousel-arrow.right { opacity: 0.8; pointer-events: auto; }
 .carousel-arrow:hover { opacity: 1 !important; }
 .carousel-arrow.left  { left: 8px; }
 .carousel-arrow.right { right: 8px; }
@@ -545,6 +599,38 @@ body.no-scanlines::after { display: none; }
   background: rgba(79,195,247,0.05);
 }
 .ig-item:hover { color: #c0e8f8; }
+
+/* Spiel-Einstellungen: nur im laufenden Spiel erreichbar und dort dem Spiel
+   zugeordnet — im Konsolenmenü stehen ausschließlich globale Regler. */
+/* Der Canvas bleibt im Pausenmenü bewusst sichtbar. Für eine Liste mit Werten
+   ist das zu unruhig — Titel, Liste und Hinweis bekommen deshalb einen
+   deckenden Rücken statt durchscheinendem Spielfeld. */
+#ig-slide-settings {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+#ig-slide-settings .slide-title,
+#ig-slide-settings .slide-hint,
+#ig-settings-list {
+  background: rgba(4, 6, 10, 0.95);
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+}
+#ig-settings-list {
+  display: flex; flex-direction: column; gap: 0.7rem;
+  margin: 1.4rem 0 1.2rem;
+  min-width: min(24rem, 78vw);
+}
+.ig-setting {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 2rem; padding: 0.6rem 1rem;
+  border: 1px solid #223; cursor: pointer;
+  font-size: 0.7rem; letter-spacing: 0.2rem; color: #667;
+}
+.ig-setting:hover { border-color: #445; color: #99a; }
+.ig-setting.selected { border-color: #4fc3f7; color: #fff; }
+.ig-setting.selected .wert { color: #4fc3f7; }
+.ig-setting.selected .wert::before { content: '‹ '; }
+.ig-setting.selected .wert::after  { content: ' ›'; }
 
 .ig-help-blocks {
   display: flex;

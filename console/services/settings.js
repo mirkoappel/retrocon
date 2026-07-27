@@ -1,62 +1,86 @@
-// Einstellungen der Konsole. Sie liegen in localStorage — ohne das wäre ein
-// Einstellungsmenü sinnlos, weil jeder Neustart alles zurücksetzte.
+// Einstellungen der Konsole.
 //
-// Spiele lesen die Werte über `api.settings` und müssen damit rechnen, dass es
-// das Feld nicht gibt (Prüfstand, Einbettung): immer mit Vorgabewert abfragen.
+// Zwei getrennte Ebenen, die nicht vermischt werden:
+//
+//   GLOBAL      gehört der Konsole: Lautstärke, Bildröhre, Vollbild.
+//               Betrifft jedes Spiel gleichermaßen, liegt unter `retrocon.settings`.
+//
+//   SPIELWEIT   gehört dem Spiel. Jedes Spiel deklariert seine eigenen Regler
+//               über `window.RetroGames[id].settings` — Spieldauer, Schwierigkeit
+//               und was sonst nur dort Sinn ergibt. Die Konsole zeigt und
+//               speichert sie bloß, unter `retrocon.game.<id>`.
+//
+// Die Konsole kennt also keine Spielbegriffe, und ein Spiel muss für einen
+// eigenen Regler nichts am Menü ändern.
 
-const KEY = 'retrocon.settings';
+const KEY_GLOBAL = 'retrocon.settings';
+const KEY_GAME = id => `retrocon.game.${id}`;
 
-export const OPTIONS = {
-  volume:     { label: 'LAUTSTÄRKE',   werte: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], zeige: v => v + ' %' },
-  duration:   { label: 'SPIELDAUER',   werte: [50, 75, 100, 150, 200],                      zeige: v => v + ' %' },
-  difficulty: { label: 'SCHWIERIGKEIT', werte: ['leicht', 'normal', 'schwer'],              zeige: v => v.toUpperCase() },
-  scanlines:  { label: 'BILDRÖHRE',    werte: [true, false],                                zeige: v => v ? 'AN' : 'AUS' },
-  fullscreen: { label: 'VOLLBILD',     werte: [false, true],                                zeige: v => v ? 'AN' : 'AUS' },
+export const GLOBAL_OPTIONS = {
+  volume:     { label: 'LAUTSTÄRKE', werte: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], vorgabe: 70,    zeige: v => v + ' %' },
+  scanlines:  { label: 'BILDRÖHRE',  werte: [true, false],                                vorgabe: true,  zeige: v => v ? 'AN' : 'AUS' },
+  fullscreen: { label: 'VOLLBILD',   werte: [false, true],                                vorgabe: false, zeige: v => v ? 'AN' : 'AUS' },
 };
 
-const DEFAULTS = { volume: 70, duration: 100, difficulty: 'normal', scanlines: true, fullscreen: false };
-
-let werte = { ...DEFAULTS };
+let global = {};
+let proSpiel = {};
 const hoerer = [];
 
-export function loadSettings() {
-  try {
-    const roh = JSON.parse(localStorage.getItem(KEY) || '{}');
-    for (const k of Object.keys(DEFAULTS)) {
-      // Nur übernehmen, was auch als Option existiert — sonst schleppt ein
-      // alter Stand Werte mit, die es nicht mehr gibt
-      if (OPTIONS[k].werte.includes(roh[k])) werte[k] = roh[k];
-    }
-  } catch {}
-  return werte;
+function lies(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch { return {}; }
+}
+function schreib(key, wert) {
+  try { localStorage.setItem(key, JSON.stringify(wert)); } catch {}
 }
 
-export function getSetting(k) { return werte[k]; }
-export function allSettings() { return { ...werte }; }
+export function loadSettings() {
+  const roh = lies(KEY_GLOBAL);
+  for (const [k, o] of Object.entries(GLOBAL_OPTIONS)) {
+    // Nur übernehmen, was auch als Option existiert — sonst schleppt ein alter
+    // Stand Werte mit, die es nicht mehr gibt
+    global[k] = o.werte.includes(roh[k]) ? roh[k] : o.vorgabe;
+  }
+  return global;
+}
 
-export function setSetting(k, v) {
-  werte[k] = v;
-  try { localStorage.setItem(KEY, JSON.stringify(werte)); } catch {}
+export const getGlobal = k => global[k];
+
+export function setGlobal(k, v) {
+  global[k] = v;
+  schreib(KEY_GLOBAL, global);
   hoerer.forEach(fn => fn(k, v));
 }
 
-// Nächsten Wert der Liste wählen, am Ende wieder von vorn
-export function cycleSetting(k) {
-  const o = OPTIONS[k];
-  const i = o.werte.indexOf(werte[k]);
-  setSetting(k, o.werte[(i + 1) % o.werte.length]);
-  return werte[k];
+export function cycleGlobal(k) {
+  const o = GLOBAL_OPTIONS[k];
+  setGlobal(k, o.werte[(o.werte.indexOf(global[k]) + 1) % o.werte.length]);
+  return global[k];
 }
 
-export function onSettingChange(fn) { hoerer.push(fn); }
+export function onGlobalChange(fn) { hoerer.push(fn); }
 
-// ── Für die Spiele aufbereitet ────────────────────────────
-// Faktoren statt Rohwerte, damit ein Spiel nicht wissen muss, wie das Menü
-// die Stufen benennt.
-export function gameSettings() {
-  return {
-    durationFactor: werte.duration / 100,
-    // Grundstärke der KI-Gegner. Der Turnieraufschlag je Runde kommt im Spiel dazu.
-    skillBase: werte.difficulty === 'leicht' ? 0.90 : werte.difficulty === 'schwer' ? 1.12 : 1,
-  };
+// ── Spielspezifisch ───────────────────────────────────────
+// Was ein Spiel anbietet, steht im Spiel — die Konsole liest es nur aus.
+export function gameOptions(id) {
+  return (window.RetroGames?.[id]?.settings) || [];
+}
+
+export function getGameSetting(id, key) {
+  if (!proSpiel[id]) {
+    const roh = lies(KEY_GAME(id));
+    proSpiel[id] = {};
+    for (const o of gameOptions(id)) {
+      proSpiel[id][o.key] = o.werte.includes(roh[o.key]) ? roh[o.key] : o.vorgabe;
+    }
+  }
+  return proSpiel[id][key];
+}
+
+export function cycleGameSetting(id, key) {
+  const o = gameOptions(id).find(x => x.key === key);
+  if (!o) return;
+  getGameSetting(id, key);                       // sicherstellen, dass geladen ist
+  proSpiel[id][key] = o.werte[(o.werte.indexOf(proSpiel[id][key]) + 1) % o.werte.length];
+  schreib(KEY_GAME(id), proSpiel[id]);
+  return proSpiel[id][key];
 }

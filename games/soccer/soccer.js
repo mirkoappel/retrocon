@@ -9,6 +9,15 @@ window.RetroGames.soccer = {
   minPlayers: 1,
   maxPlayers: 2,
 
+  // Eigene Regler. Die Konsole zeigt und speichert sie, kennt aber weder
+  // Halbzeitlänge noch Turnierstärke — das bleibt Sache des Spiels.
+  settings: [
+    { key: 'duration',   label: 'HALBZEIT',      werte: [60, 90, 120, 180, 300], vorgabe: 180,
+      zeige: v => (v / 60).toFixed(0).replace('.', ',') + ' MIN' },
+    { key: 'difficulty', label: 'SCHWIERIGKEIT', werte: ['leicht', 'normal', 'schwer'], vorgabe: 'normal',
+      zeige: v => v.toUpperCase() },
+  ],
+
   artSvg: `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid meet">
       <rect width="320" height="200" fill="#0a0e14"/>
@@ -80,10 +89,12 @@ window.RetroGames.soccer = {
 
     const RESTART_KICK = 1.6;   // Standbild vor dem Anstoß
     const RESTART_GOAL = 2.4;   // …und nach einem Tor, etwas länger zum Jubeln
-    // Spieldauer und Grundstärke kommen aus den Konsolen-Einstellungen.
-    // Fehlt das Feld (Prüfstand, Einbettung), gelten die Vorgabewerte.
-    const HALF_TIME = 180 * (api.settings?.durationFactor ?? 1);   // Sekunden je Halbzeit
-    const SKILL_BASE = api.settings?.skillBase ?? 1;
+    // Die beiden eigenen Regler aus dem Einstellungsmenü. Fehlt `api.setting`
+    // (Prüfstand, Einbettung), gelten die Vorgabewerte.
+    const HALF_TIME  = api.setting?.('duration') ?? 180;   // Sekunden je Halbzeit
+    const SCHWIERIG  = api.setting?.('difficulty') ?? 'normal';
+    // Grundstärke der KI-Gegner; der Turnieraufschlag je Runde kommt dazu
+    const SKILL_BASE = SCHWIERIG === 'leicht' ? 0.90 : SCHWIERIG === 'schwer' ? 1.12 : 1;
     const HALVES    = 2;
     const ROUNDS    = ['ACHTELFINALE', 'VIERTELFINALE', 'HALBFINALE', 'FINALE'];
 
