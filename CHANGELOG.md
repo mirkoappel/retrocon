@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.14.1]
+
+### Behoben
+- **STREET SOCCER: Angriff und Grätsche ließen sich mit der Tastatur kaum auslösen.** Der Angriff kam erst **beim Loslassen** der B-Taste — auf den Tastendruck geschah sichtbar nichts, und zwei schnelle Antipper wurden zu einem. Jetzt löst der Angriff **sofort beim Drücken** aus; bleibt die Taste liegen, wird ab 0,20 s die Grätsche daraus
+- Der Angriff hatte außerdem keinen eigenen Ton (er lief auf dem Menü-Blip mit) und war mit einer Streckung von 1,3 kaum zu sehen — jetzt eigener Ton, 1,42 Streckung und ein kurzer Versatz nach vorn
+- Neuer Prüfstandsfall über den vollständigen Tastaturweg: antippen ergibt einen Angriff, halten einen Angriff und eine Grätsche, zweimal antippen zwei Angriffe, und die Reaktion kommt im selben Frame
+
 ## [0.14.0]
 
 ### Neu

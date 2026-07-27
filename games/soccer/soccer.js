@@ -219,6 +219,9 @@ window.RetroGames.soccer = {
     }
     const later = (fn, ms) => timers.push(setTimeout(fn, ms));
     const sndKick   = () => blip(180, 0.05, 'square', 0.16);
+    // Eigener Ton für den Angriff — vorher lief er auf dem Menü-Blip mit und
+    // war im Spiel nicht als Aktion zu erkennen
+    const sndPoke   = () => blip(420, 0.035, 'square', 0.10);
     const sndShot   = () => { blip(140, 0.07, 'square', 0.2); blip(300, 0.04, 'square', 0.1); };
     const sndPass   = () => blip(420, 0.04, 'square', 0.1);
     const sndSteal  = () => blip(90, 0.08, 'sawtooth', 0.14);
@@ -512,6 +515,7 @@ window.RetroGames.soccer = {
 
     function startTackle(p) {
       if (p.tackle > 0 || p.down > 0 || p.dive > 0) return;
+      p.poke = 0;
       p.tackle = TACKLE_TIME;
       p.poke = 0;
       sndKick();
@@ -522,7 +526,7 @@ window.RetroGames.soccer = {
     function startPoke(p) {
       if (p.tackle > 0 || p.down > 0 || p.dive > 0 || p.poke > 0) return;
       p.poke = POKE_TIME;
-      sndMenu();
+      sndPoke();
     }
 
     function startDive(p) {
@@ -898,7 +902,8 @@ window.RetroGames.soccer = {
         // Gehaltene B-Taste: aus dem Angriff wird eine Grätsche
         if (p.bHold >= 0) {
           p.bHold += dt;
-          if (p.bHold >= LONG_PRESS) { startTackle(p); p.bHold = -1; }
+          // Aus dem laufenden Angriff wird die Grätsche, wenn die Taste liegen bleibt
+          if (p.bHold >= LONG_PRESS) { p.poke = 0; startTackle(p); p.bHold = -1; }
         }
         const graetschte = p.tackle > 0;
         p.tackle = Math.max(0, p.tackle - dt);
@@ -1336,15 +1341,16 @@ window.RetroGames.soccer = {
             }
             // B: mit Ball abspielen. Ohne Ball vor dem gegnerischen Tor der
             // Hechtsprung, sonst kurz antippen = angreifen, gehalten = grätschen.
+            // Der Angriff löst sofort beim Drücken aus — er ist die schnelle
+            // Aktion und darf sich nicht träge anfühlen. Bleibt die Taste
+            // liegen, wird daraus die Grätsche. Vorher entschied erst das
+            // Loslassen, wodurch auf den Tastendruck sichtbar nichts geschah.
             if (edge(gp, prev, 'b')) {
               if (state.ball.owner === me) pass(me);
               else if (canDive(me)) startDive(me);
-              else me.bHold = 0;                    // Uhr läuft, entschieden wird beim Loslassen
+              else { startPoke(me); me.bHold = 0; }
             }
-            if (!gp.b && prev?.b && me.bHold >= 0) {
-              if (me.bHold < LONG_PRESS) startPoke(me);
-              me.bHold = -1;
-            }
+            if (!gp.b && me.bHold >= 0) me.bHold = -1;
             return;
           }
         }
@@ -1493,7 +1499,7 @@ window.RetroGames.soccer = {
 
         // Hechtsprung, Liegen und Grätsche: dieselbe Scheibe, nur verformt.
         // Bildschirm-y ist gespiegelt, deshalb der Winkel über screenAngle.
-        let k = 1, ang = 0, alpha = 1, hoehe = 0, gross = 1;
+        let k = 1, ang = 0, alpha = 1, hoehe = 0, gross = 1, vor = 0;
         if (p.dive > 0) {
           // Ein Sprung, keine Gummiwurst: schnell strecken und gestreckt
           // bleiben, solange man fliegt. Die federnde Schwingung gehört zum
@@ -1515,9 +1521,13 @@ window.RetroGames.soccer = {
           ang = screenAngle(r, p.fx, p.fy);
           alpha = 0.82;
         } else if (p.poke > 0) {
-          // Angriff: ein kurzer Stich nach vorn — schnell raus, schnell zurück
+          // Angriff: ein kurzer Stich nach vorn — schnell raus, schnell zurück.
+          // Bewusst deutlicher als der erste Entwurf (0,3), sonst sieht man im
+          // Spiel gar nicht, dass überhaupt etwas passiert ist.
           const t = 1 - p.poke / POKE_TIME;
-          k = 1 + 0.3 * Math.sin(Math.PI * Math.pow(t, 0.7));
+          const stich = Math.sin(Math.PI * Math.pow(t, 0.7));
+          k = 1 + 0.42 * stich;
+          vor = stich * rad * 0.5;                 // kurzer Versatz in Blickrichtung
           ang = screenAngle(r, p.fx, p.fy);
         } else if (p.tackle > 0) {
           // Wie beim Sprung: schnell lang machen und lang bleiben, solange man
@@ -1547,7 +1557,8 @@ window.RetroGames.soccer = {
             koerper(q.X, q.Y, 1 - hoehe * 0.25, 0.5, 0);
             ctx.fillStyle = merk;
           }
-          koerper(q.X, q.Y - hoehe * rad * 1.5, gross, alpha, Math.max(1, r.s * 0.002));
+          koerper(q.X + Math.cos(ang) * vor, q.Y + Math.sin(ang) * vor - hoehe * rad * 1.5,
+                  gross, alpha, Math.max(1, r.s * 0.002));
         } else {
           ctx.beginPath(); ctx.arc(q.X, q.Y, rad, 0, Math.PI * 2); ctx.fill();
           ctx.stroke();

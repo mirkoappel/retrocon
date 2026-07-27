@@ -265,8 +265,10 @@ Ohne Ball entscheidet die **Dauer des Tastendrucks**:
 
 | | Dauer | Wirkung | Risiko |
 |---|---|---|---|
-| **Angreifen** | kurz antippen | kurzer Schritt zum Ball (×1,3), Zweikampfdruck 2,6 | keins |
+| **Angreifen** | beim Drücken | kurzer Schritt zum Ball (×1,3), Zweikampfdruck 2,6 | keins |
 | **Grätschen** | ab 0,20 s halten | Antritt und Rutschen, Reichweite auch zum **Mann**, Druck 3,4 | danach 0,35 s am Boden |
+
+Der Angriff löst **beim Drücken** aus, nicht beim Loslassen. Anders herum gebaut fühlte es sich an, als reagierte die Taste gar nicht: Auf den Tastendruck geschah sichtbar nichts, und zwei schnelle Antipper wurden zu einem.
 
 Die KI trifft dieselbe Abwägung: Sie greift überwiegend an und grätscht nur selten.
 
