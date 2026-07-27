@@ -1479,8 +1479,9 @@ window.RetroGames.soccer = {
 
         case 'champion':
         case 'out':
-          // Auch hier: Wer nichts drückt, sieht dem nächsten Turnier zu.
-          if (vonSelbst) { state.round = 0; state.score = [0, 0]; naechstesSpiel(); return; }
+          // Wer nichts drückt, sieht dem nächsten Turnier zu — von vorn, mit
+          // neuem Gegner und zurückgesetzter Runde.
+          if (vonSelbst) { state.round = 0; state.score = [0, 0]; state.highlights = []; naechstesSpiel(); return; }
           state.round = 0; state.phase = 'mode'; state.menuSel = 0; return;
       }
     }
@@ -2332,10 +2333,20 @@ window.RetroGames.soccer = {
       ctx.fillStyle = '#ffb300';
       ctx.font = font(uni() * 0.03);
       ctx.fillText(`${ROUNDS.length} SPIELE, ${ROUNDS.length} SIEGE`, w / 2, h * 0.54);
+      naechstesAnsagen();
     }
 
     function drawOut() {
       panel('AUSGESCHIEDEN', `${ROUNDS[state.round]} · ${TEAMS[state.myTeam].n}`);
+      naechstesAnsagen();
+    }
+
+    // Was als Naechstes kommt, muss dastehen. Sonst beginnt nach dem Aus
+    // scheinbar grundlos noch ein Spiel -- gemeint ist ein neues Turnier.
+    function naechstesAnsagen() {
+      ctx.fillStyle = '#4fc3f7';
+      ctx.font = font(uni() * 0.026);
+      ctx.fillText('NEUE WELTMEISTERSCHAFT', w / 2, h * 0.58);
     }
   }
 };

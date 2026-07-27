@@ -116,6 +116,10 @@ Nachgemessen: Gleichschritt 88,5 % → **5,4 %**, vor der Grundstellung 0,4 % �
 
 **Was nicht ging:** Die seitliche Deckung auch nur jenseits jeder Schussdistanz träge zu machen, ließ die Torquote auf **34,8 Tore pro Spiel** springen. Ein Rest an Gleichlauf bleibt deshalb bewusst bestehen — es gibt einen Ball, und beide Torhüter reagieren richtig darauf.
 
+## Nach dem Turnier
+
+Nach AUSGESCHIEDEN oder WELTMEISTER steht auf der Tafel, was folgt: **NEUE WELTMEISTERSCHAFT**. Wer nichts drückt, sieht ihr zu — Runde, Spielstand und Höhepunkte werden dabei zurückgesetzt, es beginnt wirklich von vorn. Ohne die Ansage sah es aus, als starte nach dem Aus grundlos noch ein Spiel.
+
 ## Nach dem Spiel
 
 Die Ergebnistafel funktioniert wie die Toranzeige — ein Panel mit Menü statt einer Tafel, die man wegdrückt:

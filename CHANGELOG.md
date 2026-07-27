@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.19.4]
+
+### Geändert
+- **STREET SOCCER: Nach dem Aus im Turnier steht jetzt da, was folgt** — NEUE WELTMEISTERSCHAFT. Wer nichts drückt, sieht ihr zu; Runde, Spielstand und Höhepunkte werden dabei zurückgesetzt. Ohne die Ansage sah es aus, als starte nach einer Niederlage grundlos noch ein Spiel
+
+### Behoben
+- Die Versionsnummer war bei v0.19.3 nicht mitgezogen worden: Ein Syntaxfehler in meinem Patch-Skript brach es vor der ersten Zeile ab, sodass Konsole und Boot-Bildschirm weiter v0.19.2 anzeigten — und der Versionsanhang an den Dateinamen ebenfalls
+
 ## [0.19.3]
 
 ### Geändert
