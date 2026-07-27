@@ -67,11 +67,11 @@ function applyGlobal(key, wert) {
 document.addEventListener('fullscreenchange', () => { refreshMenu(); zeichenSetzen(); });
 
 // ── Vollbild-Knopf ───────────────────────────────────────────────────
-// Er stört nicht: Im Menü gibt es dafür die Einstellung, also erscheint er nur
-// im Spiel — und auch dort nur, solange die Maus bewegt wird. Ohne Zeigegerät
-// (Touch, Gamepad) taucht er nie auf.
+// Er gilt überall — im Menü wie im Spiel — und stört trotzdem nicht: Er zeigt
+// sich nur, solange die Maus bewegt wird, und verschwindet kurz darauf wieder.
+// Ohne Zeigegerät (Touch, Gamepad) taucht er nie auf.
 const knopf = document.getElementById('vollbild-knopf');
-const AUSBLENDEN = 2000;                    // Millisekunden ohne Mausbewegung
+const AUSBLENDEN = 1200;                    // Millisekunden ohne Mausbewegung
 let ausblendUhr = 0;
 
 function zeichenSetzen() {
@@ -80,7 +80,6 @@ function zeichenSetzen() {
 
 function knopfZeigen() {
   if (!knopf) return;
-  if (!getCurrentGame()) { knopf.classList.remove('sichtbar'); return; }
   knopf.classList.add('sichtbar');
   clearTimeout(ausblendUhr);
   ausblendUhr = setTimeout(() => knopf.classList.remove('sichtbar'), AUSBLENDEN);

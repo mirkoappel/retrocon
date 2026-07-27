@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.12]
+
+### Behoben
+- **STREET SOCCER: Die Wiederholung endete auf der Torlinie.** Der angehängte Teil rechnete mit der Ballgeschwindigkeit — die `scoreGoal` ein paar Zeilen vorher auf null setzt, damit der Ball im Netz liegen bleibt. Alle 26 angehängten Bilder lagen deshalb auf der Linie. Jetzt rollt der Ball sichtbar ins Netz und bleibt dort liegen
+
+### Geändert
+- **Der Vollbild-Knopf gilt überall**, nicht mehr nur im Spiel, sitzt jetzt in der Ecke und blendet sich schon nach 1,2 s wieder aus. Die Versionszeile ist dafür nach links gerückt
+
 ## [0.21.11]
 
 ### Hinzugefügt

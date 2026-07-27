@@ -1475,15 +1475,24 @@ window.RetroGames.soccer = {
     function verlaengereMitschnitt() {
       const letzte = state.hist[state.hist.length - 1];
       if (!letzte) return;
-      const b = state.ball;
-      let bx = letzte.bx, by = letzte.by;
-      const ziel = by < 0.5 ? -NETZ_TIEFE : 1 + NETZ_TIEFE;
-      for (let i = 0; i < GOAL_TAIL; i++) {
-        bx += b.vx / 60;
-        by += b.vy / 60;
-        by = by < 0.5 ? Math.max(ziel, by) : Math.min(ziel, by);
-        bx = clamp(bx, FIELD_W / 2 - GOAL_W / 2 + BALL_R, FIELD_W / 2 + GOAL_W / 2 - BALL_R);
-        state.hist.push({ bx, by, p: letzte.p });
+      // NICHT mit der Ballgeschwindigkeit rechnen: `scoreGoal` hat sie ein paar
+      // Zeilen vorher auf null gesetzt, damit der Ball im Netz liegen bleibt.
+      // Die angehaengten Frames blieben dadurch alle auf der Torlinie stehen —
+      // die Wiederholung endete genau dort, statt den Ball im Tor zu zeigen.
+      // Deshalb wird zum Netz hin interpoliert: erst hinein, dann liegen.
+      const vonX = letzte.bx, vonY = letzte.by;
+      const zielY = vonY < 0.5 ? -NETZ_TIEFE : 1 + NETZ_TIEFE;
+      const zielX = clamp(vonX, FIELD_W / 2 - GOAL_W / 2 + BALL_R,
+                                FIELD_W / 2 + GOAL_W / 2 - BALL_R);
+      const REIN = 0.55;                       // Anteil des Anhangs fuer den Weg
+      for (let i = 1; i <= GOAL_TAIL; i++) {
+        const t = Math.min(1, (i / GOAL_TAIL) / REIN);
+        const weich = 1 - (1 - t) * (1 - t);   // schnell hinein, sanft auslaufen
+        state.hist.push({
+          bx: vonX + (zielX - vonX) * weich,
+          by: vonY + (zielY - vonY) * weich,
+          p: letzte.p
+        });
       }
     }
 

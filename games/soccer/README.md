@@ -214,6 +214,8 @@ Beim Hechten gilt: **so weit wie nötig, nicht so weit wie möglich.** Mit feste
 
 ## Tore
 
+**Die Wiederholung endet im Netz, nicht auf der Torlinie.** `verlaengereMitschnitt` hängt `GOAL_TAIL` Bilder an, in denen der Ball bis `NETZ_TIEFE` hinter die Linie rollt und dort liegen bleibt. Gerechnet wird dabei **nicht** mit der Ballgeschwindigkeit — `scoreGoal` setzt sie ein paar Zeilen vorher auf null, damit der Ball im Netz liegen bleibt, und die angehängten Bilder lagen dadurch alle auf der Linie. Interpoliert wird stattdessen zum Netz hin: in den ersten 55 % des Anhangs hinein, danach liegen. `soccer-wiederholung` misst das am Mitschnitt und ist gegen den alten Fehler geprüft.
+
 Die Tore stehen hinter der Torlinie (`GOAL_DEPTH`). **Der Belag läuft durch, im Tor hängt nur das Netz** — eine dunkle Füllung sah aus wie ein Loch im Platz, und auf einem blauen oder roten Kunststoffplatz erst recht. Vorher war es ein weißer Balken — der Ball schien dadurch durch das Tor hindurchzufliegen, weil dahinter nichts war, in dem er liegenbleiben konnte. Beim Treffer wird er jetzt bewusst **ins Netz gelegt** (`NETZ_TIEFE`), nicht nur begrenzt.
 
 Das Tor liegt **hinter** der Torlinie. Im Hochformat zeigt die Feldlänge nach oben (`y = 0` unten), das eigene Tor liegt unten und geht nach unten weg — andersherum als im Querformat. Die Rechnung aus dem Querformat unbesehen übernommen, standen beide Tore im Feld. `soccer-tor-lage` prüft das am Gezeichneten: Der Test liest die Außenlinie und die Torkästen aus der Canvas-Attrappe und ist gegen zwei gebaute Fehler geprüft.

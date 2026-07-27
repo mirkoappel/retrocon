@@ -114,8 +114,9 @@ Im Spiel sitzt unten rechts über der Versionszeile ein kleiner Knopf mit den vi
 
 - Im Ruhezustand ist er nicht nur unsichtbar (`opacity: 0`), sondern auch **klickdicht** (`pointer-events: none`) — sonst finge er Klicks ab, die dem Spiel gelten.
 - Er erscheint nur bei `mousemove`, nicht bei `pointermove`: Ein Fingertipp soll ihn nicht hervorholen, dort deckt die Einstellung im Menü den Fall ab.
-- Nach `AUSBLENDEN` (2 s) ohne Bewegung geht er von selbst wieder weg.
-- Er erscheint **nur im laufenden Spiel**. Im Menü gibt es dafür die Einstellung.
+- Nach `AUSBLENDEN` (1,2 s) ohne Bewegung geht er von selbst wieder weg.
+- Er gilt **überall** — im Menü wie im Spiel.
+- Er sitzt in der **Ecke** (10 px von beiden Rändern); die Versionszeile ist dafür nach links gerückt.
 - Geschaltet wird über `setGlobal('fullscreen', …)` — denselben Weg wie das Menü, damit beide dasselbe anzeigen. Im Vollbild zeigen die Ecken nach innen.
 
 `konsole-vollbild` prüft das am Quelltext und ist gegen zwei gebaute Fehler geprüft.

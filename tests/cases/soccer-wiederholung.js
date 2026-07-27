@@ -47,6 +47,21 @@ module.exports = {
       f.p.map(p => (p[4] > 0 ? 'H' : p[5] > 0 ? 'L' : p[7] > 0 ? 'G' : p[8] > 0 ? 'A' : '-')).join('')));
     if (bilder.size < 1) fehler.push('keine Verformungsbilder im Mitschnitt');
 
+    // Der Mitschnitt muss IM NETZ enden, nicht auf der Torlinie. Er tat das
+    // eine Zeit lang nicht: `verlaengereMitschnitt` rechnete mit der
+    // Ballgeschwindigkeit, die `scoreGoal` ein paar Zeilen vorher auf null
+    // gesetzt hatte — die angehaengten Frames lagen deshalb alle auf der Linie.
+    const letzte = S.hist[S.hist.length - 1];
+    const drin = letzte.by < 0.5 ? -letzte.by : letzte.by - 1;
+    if (!(drin > 0.005)) {
+      fehler.push(`der Mitschnitt endet bei y=${letzte.by.toFixed(4)}, also nicht hinter der Torlinie`);
+    }
+    // Und er muss sich dorthin bewegen, nicht dort erscheinen
+    const wege = S.hist.slice(-20).map(f => f.by);
+    if (Math.abs(wege[wege.length - 1] - wege[0]) < 0.004) {
+      fehler.push('der Ball bewegt sich im Anhang nicht ins Netz');
+    }
+
     // Zeichnen der Wiederholung darf den echten Zustand nicht anfassen
     S.replay = { i: 10, auto: false };
     const vorher = S.players.map(p => FELDER.map(k => p[k]));
@@ -60,7 +75,8 @@ module.exports = {
     return {
       ok: fehler.length === 0,
       info: fehler.length ? fehler.join(' · ')
-        : `${S.hist.length} Frames mit je ${FELDER.length} Werten pro Spieler, ${bilder.size} Verformungsbilder, Zeichnen ohne Nebenwirkung`
+        : `${S.hist.length} Frames mit je ${FELDER.length} Werten pro Spieler, ${bilder.size} Verformungsbilder, `
+          + `Ball ${(letzte.by < 0.5 ? -letzte.by : letzte.by - 1).toFixed(4)} hinter der Linie, Zeichnen ohne Nebenwirkung`
     };
   }
 };
