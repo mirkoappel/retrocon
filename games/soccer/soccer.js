@@ -1674,49 +1674,41 @@ window.RetroGames.soccer = {
 
       drawPitch(r); drawPlayers(r); drawHud();
 
-      const treffer = state.goalTeam === 0 ? TEAMS[state.myTeam] : TEAMS[state.foeTeam];
-      const pw = Math.min(w * 0.86, uni() * 0.72);
-      const ph = uni() * 0.50;
+      // Nur noch TOR! — wer getroffen hat und wie es steht, sagt die Kopfzeile
+      // ohnehin schon. Dafür groß, gelb und mit Einschlag.
+      const pw = Math.min(w * 0.7, uni() * 0.58);
+      const ph = uni() * 0.40;
       const x0 = w / 2 - pw / 2, y0 = h / 2 - ph / 2;
 
       ctx.fillStyle = 'rgba(4,6,10,0.94)';
       ctx.fillRect(x0, y0, pw, ph);
-      ctx.strokeStyle = '#4fc3f7';
+      ctx.strokeStyle = '#ffc400';
       ctx.lineWidth = Math.max(1, uni() * 0.004);
       ctx.strokeRect(x0, y0, pw, ph);
 
-      ctx.fillStyle = '#fff';
-      ctx.font = font(uni() * 0.07);
-      ctx.fillText('TOR!', w / 2, y0 + ph * 0.20);
+      // Einschlag beim Tor, danach ein leises Atmen
+      const seit = Math.max(0, GOAL_WAIT - state.goalWait);
+      const pop = 1 + 0.5 * Math.exp(-5 * seit) * Math.cos(seit * 20);
+      const puls = 1 + 0.025 * Math.sin(state.t * 4);
+      ctx.save();
+      ctx.translate(w / 2, y0 + ph * 0.36);
+      ctx.scale(pop * puls, pop * puls);
+      ctx.shadowColor = '#ffb300';
+      ctx.shadowBlur = uni() * 0.06;
+      ctx.fillStyle = '#ffd54f';
+      ctx.font = font(uni() * 0.115);
+      ctx.fillText('TOR!', 0, 0);
+      ctx.shadowBlur = 0;
+      ctx.restore();
 
-      // Mannschaftsname eigenständig und eingepasst — „FREUNDSCHAFTSSPIEL" oder
-      // „DEUTSCHLAND 2 : 1" in einer Zeile lief vorher aus dem Panel heraus.
-      ctx.fillStyle = '#8a9bb0';
-      fitText(treffer.n, w / 2, y0 + ph * 0.33, pw * 0.86, uni() * 0.034);
-      ctx.fillStyle = '#fff';
-      ctx.font = font(uni() * 0.042);
-      ctx.fillText(`${state.score[0]} : ${state.score[1]}`, w / 2, y0 + ph * 0.47);
-
-      // Zwei echte Menüpunkte statt Tastenansagen
       GOAL_ITEMS.forEach((it, i) => {
-        const y = y0 + ph * (0.68 + i * 0.15);
+        const y = y0 + ph * (0.66 + i * 0.17);
         const sel = i === state.menuSel;
-        hotspot(x0 + pw * 0.08, y - ph * 0.06, pw * 0.84, ph * 0.12, i);
-        ctx.fillStyle = sel ? '#4fc3f7' : '#666';
+        hotspot(x0 + pw * 0.06, y - ph * 0.07, pw * 0.88, ph * 0.14, i);
+        ctx.fillStyle = sel ? '#ffd54f' : '#666';
         ctx.font = font(uni() * 0.03);
         ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
       });
-    }
-
-    // Text auf eine Höchstbreite einpassen, statt ihn überlaufen zu lassen
-    function fitText(text, x, y, maxW, size) {
-      let s2 = size;
-      for (let i = 0; i < 8; i++) {
-        ctx.font = font(s2);
-        if (ctx.measureText(text).width <= maxW) break;
-        s2 *= 0.9;
-      }
-      ctx.fillText(text, x, y);
     }
 
     function drawHud() {
