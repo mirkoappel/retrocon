@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.7]
+
+### Geändert
+- **STREET SOCCER: In der Toranzeige steht WIEDERHOLUNG oben und ist vorgewählt.** Ein versehentlicher Druck kann sie nicht mehr auslösen — die Anzeige nimmt die ersten 1,2 Sekunden ohnehin keine Eingabe an. Nach einer angesehenen Wiederholung springt die Auswahl auf WEITER
+
 ## [0.18.6]
 
 ### Behoben
