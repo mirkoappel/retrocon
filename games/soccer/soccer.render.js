@@ -19,7 +19,7 @@ window.RetroSoccer.render = function (ctx, K) {
     MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R, STRASSE_R,
     AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
     FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
-    TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, rasenFarbe, linienArt,
+    TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, rasenFarbe, linienArt, GK_RING,
     DIVE_TIME, DIVE_DOWN, GK_DIVE_TIME, TACKLE_TIME, POKE_TIME,
     GOAL_WAIT, GOAL_LOCK, MITSCHNITT_FELDER,
   } = K;
@@ -141,19 +141,14 @@ window.RetroSoccer.render = function (ctx, K) {
     }
   }
 
-  // Der Torwart traegt dieselbe Trikotfarbe, nur deutlich heller — und wenn
-  // das Trikot schon hell ist, deutlich dunkler. Vorher sass ein dunkler Punkt
-  // in der Mitte der Scheibe; der sah aus wie ein Kopf und nicht wie ein
-  // Torwart.
-  const gkCache = new Map();
-  function torwartFarbe(c) {
-    if (gkCache.has(c)) return gkCache.get(c);
+  // Heller oder dunkler Besatz — je nachdem, was sich vom Trikot abhebt.
+  const ringCache = new Map();
+  function ringFarbe(c) {
+    if (ringCache.has(c)) return ringCache.get(c);
     const [rr, gg, bb] = [1, 3, 5].map(i => parseInt(c.substr(i, 2), 16));
     const hell = (rr * 0.299 + gg * 0.587 + bb * 0.114) / 255;
-    const f = hell > 0.55 ? -0.45 : 0.55;          // aufhellen oder abdunkeln
-    const misch = k => Math.round(f > 0 ? k + (255 - k) * f : k * (1 + f));
-    const aus = '#' + [rr, gg, bb].map(k => misch(k).toString(16).padStart(2, '0')).join('');
-    gkCache.set(c, aus);
+    const aus = GK_RING[hell > 0.62 ? 1 : 0];
+    ringCache.set(c, aus);
     return aus;
   }
 
@@ -289,7 +284,7 @@ window.RetroSoccer.render = function (ctx, K) {
         ctx.lineWidth = Math.max(2, r.s * 0.005);
         ctx.beginPath(); ctx.arc(q.X, q.Y, rad * 1.55, 0, Math.PI * 2); ctx.stroke();
       }
-      ctx.fillStyle = p.role === 'GK' ? torwartFarbe(kit(p.team)) : kit(p.team);
+      ctx.fillStyle = kit(p.team);
       ctx.strokeStyle = 'rgba(0,0,0,0.55)';
       ctx.lineWidth = Math.max(1, r.s * 0.002);
 
@@ -360,6 +355,15 @@ window.RetroSoccer.render = function (ctx, K) {
       } else {
         ctx.beginPath(); ctx.arc(q.X, q.Y, rad, 0, Math.PI * 2); ctx.fill();
         ctx.stroke();
+      }
+      // Der Torwart traegt die Trikotfarbe seiner Mannschaft und dazu einen
+      // hellen Ring — wie der Besatz eines Torwarttrikots. Eine aufgehellte
+      // oder abgedunkelte Farbe sah stattdessen ausgegraut aus, und der
+      // frueher gezeichnete dunkle Punkt in der Mitte wie ein Kopf.
+      if (p.role === 'GK') {
+        ctx.strokeStyle = ringFarbe(kit(p.team));
+        ctx.lineWidth = Math.max(2, rad * 0.30);
+        ctx.beginPath(); ctx.arc(q.X, q.Y, rad * 0.86, 0, Math.PI * 2); ctx.stroke();
       }
     }
     const bq = px(r, b.x, b.y);

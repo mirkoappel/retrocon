@@ -17,9 +17,34 @@ function uebernahme(fehler) {
   s.uebernehmen();
   if (!S.players.some(p => p.ctrl === 1)) fehler.push('ein Tastendruck holt den Slot nicht ans Steuer');
 
-  // Und wieder abgeben, wenn nichts mehr kommt
+  // Und wieder abgeben, wenn nichts mehr kommt. Geprueft wird erst wieder im
+  // laufenden Spiel: In einer Tafel wird die Zuordnung gar nicht angefasst.
   for (let f = 0; f < 60 * 12; f++) s.step();
+  for (let f = 0; f < 60 * 30 && S.phase !== 'play'; f++) s.step();
   if (S.players.some(p => p.ctrl)) fehler.push('die KI uebernimmt nach Untaetigkeit nicht zurueck');
+
+  // Auch das naechste Spiel faengt bei der KI an, selbst wenn im vorigen
+  // gerade noch gespielt wurde. Geprueft wird die Naht selbst: Vor dem
+  // Anpfiff steht Aktivitaet in `lastAct`, danach darf keine mehr dastehen.
+  // Ueber die Steuerung allein waere das nicht zu sehen — durch die Tafeln
+  // vergehen ohnehin mehr als IDLE_TAKEOVER Sekunden, die KI haette dann so
+  // oder so uebernommen.
+  const s2 = session('soccer', { conns: new Map([[1, 'keyboard']]) });
+  for (let i = 0; i < 4; i++) s2.tap();
+  const S2 = s2.state;
+  for (let f = 0; f < 60; f++) s2.step();
+  s2.uebernehmen();
+  if (!S2.lastAct.size) fehler.push('Aufbau: die Eingabe wurde nicht vermerkt');
+
+  S2.phase = 'intro'; S2.tafel = 0;      // direkt vor dem naechsten Anpfiff
+  s2.tap();
+  if (S2.phase !== 'play') fehler.push('der Anpfiff kommt nicht');
+  else if (S2.lastAct.size) {
+    const seit = S2.t - S2.lastAct.get(1);
+    fehler.push(`der Anpfiff traegt Aktivitaet mit (Eingabe vor ${seit.toFixed(1)} s)`);
+  } else if (S2.players.some(p => p.ctrl)) {
+    fehler.push('das naechste Spiel beginnt nicht bei der KI');
+  }
 }
 
 module.exports = {

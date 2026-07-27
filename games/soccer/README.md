@@ -23,6 +23,10 @@ Im **Freundschaftsspiel** wählt dabei jeder seine eigene Mannschaft: erst Spiel
 
 Im **World Cup** geht gegeneinander ebenfalls, nur wählt Spieler 2 dort nichts: die Gegner werden ausgelost, und er übernimmt jede Runde das gezogene Team. Es bleibt der Turnierlauf von Spieler 1 — der andere versucht, ihn zu stoppen.
 
+## Der Mitschnitt
+
+Die Wiederholung schneidet je Spieler die Felder aus `MITSCHNITT_FELDER` mit. **Geschrieben wird streng nach dieser Liste, gelesen ebenso** — vorher stand im Schreiber eine von Hand gepflegte Aufzählung. Als `diveMax` dazukam, schrieb er weiter zwölf Werte, gelesen wurde aber nach dreizehn Namen: In der Wiederholung war ab `dive` alles um eine Stelle verschoben, und die Spieler verformten sich falsch. Der Test holt die Liste jetzt aus dem Quelltext des Spiels, statt eine eigene Kopie zu pflegen — die alte Kopie prüfte sich gegen sich selbst und merkte nichts.
+
 ## Zusehen
 
 Zusehen ist **kein Modus, den man wählt** — es ist das, was übrig bleibt, wenn man die Finger stillhält. **Der Normalfall ist die KI:** Nach dem Anpfiff steuert niemand einen Spieler, bis wirklich eine Taste kommt. Wer aufhört zu spielen, gibt seinen Spieler nach `IDLE_TAKEOVER` wieder ab.
@@ -182,7 +186,9 @@ Beim Zuschnitt zählt `1 + 2 × GOAL_DEPTH`, nicht die Feldlänge. Rechnet man n
 
 ## Der Torwart
 
-Er trägt **dieselbe Trikotfarbe, nur deutlich heller** — und wenn das Trikot schon hell ist, deutlich dunkler. Vorher saß ein dunkler Punkt in der Mitte der Scheibe; der sah aus wie ein Kopf und nicht wie ein Torwart.
+Er trägt die **Trikotfarbe seiner Mannschaft und dazu einen Ring** — wie der Besatz eines Torwarttrikots. Zwei Zwischenstufen davor waren schlechter: Ein dunkler Punkt in der Mitte sah aus wie ein Kopf, und eine aufgehellte beziehungsweise abgedunkelte Trikotfarbe wirkte ausgegraut. Der Ring lässt die Mannschaftsfarbe unangetastet.
+
+Seine Farbe wird **nach Kontrast** gewählt (`GK_RING`): hell auf dunklen Trikots, dunkel ab einer Helligkeit von 0,62. Ein durchgehend heller Ring verschwand auf Brasiliens Gelb und auf den weißen Trikots.
 
 Beim Hechten gilt: **so weit wie nötig, nicht so weit wie möglich.** Mit fester Flugzeit legte er 0,196 zurück — mehr, als das Tor breit ist (0,189); aus der Mitte flog er hinter beide Pfosten. Die Flugzeit ergibt sich jetzt aus der Strecke (`clamp(len / tempo, 0.12, GK_DIVE_TIME)`), und gesprungen wird nur, wenn der vorausberechnete Kreuzungspunkt **im Tor liegt**. Vorher wurde dieser Punkt erst *nach* der Sprungentscheidung auf den Torbereich begrenzt — der Torwart warf sich also auch hinter Bällen her, die weit vorbeigingen, und machte dabei das Tor frei.
 

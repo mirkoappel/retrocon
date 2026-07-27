@@ -202,6 +202,9 @@ window.RetroGames.soccer = {
     // Eine Farbe für alle Markierungen, deckend. Halbdurchsichtige Linien
     // sahen dort doppelt so kräftig aus, wo zwei aufeinanderlagen.
     const LINE  = '#7da58c';   // Rueckfall; die Linienfarbe kommt aus dem Belag
+    // Besatz am Torwarttrikot. Zwei Farben, gewaehlt wird nach Kontrast: Auf
+    // einem gelben oder weissen Trikot verschwindet ein heller Ring.
+    const GK_RING = ['#fffde7', '#16281f'];
     // Maße der Markierungen, abgeleitet aus dem Strafraum: Der entspricht
     // 16,5 m Tiefe und 40,3 m Breite, daraus ergibt sich der Rest.
     // Der Torraum MUSS breiter sein als das Tor — mit BOX_W * 0,454 war er
@@ -430,8 +433,12 @@ window.RetroGames.soccer = {
       state.golden = false; state.goldenT = 0;
       state.msg = ''; state.msgTimer = 0;
       buildTeams();
-      // `lastAct` wird bewusst NICHT zurueckgesetzt: Wer im letzten Spiel
-      // gerade noch gespielt hat, steht auch beim Anpfiff wieder am Ball.
+      // Jeder Anpfiff beginnt bei der KI — auch der des naechsten WM-Spiels.
+      // Vorher wurde `lastAct` uebernommen, damit man nach einem Spiel nicht
+      // erneut greifen muss; das kostete aber genau die Eigenschaft, dass ein
+      // startendes Spiel von selbst laeuft. Ein Tastendruck holt sofort
+      // zurueck, das ist der guenstigere Tausch.
+      state.lastAct = new Map();
       state.kickoffFor = 0;
       kickoff(0);
       state.msg = 'ANSTOSS'; state.msgTimer = RESTART_KICK;
@@ -1136,11 +1143,13 @@ window.RetroGames.soccer = {
       // die Figur verformt: Ohne die Zeitgeber blieb ein Spieler, der beim Tor
       // gerade grätschte, die ganze Zeitlupe über ein Oval — die Verformung kam
       // aus dem laufenden Spiel, und das steht während der Torpause still.
+      // Geschrieben wird streng nach MITSCHNITT_FELDER — gelesen wird ebenso.
+      // Vorher stand hier eine von Hand gepflegte Liste; als `diveMax`
+      // dazukam, passten Namen und Werte nicht mehr zusammen und in der
+      // Wiederholung war ab `dive` alles um eine Stelle verschoben.
       state.hist.push({
         bx: b.x, by: b.y,
-        p: state.players.map(p => [p.x, p.y, p.fx, p.fy,
-                                   p.dive, p.down, p.downMax, p.tackle, p.poke,
-                                   p.dx, p.dy, p.ctrl])
+        p: state.players.map(p => MITSCHNITT_FELDER.map(k => p[k]))
       });
       if (state.hist.length > HIST_LEN) state.hist.shift();
 
@@ -1672,7 +1681,7 @@ window.RetroGames.soccer = {
       MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R, STRASSE_R,
       AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
       FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
-      TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, rasenFarbe, linienArt,
+      TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, rasenFarbe, linienArt, GK_RING,
       DIVE_TIME, DIVE_DOWN, GK_DIVE_TIME, TACKLE_TIME, POKE_TIME,
       GOAL_WAIT, GOAL_LOCK, MITSCHNITT_FELDER,
       w, h,

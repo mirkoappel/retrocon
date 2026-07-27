@@ -5,7 +5,17 @@
 // verändern, denn danach wird ja weitergespielt.
 const { session } = require('../harness');
 
-const FELDER = ['x', 'y', 'fx', 'fy', 'dive', 'down', 'downMax', 'tackle', 'poke', 'dx', 'dy', 'ctrl'];
+// Die Feldliste wird aus dem Spiel gelesen, nicht hier gepflegt. Eine eigene
+// Kopie ging schon einmal auseinander: Als `diveMax` im Spiel dazukam, schrieb
+// der Mitschnitt weiter zwoelf Werte, gelesen wurde aber nach dreizehn Namen —
+// in der Wiederholung war ab `dive` alles um eine Stelle verschoben, und der
+// Test merkte nichts, weil er seine alte Liste gegen sich selbst prueste.
+const fs = require('fs');
+const path = require('path');
+const quelle = fs.readFileSync(path.join(__dirname, '../../games/soccer/soccer.js'), 'utf8');
+const roh = quelle.match(/const MITSCHNITT_FELDER = \[([\s\S]*?)\];/);
+if (!roh) throw new Error('MITSCHNITT_FELDER nicht gefunden');
+const FELDER = roh[1].match(/'([a-zA-Z]+)'/g).map(t => t.slice(1, -1));
 
 module.exports = {
   name: 'Fussball · Wiederholung schneidet die Verformung mit',

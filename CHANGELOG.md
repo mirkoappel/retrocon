@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.9]
+
+### Behoben
+- **STREET SOCCER: Die Wiederholung verformte die Spieler falsch.** Der Mitschnitt schrieb noch zwölf Werte je Spieler, gelesen wurde aber nach dreizehn Namen — ab `dive` war alles um eine Stelle verschoben. Eine Regression aus 0.21.8. Geschrieben wird jetzt streng nach `MITSCHNITT_FELDER`, und der Test holt die Liste aus dem Quelltext statt eine eigene Kopie zu pflegen
+- **Jeder Anpfiff beginnt bei der KI**, auch der des nächsten WM-Spiels. Bisher wurde die Aktivität aus dem vorigen Spiel mitgetragen
+
+### Geändert
+- **Der Torwart trägt die Trikotfarbe und dazu einen Ring** statt einer aufgehellten Farbe — die sah ausgegraut aus. Die Ringfarbe wird nach Kontrast gewählt, sonst verschwindet sie auf gelben und weißen Trikots
+
 ## [0.21.8]
 
 ### Behoben
