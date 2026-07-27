@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.13.1]
+
+### Geändert
+- **STREET SOCCER: Auch im Menü ZU ZWEIT SPIELEN sind die Unterzeilen weg.** Damit haben alle drei Auswahlbildschirme — Modus, Spielerzahl, Seiten — nur noch die Punkte selbst
+
 ## [0.13.0]
 
 ### Neu

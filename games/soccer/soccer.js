@@ -1603,18 +1603,13 @@ window.RetroGames.soccer = {
       ctx.fillText('ZU ZWEIT SPIELEN', w / 2, h * 0.16);
 
       const items = ['MITEINANDER', 'GEGENEINANDER'];
-      const subs  = ['BEIDE IN EINER MANNSCHAFT GEGEN DIE KI',
-                     'SPIELER 2 STEUERT DIE GEGNERISCHE MANNSCHAFT'];
       items.forEach((it, i) => {
         const sel = i === state.menuSel;
-        const y = h * (0.4 + i * 0.14);
-        hotspot(w * 0.15, y - h * 0.04, w * 0.7, h * 0.095, i);
+        const y = h * (0.42 + i * 0.12);
+        hotspot(w * 0.15, y - h * 0.04, w * 0.7, h * 0.085, i);
         ctx.fillStyle = sel ? '#4fc3f7' : '#555';
         ctx.font = font(uni() * 0.042);
         ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
-        ctx.fillStyle = sel ? '#8a9bb0' : '#333';
-        ctx.font = font(uni() * 0.019);
-        ctx.fillText(subs[i], w / 2, y + h * 0.042);
       });
       hint('A · WEITER   B · ZURÜCK');
     }
