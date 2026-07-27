@@ -1770,7 +1770,7 @@ window.RetroGames.soccer = {
 
         // Hechtsprung, Liegen und Grätsche: dieselbe Scheibe, nur verformt.
         // Bildschirm-y ist gespiegelt, deshalb der Winkel über screenAngle.
-        let k = 1, ang = 0, alpha = 1, hoehe = 0, gross = 1, vor = 0;
+        let k = 1, ang = 0, hoehe = 0, gross = 1, vor = 0;   // Spieler bleiben immer deckend
         if (p.dive > 0) {
           const dauer = p.role === 'GK' ? GK_DIVE_TIME : DIVE_TIME;
           // Ein Sprung, keine Gummiwurst: schnell strecken und gestreckt
@@ -1791,7 +1791,6 @@ window.RetroGames.soccer = {
           const weich = auf * auf * (3 - 2 * auf);            // sanft aufstehen
           k = 1 + 0.38 * (1 - weich) + 0.35 * Math.exp(-14 * u);   // erster Klatscher
           ang = screenAngle(r, p.fx, p.fy);
-          alpha = 0.82;
         } else if (p.poke > 0) {
           // Angriff: ein kurzer Stich nach vorn — schnell raus, schnell zurück.
           // Bewusst deutlicher als der erste Entwurf (0,3), sonst sieht man im
@@ -1815,7 +1814,7 @@ window.RetroGames.soccer = {
           // an den Spitzen entstand dadurch eine dicke Zunge. Mit ctx.ellipse
           // bleibt die Linienstärke überall gleich.
           const koerper = (X, Y, sk, a, lw) => {
-            ctx.globalAlpha = a;
+            ctx.globalAlpha = a;   // nur der Schatten ist durchscheinend
             ctx.beginPath();
             ctx.ellipse(X, Y, rad * k * sk, rad / k * sk, ang, 0, Math.PI * 2);
             ctx.fill();
@@ -1830,7 +1829,7 @@ window.RetroGames.soccer = {
             ctx.fillStyle = merk;
           }
           koerper(q.X + Math.cos(ang) * vor, q.Y + Math.sin(ang) * vor - hoehe * rad * 1.5,
-                  gross, alpha, Math.max(1, r.s * 0.002));
+                  gross, 1, Math.max(1, r.s * 0.002));
         } else {
           ctx.beginPath(); ctx.arc(q.X, q.Y, rad, 0, Math.PI * 2); ctx.fill();
           ctx.stroke();
@@ -2283,7 +2282,6 @@ window.RetroGames.soccer = {
     }
 
     function drawResult() {
-      const [a, b] = state.score;
       const r = pitchRect();
       if (state.hl) {                             // Höhepunkte laufen
         const szene = state.highlights[state.hl.clip];
@@ -2293,8 +2291,8 @@ window.RetroGames.soccer = {
         return;
       }
 
-      const pw = Math.min(w * 0.8, uni() * 0.72);
-      const ph = uni() * 0.5;
+      const pw = Math.min(w * 0.8, uni() * 0.7);
+      const ph = uni() * 0.42;
       const x0 = w / 2 - pw / 2, y0 = h / 2 - ph / 2;
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,0.85)';
@@ -2309,18 +2307,22 @@ window.RetroGames.soccer = {
       ctx.lineWidth = Math.max(1, uni() * 0.002);
       ctx.stroke();
 
+      // Ausgang im selben Gelb wie TOR!. Spielstand und Mannschaften stehen
+      // schon in der Kopfzeile — hier wiederholt machten sie das Panel nur voll.
       const innen = pw * 0.86;
-      ctx.fillStyle = '#fff';
-      fitText(resultTitel(), w / 2, y0 + ph * 0.24, innen, uni() * 0.045);
-      ctx.fillStyle = '#8a9bb0';
-      fitText(`${TEAMS[state.myTeam].n}  ${a} : ${b}  ${TEAMS[state.foeTeam].n}`,
-              w / 2, y0 + ph * 0.42, innen, uni() * 0.028);
+      ctx.save();
+      ctx.shadowColor = '#ffb300';
+      ctx.shadowBlur = uni() * 0.045;
+      ctx.fillStyle = '#ffd54f';
+      fitText(resultTitel(), w / 2, y0 + ph * 0.34, innen, uni() * 0.055);
+      ctx.shadowBlur = 0;
+      ctx.restore();
 
       resultItems().forEach((it, i) => {
-        const y = y0 + ph * (0.66 + i * 0.16);
+        const y = y0 + ph * (0.63 + i * 0.18);
         const sel = i === state.menuSel;
-        hotspot(x0 + pw * 0.08, y - ph * 0.065, pw * 0.84, ph * 0.13, i);
-        ctx.fillStyle = sel ? '#4fc3f7' : '#666';
+        hotspot(x0 + pw * 0.08, y - ph * 0.075, pw * 0.84, ph * 0.15, i);
+        ctx.fillStyle = sel ? '#ffd54f' : '#666';
         fitText(sel ? `> ${it} <` : it, w / 2, y, innen, uni() * 0.03);
       });
     }
