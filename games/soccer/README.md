@@ -122,6 +122,20 @@ Nachgemessen: Gleichschritt 88,5 % → **5,4 %**, vor der Grundstellung 0,4 % �
 
 **Was nicht ging:** Die seitliche Deckung auch nur jenseits jeder Schussdistanz träge zu machen, ließ die Torquote auf **34,8 Tore pro Spiel** springen. Ein Rest an Gleichlauf bleibt deshalb bewusst bestehen — es gibt einen Ball, und beide Torhüter reagieren richtig darauf.
 
+## Der Abschluss
+
+Vor dem Tor wird mit `SHOT_CLOSE` (2,0 je Sekunde) abgeschlossen. Der Weg dorthin ist gemessen:
+
+| | |
+|---|---|
+| Absicht bis Ballkontakt | 0,13 s im Mittel, 3 % über 0,5 s — **nicht** der Engpass |
+| Entscheidung bei Rate 1,2 | 0,83 s im Mittel |
+| Dauer einer freien Gelegenheit | **0,33 s** |
+
+Die Entscheidung dauerte also länger, als die Situation bestand — deshalb blieb jede zweite Gelegenheit ungenutzt. Mit 2,0 enden 45 % statt 39 % im Abschluss.
+
+Der Preis sind Tore: **Ein Schuss aus 0,10 ist für den Torwart praktisch nicht zu halten**, weil unser Tor im Verhältnis sehr breit ist. Zwei Wege waren deshalb Sackgassen und wurden verworfen — der Abschluss ohne Würfel brachte 16,5 Tore je Spiel, und eine Streuung obendrauf änderte daran nichts (16,5 bis 18,3, je nach Stärke). Auch weiter hochdrehen bringt kaum noch Abschlüsse, aber weiter Tore: 2,8 kostete zwei zusätzliche je Spiel bei gleicher Quote. Die Torquote liegt jetzt bei **9,6 je Spiel**.
+
 ## Der Ball am Fuß
 
 Ein gedribbelter Ball wird vorgelegt — gemessen liegt er im Mittel 0,040 vom Spieler entfernt, in 29 % der Frames weiter als das 1,5-fache des Kontaktabstands, im Äußersten 0,115. `TURN_PULL` zieht ihn dabei in die Laufrichtung nach, sonst verlöre man ihn in jeder Kurve.
@@ -186,9 +200,9 @@ Beim Zuschnitt zählt `1 + 2 × GOAL_DEPTH`, nicht die Feldlänge. Rechnet man n
 
 ## Der Torwart
 
-Er trägt die **Trikotfarbe seiner Mannschaft und dazu einen Ring** — wie der Besatz eines Torwarttrikots. Zwei Zwischenstufen davor waren schlechter: Ein dunkler Punkt in der Mitte sah aus wie ein Kopf, und eine aufgehellte beziehungsweise abgedunkelte Trikotfarbe wirkte ausgegraut. Der Ring lässt die Mannschaftsfarbe unangetastet.
+Er wird **nicht besonders gekennzeichnet**: gleiche Trikotfarbe, gleiche Scheibe. Drei Versuche davor waren schlechter — ein dunkler Punkt in der Mitte sah aus wie ein Kopf, eine aufgehellte Trikotfarbe wirkte ausgegraut, und ein Ring war Zierrat. Erkennbar ist er an seiner Stellung: Er steht als Einziger im Tor.
 
-Seine Farbe wird **nach Kontrast** gewählt (`GK_RING`): hell auf dunklen Trikots, dunkel ab einer Helligkeit von 0,62. Ein durchgehend heller Ring verschwand auf Brasiliens Gelb und auf den weißen Trikots.
+**Anspielbar ist er auch.** `bestPassTarget` schloss ihn aus, ein Rückpass war unmöglich. Jetzt zählt er mit, bekommt aber `RUECKPASS_MALUS` aufgeschlagen — zusammen mit der ohnehin negativen Torannäherung ist er die letzte Wahl. Gemessen gehen 1,1 % aller Zuspiele innerhalb der Mannschaft an ihn.
 
 Beim Hechten gilt: **so weit wie nötig, nicht so weit wie möglich.** Mit fester Flugzeit legte er 0,196 zurück — mehr, als das Tor breit ist (0,189); aus der Mitte flog er hinter beide Pfosten. Die Flugzeit ergibt sich jetzt aus der Strecke (`clamp(len / tempo, 0.12, GK_DIVE_TIME)`), und gesprungen wird nur, wenn der vorausberechnete Kreuzungspunkt **im Tor liegt**. Vorher wurde dieser Punkt erst *nach* der Sprungentscheidung auf den Torbereich begrenzt — der Torwart warf sich also auch hinter Bällen her, die weit vorbeigingen, und machte dabei das Tor frei.
 

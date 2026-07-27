@@ -2,6 +2,17 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.10]
+
+### Hinzugefügt
+- **STREET SOCCER: Der Rückpass zum eigenen Torwart geht.** Er war als Passziel ausgeschlossen. Jetzt zählt er mit, aber als letzte Wahl — gemessen 1,1 % aller Zuspiele
+
+### Geändert
+- **Die KI schließt vor dem Tor schneller ab** (`SHOT_CLOSE` 1,2 → 2,0). Die Entscheidung dauerte im Mittel 0,83 s, eine freie Gelegenheit besteht aber nur 0,33 s. Jetzt enden 45 % statt 39 % im Abschluss, die Torquote steigt auf 9,6 je Spiel
+- **Der Torwart sieht aus wie alle anderen** — gleiche Trikotfarbe, keine Kennzeichnung. Punkt, aufgehellte Farbe und Ring waren alle drei schlechter
+- **Auf dem Bildschirm vor dem Spiel stehen die Mannschaften nebeneinander** statt untereinander, beide in derselben Schriftgröße
+- Der Balancetest erlaubt jetzt 3,0–11,5 Tore je Spiel; 9,0 lag mitten in der Messung
+
 ## [0.21.9]
 
 ### Behoben

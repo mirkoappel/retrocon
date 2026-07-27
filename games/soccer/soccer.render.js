@@ -19,7 +19,7 @@ window.RetroSoccer.render = function (ctx, K) {
     MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R, STRASSE_R,
     AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
     FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
-    TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, rasenFarbe, linienArt, GK_RING,
+    TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, rasenFarbe, linienArt,
     DIVE_TIME, DIVE_DOWN, GK_DIVE_TIME, TACKLE_TIME, POKE_TIME,
     GOAL_WAIT, GOAL_LOCK, MITSCHNITT_FELDER,
   } = K;
@@ -139,17 +139,6 @@ window.RetroSoccer.render = function (ctx, K) {
       if (achse === 'x') ctx.fillRect(p0, g.y, p1 - p0, g.h);
       else               ctx.fillRect(g.x, p0, g.w, p1 - p0);
     }
-  }
-
-  // Heller oder dunkler Besatz — je nachdem, was sich vom Trikot abhebt.
-  const ringCache = new Map();
-  function ringFarbe(c) {
-    if (ringCache.has(c)) return ringCache.get(c);
-    const [rr, gg, bb] = [1, 3, 5].map(i => parseInt(c.substr(i, 2), 16));
-    const hell = (rr * 0.299 + gg * 0.587 + bb * 0.114) / 255;
-    const aus = GK_RING[hell > 0.62 ? 1 : 0];
-    ringCache.set(c, aus);
-    return aus;
   }
 
   function drawPitch(r) {
@@ -356,15 +345,6 @@ window.RetroSoccer.render = function (ctx, K) {
         ctx.beginPath(); ctx.arc(q.X, q.Y, rad, 0, Math.PI * 2); ctx.fill();
         ctx.stroke();
       }
-      // Der Torwart traegt die Trikotfarbe seiner Mannschaft und dazu einen
-      // hellen Ring — wie der Besatz eines Torwarttrikots. Eine aufgehellte
-      // oder abgedunkelte Farbe sah stattdessen ausgegraut aus, und der
-      // frueher gezeichnete dunkle Punkt in der Mitte wie ein Kopf.
-      if (p.role === 'GK') {
-        ctx.strokeStyle = ringFarbe(kit(p.team));
-        ctx.lineWidth = Math.max(2, rad * 0.30);
-        ctx.beginPath(); ctx.arc(q.X, q.Y, rad * 0.86, 0, Math.PI * 2); ctx.stroke();
-      }
     }
     const bq = px(r, b.x, b.y);
     ctx.fillStyle = '#fff';
@@ -415,6 +395,19 @@ window.RetroSoccer.render = function (ctx, K) {
     }
     if (z) zeilen.push(z);
     return zeilen;
+  }
+
+  // Groesse, bei der ALLE uebergebenen Texte in die Breite passen. Wird sie
+  // je Text einzeln gesucht, stehen zwei Mannschaftsnamen nebeneinander in
+  // verschiedenen Groessen da — das sieht aus wie ein Fehler.
+  function gleicheGroesse(texte, maxW, size) {
+    let s2 = size;
+    for (let i = 0; i < 12 && s2 > size * 0.45; i++) {
+      ctx.font = font(s2);
+      if (texte.every(t => ctx.measureText(t).width <= maxW)) break;
+      s2 *= 0.92;
+    }
+    return s2;
   }
 
   function fitText(text, x, y, maxW, size) {
@@ -734,29 +727,36 @@ window.RetroSoccer.render = function (ctx, K) {
       gross: 0.04,
       titelY: 0.16,
       timer: { idx: 0, rest: state.tafel / AUTO_INTRO },
-      extra: 0.36,
+      extra: 0.24,
       zwischen: (x0, y0, pw, ph, innen) => {
-        // Namen bewusst neutral — die Zuordnung macht die Flagge, nicht die Farbe
-        // Flagge über dem Namen, mit klarem Abstand — zu eng lag sie im Text
+        // Die beiden Mannschaften stehen NEBENeinander, mit dem Gegen dazwischen
+        // — untereinander las es sich wie eine Liste, nicht wie eine Paarung.
+        // Namen bewusst neutral: Die Zuordnung macht die Flagge, nicht die Farbe.
         const fw = uni() * 0.075, fh = fw * 0.62;
-        const zeile = (team, y) => {
-          drawFlagIcon(w / 2 - fw / 2, y0 + ph * y - fh - uni() * 0.052, fw, fh, TEAMS[team].f);
+        const spalte = innen * 0.40;                 // Platz je Mannschaft
+        const mitteY = y0 + ph * 0.52;
+        // Beide Namen in derselben Groesse setzen, nach dem laengeren gewaehlt
+        const gr = gleicheGroesse([TEAMS[state.myTeam].n, TEAMS[state.foeTeam].n],
+                                  spalte, uni() * 0.030);
+        const seite = (team, x) => {
+          drawFlagIcon(x - fw / 2, mitteY - fh - uni() * 0.05, fw, fh, TEAMS[team].f);
           ctx.fillStyle = '#fff';
-          fitText(TEAMS[team].n, w / 2, y0 + ph * y, innen, uni() * 0.034);
+          ctx.font = font(gr);
+          ctx.fillText(TEAMS[team].n, x, mitteY);
         };
-        zeile(state.myTeam, 0.36);
+        seite(state.myTeam,  w / 2 - innen * 0.29);
+        seite(state.foeTeam, w / 2 + innen * 0.29);
         ctx.fillStyle = '#555';
-        fitText('GEGEN', w / 2, y0 + ph * 0.46, innen, uni() * 0.022);
-        zeile(state.foeTeam, 0.70);
+        fitText('GEGEN', w / 2, mitteY, innen * 0.16, uni() * 0.02);
         if (state.teamMode === 'versus') {
           ctx.fillStyle = P_COL[1];
           fitText(state.mode === 'cup'
             ? 'SPIELER 2 STEUERT DEN AUSGELOSTEN GEGNER'
-            : 'SPIELER 2 STEUERT DIESE MANNSCHAFT',
-            w / 2, y0 + ph * 0.78, innen, uni() * 0.02);
+            : 'SPIELER 2 STEUERT DIE RECHTE MANNSCHAFT',
+            w / 2, y0 + ph * 0.70, innen, uni() * 0.02);
         }
       },
-      punkteY: 0.88,
+      punkteY: 0.86,
     });
   }
 

@@ -137,7 +137,16 @@ window.RetroGames.soccer = {
     // dribbelte vor dem leeren Tor weiter. Mit 1,2 sind es 39 % bei 7,5 Toren
     // je Spiel (vorher 5,8). Hoeher nicht: 1,5 bringt 8,5 Tore und damit nur
     // noch 1 Sigma Abstand zur oberen Grenze des Balancetests.
-    const SHOT_CLOSE   = 1.2;
+    const NAH_ZONE     = 0.10;  // bis hierher gilt "vor dem Tor"
+    // Abschlussrate direkt vor dem Tor, je Sekunde. Bei 1,2 dauerte die
+    // Entscheidung im Mittel 0,83 s, die freie Situation besteht aber nur
+    // 0,33 s — deshalb blieb jede zweite Gelegenheit ungenutzt. Mit 2,0 sind
+    // es 45 % statt 39 %. Der Preis sind Tore: Ein Schuss aus 0,10 ist fuer
+    // den Torwart praktisch nicht zu halten, weil unser Tor im Verhaeltnis
+    // sehr breit ist. Weiter hoch bringt kaum noch Abschluesse, aber weiter
+    // Tore — 2,8 kostete zwei zusaetzliche je Spiel bei gleicher Quote.
+    const SHOT_CLOSE   = 2.0;
+    const RUECKPASS_MALUS = 0.8;   // so unbeliebt ist der Ball zum eigenen Torwart
     // Angriffswege, die sich die KI je Ballbesitz aussucht. Flügel doppelt
     // gewichtet — sonst läuft jeder Angriff wieder durch die Mitte.
     const ROUTES = [-1, -1, 0, 1, 1];
@@ -202,9 +211,10 @@ window.RetroGames.soccer = {
     // Eine Farbe für alle Markierungen, deckend. Halbdurchsichtige Linien
     // sahen dort doppelt so kräftig aus, wo zwei aufeinanderlagen.
     const LINE  = '#7da58c';   // Rueckfall; die Linienfarbe kommt aus dem Belag
-    // Besatz am Torwarttrikot. Zwei Farben, gewaehlt wird nach Kontrast: Auf
-    // einem gelben oder weissen Trikot verschwindet ein heller Ring.
-    const GK_RING = ['#fffde7', '#16281f'];
+    // Der Torwart wird nicht besonders gekennzeichnet: gleiche Trikotfarbe,
+    // gleiche Scheibe. Ein Punkt in der Mitte sah aus wie ein Kopf, eine
+    // aufgehellte Farbe ausgegraut, und ein Ring war Zierrat. Erkennbar ist
+    // er an seiner Stellung — er steht als Einziger im Tor.
     // Maße der Markierungen, abgeleitet aus dem Strafraum: Der entspricht
     // 16,5 m Tiefe und 40,3 m Breite, daraus ergibt sich der Rest.
     // Der Torraum MUSS breiter sein als das Tor — mit BOX_W * 0,454 war er
@@ -687,14 +697,19 @@ window.RetroGames.soccer = {
       const gy = goalY(p.team);
       let best = null, bestScore = -Infinity;
       for (const q of state.players) {
-        if (q.team !== p.team || q === p || q.role === 'GK') continue;
+        if (q.team !== p.team || q === p) continue;
+        if (p.role === 'GK' && q.role === 'GK') continue;
         const d = dist(p, q);
         if (d > 0.78) continue;
         // Fortschritt Richtung Tor belohnen, weite und gedeckte Bälle abwerten
         const progress = (gy === 1 ? q.y - p.y : p.y - q.y);
         const cover = state.players.reduce((s, o) =>
           o.team !== p.team && dist(o, q) < 0.09 ? s + 1 : s, 0);
-        const sc = progress * 2.2 - d * 0.8 - cover * 0.9;
+        // Der eigene Torwart ist erlaubt, aber die letzte Wahl: Der Rueckpass
+        // laeuft ohnehin gegen die Torrichtung und wird deshalb schon vom
+        // Fortschritt abgewertet — der Abschlag obendrauf sorgt dafuer, dass
+        // er wirklich nur kommt, wenn nach vorn nichts geht.
+        const sc = progress * 2.2 - d * 0.8 - cover * 0.9 - (q.role === 'GK' ? RUECKPASS_MALUS : 0);
         if (sc > bestScore) { bestScore = sc; best = q; }
       }
       return best;
@@ -908,7 +923,7 @@ window.RetroGames.soccer = {
       // dribbelt die KI weiter und läuft dem Torwart in die Arme. Bewusst
       // zurückhaltend dosiert: mit Rate 1,8 kostete allein diese Regel 1,7 Tore
       // mehr pro Spiel.
-      if (lane.len < 0.10) {
+      if (lane.len < NAH_ZONE) {
         if (Math.random() < dt * SHOT_CLOSE) { shoot(p, lane.tx); return; }
       } else if (lane.len < SHOT_RANGE + 0.06 * skill(p.team) && lane.clear > LANE_MIN) {
         const urge = (1 - lane.len / SHOT_RANGE) * Math.min(1, lane.clear / 0.05);
@@ -1681,7 +1696,7 @@ window.RetroGames.soccer = {
       MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R, STRASSE_R,
       AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
       FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
-      TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, rasenFarbe, linienArt, GK_RING,
+      TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS, rasenArt, rasenFarbe, linienArt,
       DIVE_TIME, DIVE_DOWN, GK_DIVE_TIME, TACKLE_TIME, POKE_TIME,
       GOAL_WAIT, GOAL_LOCK, MITSCHNITT_FELDER,
       w, h,

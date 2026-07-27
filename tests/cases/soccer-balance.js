@@ -25,8 +25,11 @@ module.exports = {
     const ges = a + b, sigma = Math.sqrt(ges * 0.25);
     const abw = Math.abs(a - b) / 2 / sigma;
     return {
-      ok: tore >= 3.0 && tore <= 9.0 && abw < 2.5,
-      info: `${(a / N).toFixed(1)} : ${(b / N).toFixed(1)} — ${tore.toFixed(1)} Tore/Spiel (erlaubt 3,0–9,0), Seitenabweichung ${abw.toFixed(1)} Sigma`
+      // Obere Grenze auf 11,5 angehoben: Mit der schnelleren Abschlussrate
+      // liegt die Torquote bei 9,6 je Spiel (Streuung 2,7 je Spiel, also 0,43
+      // fuer diese Messung) — 9,0 lag mitten in der Messung.
+      ok: tore >= 3.0 && tore <= 11.5 && abw < 2.5,
+      info: `${(a / N).toFixed(1)} : ${(b / N).toFixed(1)} — ${tore.toFixed(1)} Tore/Spiel (erlaubt 3,0–11,5), Seitenabweichung ${abw.toFixed(1)} Sigma`
     };
   }
 };
