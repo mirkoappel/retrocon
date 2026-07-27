@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.12.0]
+
+### Neu
+- **Prüfstand im Repo.** `node tests/run.js` — kein Build, keine Abhängigkeiten. Neun Fälle, jeder für einen Fehler, der schon einmal im Spiel war: unsichtbare Füße, Ballverlust in jeder Kurve, tote Bälle, verfehlter Anstoß, unmögliche Ballabnahme von hinten, falsche Zurück-Navigation, einseitige Torverteilung, wirkungsloser WM-Aufschlag. `--full` nimmt die statistischen Fälle dazu (mehrere Minuten, viele volle Spiele)
+- **Einstellungen-Menü** statt „BALD VERFÜGBAR": Lautstärke, Spieldauer, Schwierigkeit, Bildröhre und Vollbild. Bedienbar mit Tastatur, Controller und Maus, gespeichert in `localStorage`
+- Die Lautstärke wirkt über einen Master-Gain, den die Spiele als `audioCtx.destination` untergeschoben bekommen — kein einziges Spiel musste dafür angefasst werden
+- Spieldauer und Schwierigkeit reicht die Konsole als `api.settings` an die Spiele. STREET SOCCER nimmt beides (Halbzeitlänge, Grundstärke der Gegner), CATAPULT die Spieldauer. Fehlt das Feld, gelten die Vorgabewerte
+
 ## [0.11.28]
 
 ### Geändert

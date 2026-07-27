@@ -13,6 +13,26 @@ body::after {
   pointer-events: none;
   z-index: 100;
 }
+/* Bildröhren-Effekt abschaltbar (EINSTELLUNGEN) */
+body.no-scanlines::after { display: none; }
+
+/* ── Einstellungen ─────────────────────────────────────── */
+#settings-list {
+  display: flex; flex-direction: column; gap: 0.9rem;
+  margin: 1.2rem 0 1.4rem;
+  min-width: min(26rem, 80vw);
+}
+.setting {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 2rem; padding: 0.55rem 0.9rem;
+  border: 1px solid #222; cursor: pointer;
+  font-size: 0.7rem; letter-spacing: 0.2rem; color: #666;
+}
+.setting:hover { border-color: #444; color: #999; }
+.setting.selected { border-color: #fff; color: #fff; }
+.setting .wert { color: inherit; letter-spacing: 0.15rem; }
+.setting.selected .wert::before { content: '‹ '; }
+.setting.selected .wert::after  { content: ' ›'; }
 
 /* ── Screen-System ─────────────────────────────────────── */
 .screen { display: none; height: 100dvh; }

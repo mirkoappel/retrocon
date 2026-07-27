@@ -80,7 +80,10 @@ window.RetroGames.soccer = {
 
     const RESTART_KICK = 1.6;   // Standbild vor dem Anstoß
     const RESTART_GOAL = 2.4;   // …und nach einem Tor, etwas länger zum Jubeln
-    const HALF_TIME = 180;      // Sekunden je Halbzeit
+    // Spieldauer und Grundstärke kommen aus den Konsolen-Einstellungen.
+    // Fehlt das Feld (Prüfstand, Einbettung), gelten die Vorgabewerte.
+    const HALF_TIME = 180 * (api.settings?.durationFactor ?? 1);   // Sekunden je Halbzeit
+    const SKILL_BASE = api.settings?.skillBase ?? 1;
     const HALVES    = 2;
     const ROUNDS    = ['ACHTELFINALE', 'VIERTELFINALE', 'HALBFINALE', 'FINALE'];
 
@@ -197,7 +200,7 @@ window.RetroGames.soccer = {
     // und den eigenen Torwart stärker, was den Großteil der Wirkung aufhob.
     const SKILL_STEP = 0.075;
     const skill = (team = 1) =>
-      (state.mode === 'cup' && team === 1) ? 1 + state.round * SKILL_STEP : 1;
+      (team === 1) ? SKILL_BASE + (state.mode === 'cup' ? state.round * SKILL_STEP : 0) : 1;
 
     // Trikotfarbe; bei zu ähnlichen Farben weicht der Gegner auf sein Zweitset aus
     function kit(team) {

@@ -28,7 +28,7 @@ Das Menü ist als vertikale **Slide-Liste** aufgebaut. Horizontal scrollt das Sp
 | 0 | RETROCON | Logo-Animation |
 | 1 | CONTROLLER | QR-Codes für P1 + P2, Verbindungsstatus |
 | 2 | SPIELE | Karussell aller registrierten Spiele |
-| 3 | EINSTELLUNGEN | (bald verfügbar) |
+| 3 | EINSTELLUNGEN | Lautstärke, Spieldauer, Schwierigkeit, Bildröhre, Vollbild |
 | 4 | CREDITS | (bald verfügbar) |
 
 ### Navigation
@@ -67,6 +67,22 @@ Ein Platz gehört der KI, bis ihn jemand übernimmt. Das regelt sich von selbst:
 Der Anspruch auf P2 entsteht bewusst **nur im laufenden Spiel und nur über Richtungstasten** (`claimByKey`): Die Leertaste ist P2s Aktionstaste — ein Reflex darauf würde sonst stillschweigend den KI-Gegner abschalten. Und im Menü ist WASD bloß Navigation, mit der sich ein Solospieler nicht versehentlich den Gegner wegnehmen soll.
 
 Spiele erfahren davon nichts weiter als `api.getConns()`; sie starten die KI für jeden Platz, der dort fehlt. Weil alle Spiele das **pro Frame** auswerten (`numPlayers` aus `create()` wird nirgends benutzt), kann ein zweiter Spieler mitten im Match einsteigen.
+
+## Einstellungen
+
+Auf der Einstellungs-Zeile wählen **← →** den Eintrag und **A / Enter** ändert ihn — dieselbe Aufteilung wie beim Spiele-Karussell, weil ↑ ↓ für den Zeilenwechsel belegt sind. Mausklick wählt einen Eintrag, der zweite Klick ändert ihn.
+
+| Eintrag | Werte | Wirkt auf |
+|---|---|---|
+| LAUTSTÄRKE | 0–100 % | Master-Gain vor dem Ausgang, quadratisch geregelt |
+| SPIELDAUER | 50 / 75 / 100 / 150 / 200 % | `api.settings.durationFactor` — Fußball-Halbzeit, Katapult-Spielzeit |
+| SCHWIERIGKEIT | LEICHT / NORMAL / SCHWER | `api.settings.skillBase` — Grundstärke der KI-**Gegner** (0,90 / 1,00 / 1,12) |
+| BILDRÖHRE | AN / AUS | Scanline-Overlay (`body.no-scanlines`) |
+| VOLLBILD | AN / AUS | `requestFullscreen()` |
+
+Die Werte liegen in `localStorage` unter `retrocon.settings` — ohne das setzte jeder Neustart alles zurück. Beim Laden wird nur übernommen, was auch als Option existiert; ein alter Stand schleppt so keine Werte mit, die es nicht mehr gibt.
+
+**Lautstärke ohne Eingriff in die Spiele:** Alle Spiele verbinden ihre Klänge auf `audioCtx.destination`. Sie bekommen deshalb nicht den AudioContext selbst, sondern eine Hülle (`Proxy`), deren `destination` ein Master-Gain ist. Der Regler wirkt damit überall, ohne dass ein einziges Spiel angefasst werden musste.
 
 ## Ingame-Menü
 

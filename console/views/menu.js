@@ -1,18 +1,51 @@
 // Hauptmenü: 2D-Navigation (Karussell horizontal, Rows vertikal).
 import { startGame, exitGame, getCurrentGame } from './game.js';
+import { OPTIONS, getSetting, cycleSetting } from '../services/settings.js';
 
 const ROWS = ['RETROCON', 'CONTROLLER', 'SPIELE', 'EINSTELLUNGEN', 'CREDITS'];
 const SPIELE_ROW = 2;
+const SETTINGS_ROW = 3;
+const SETTING_KEYS = Object.keys(OPTIONS);
 
 let track, carousel, rowsEl, rowsTrack, labelUp, labelDown, arrowUp, arrowDown;
+let settingsList;
 let gameIds = [];
 let carouselIdx = 0;
+let settingIdx = 0;
 let rowIdx = 0;
+
+// Auf der Einstellungs-Zeile wählen ← → den Eintrag und A ändert ihn — dieselbe
+// Aufteilung wie beim Spiele-Karussell, weil ↑ ↓ für den Zeilenwechsel belegt sind.
+function buildSettings() {
+  settingsList.innerHTML = '';
+  SETTING_KEYS.forEach((k, i) => {
+    const el = document.createElement('div');
+    el.className = 'setting';
+    el.dataset.key = k;
+    el.innerHTML = `<span class="name">${OPTIONS[k].label}</span><span class="wert"></span>`;
+    el.addEventListener('click', () => {
+      if (rowIdx !== SETTINGS_ROW) return;
+      if (settingIdx === i) cycleSetting(k);
+      else settingIdx = i;
+      refresh();
+    });
+    settingsList.appendChild(el);
+  });
+}
+
+function refreshSettings() {
+  [...settingsList.children].forEach((el, i) => {
+    const k = el.dataset.key;
+    el.classList.toggle('selected', i === settingIdx && rowIdx === SETTINGS_ROW);
+    el.querySelector('.wert').textContent = OPTIONS[k].zeige(getSetting(k));
+  });
+}
 
 export function initMenu() {
   gameIds = Object.keys(window.RetroGames || {});
   track      = document.getElementById('carousel-track');
   carousel   = document.getElementById('carousel');
+  settingsList = document.getElementById('settings-list');
   rowsEl    = document.getElementById('menu-rows');
   rowsTrack = document.getElementById('menu-rows-track');
   labelUp   = document.getElementById('row-label-up');
@@ -69,6 +102,7 @@ export function initMenu() {
     if (carouselIdx < gameIds.length - 1) { carouselIdx++; refresh(); }
   });
 
+  buildSettings();
   refresh();
   window.addEventListener('resize', refresh);
 
@@ -86,12 +120,15 @@ export function initMenu() {
         e.preventDefault(); break;
       case 'ArrowRight': case 'd': case 'D':
         if (rowIdx === SPIELE_ROW && carouselIdx < gameIds.length - 1) { carouselIdx++; refresh(); }
+        if (rowIdx === SETTINGS_ROW) { settingIdx = (settingIdx + 1) % SETTING_KEYS.length; refresh(); }
         e.preventDefault(); break;
       case 'ArrowLeft': case 'a': case 'A':
         if (rowIdx === SPIELE_ROW && carouselIdx > 0) { carouselIdx--; refresh(); }
+        if (rowIdx === SETTINGS_ROW) { settingIdx = (settingIdx - 1 + SETTING_KEYS.length) % SETTING_KEYS.length; refresh(); }
         e.preventDefault(); break;
       case 'Enter': case ' ':
         if (rowIdx === SPIELE_ROW) startGame(gameIds[carouselIdx]);
+        if (rowIdx === SETTINGS_ROW) { cycleSetting(SETTING_KEYS[settingIdx]); refresh(); }
         e.preventDefault(); break;
     }
   });
@@ -122,6 +159,8 @@ function refresh() {
   }
   carousel.classList.toggle('has-prev', carouselIdx > 0);
   carousel.classList.toggle('has-next', carouselIdx < cards.length - 1);
+
+  refreshSettings();
 }
 
 export function resetMenu() {
@@ -152,5 +191,11 @@ export function handleMenuInput(activeScreen, gp, prev) {
     if (gp.a && !prev?.a) { startGame(gameIds[carouselIdx]); return; }
     if (gp.dpad.right && !prev?.dpad?.right && carouselIdx < gameIds.length - 1) { carouselIdx++; refresh(); }
     if (gp.dpad.left  && !prev?.dpad?.left  && carouselIdx > 0)                  { carouselIdx--; refresh(); }
+  }
+
+  if (rowIdx === SETTINGS_ROW) {
+    if (gp.a && !prev?.a)                     { cycleSetting(SETTING_KEYS[settingIdx]); refresh(); }
+    if (gp.dpad.right && !prev?.dpad?.right)  { settingIdx = (settingIdx + 1) % SETTING_KEYS.length; refresh(); }
+    if (gp.dpad.left  && !prev?.dpad?.left)   { settingIdx = (settingIdx - 1 + SETTING_KEYS.length) % SETTING_KEYS.length; refresh(); }
   }
 }

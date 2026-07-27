@@ -1,6 +1,7 @@
 // Game-View: Canvas, Loop, Start/Exit, In-Game-Overlay (Slide-Menü).
 import { conns, lastInput, code, localPlayers, addLocalPlayer } from '../services/connection.js';
 import { getAudioContext } from '../services/audio.js';
+import { gameSettings } from '../services/settings.js';
 import { resetMenu, goToGame } from './menu.js';
 
 // Kein Import von app.js — DOM direkt manipulieren bricht die zirkuläre Abhängigkeit
@@ -214,6 +215,7 @@ export function startGame(name) {
       return m;
     },
     audioCtx: getAudioContext(),
+    settings: gameSettings(),
     code
   });
   for (const [p, gp] of lastInput) currentGame.input?.(p, gp, null);

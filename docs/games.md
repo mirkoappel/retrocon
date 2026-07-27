@@ -15,6 +15,9 @@ window.RetroGames.pong = {
     // api.exit()        → zurück zum Hauptmenü
     // api.getConns()    → Map(player → conn), verbundene Controller
     // api.audioCtx      → globaler AudioContext (im Boot-Gesture erzeugt, darf nicht geschlossen werden)
+    // api.settings      → { durationFactor, skillBase } aus den Konsolen-Einstellungen.
+    //                     Kann fehlen (Prüfstand, Einbettung) — immer mit Vorgabewert lesen:
+    //                     const HALF_TIME = 180 * (api.settings?.durationFactor ?? 1);
     // api.code          → Raum-Code
     return {
       input(player, gamepad, prevGamepad) {},   // Eingabe verarbeiten

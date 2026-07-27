@@ -54,6 +54,14 @@ CHANGELOG.md            Versions-Historie
 
 ---
 
+## Prüfstand
+
+```bash
+node tests/run.js
+```
+
+Kein Build, keine Abhängigkeiten. Jeder Fall steht für einen Fehler, der schon einmal im Spiel war — Details in [tests/README.md](tests/README.md).
+
 ## Dokumentation
 
 - [console/](console/README.md) — Screen-Flow, Dateistruktur, Game-API

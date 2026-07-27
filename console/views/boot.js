@@ -1,12 +1,13 @@
 // Boot-View: Terminal-Intro → RETROCON-Animation auf Slide 1 → onReady/onAnimDone.
 // Der User-Klick hier ist die einzige Gesture — AudioContext wird hier erzeugt.
-import { createAudioContext } from '../services/audio.js';
+import { createAudioContext, setMasterVolume } from '../services/audio.js';
+import { getSetting } from '../services/settings.js';
 
 const WORD = 'RETROCON';
 const LETTER_DELAY = 110;
 
 const LINES = [
-  { text: 'RETROCON OS  v0.11.28',              delay: 0 },
+  { text: 'RETROCON OS  v0.12.0',              delay: 0 },
   { text: 'COPYRIGHT (C) 2026 RETROCON',      delay: 300 },
   { text: '',                                 delay: 550 },
   { text: 'BIOS v2.1  CHECKING MEMORY... OK', delay: 650 },
@@ -55,6 +56,9 @@ export function initBoot(onReady, onAnimDone) {
     started = true;
 
     const ctx = createAudioContext();
+    // Erst hier existiert der Master-Gain — die gespeicherte Lautstärke muss
+    // deshalb nach dem Erzeugen nachgezogen werden
+    setMasterVolume(getSetting('volume'));
     if (ctx) playBoot(ctx);
 
     // Boot-Screen sofort wegblenden, Main-Menu zeigen
