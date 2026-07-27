@@ -95,7 +95,7 @@ function playMatch(s, onFrame, maxFrames = 60 * 900) {
   for (let f = 0; f < maxFrames; f++) {
     s.step();
     if (onFrame && onFrame(f) === false) return 'abgebrochen';
-    if (S.phase === 'half') { s.tap(); continue; }
+    if (S.phase === 'half' || S.phase === 'goal') { s.tap(); continue; }
     if (ENDE.includes(S.phase)) {
       const m = s.screen().match(/(\d+) : (\d+)/);
       return m ? [+m[1], +m[2]] : [0, 0];

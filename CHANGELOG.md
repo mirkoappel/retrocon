@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.15.0]
+
+### Neu
+- **STREET SOCCER: Torpause mit Wiederholung.** Ein Tor war nach 2,4 Sekunden vorbei — jetzt hält das Spiel an und zeigt Torschütze und Spielstand. **A** pfeift wieder an, **B** zeigt die Szene in Zeitlupe (0,34-fach), und ohne Eingabe geht es nach 12 Sekunden von selbst weiter, damit ein Spiel nie hängen bleibt
+- Die Wiederholung läuft aus einem Mitschnitt der letzten 3,5 Sekunden. Aufgezeichnet werden nur Positionen und Blickrichtungen; gezeichnet wird sie mit demselben Code wie das laufende Spiel
+- Angesagt wird nur die Wiederholung — A führt überall weiter und muss nicht auf dem Bildschirm stehen
+
 ## [0.14.1]
 
 ### Behoben

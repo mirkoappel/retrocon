@@ -20,6 +20,7 @@ window.RetroGames.soccer = {
     { t1: 'B', t2: 'VOR DEM TOR', was: 'Hechtsprung auf eine scharfe Hereingabe — danach liegt man kurz' },
     { t1: 'DRIBBELN', t2: '',   was: 'Mit Ball läuft man langsamer; der Ball folgt der Laufrichtung' },
     { t1: 'ANSTOSS', t2: '',    was: 'Der Anstoß wird zum Mitspieler gepasst' },
+    { t1: 'B', t2: 'NACH DEM TOR', was: 'Wiederholung der Szene in Zeitlupe' },
   ],
 
   // Eigene Regler. Die Konsole zeigt und speichert sie, kennt aber weder
@@ -118,6 +119,9 @@ window.RetroGames.soccer = {
 
     const RESTART_KICK = 1.6;   // Standbild vor dem Anstoß
     const RESTART_GOAL = 2.4;   // …und nach einem Tor, etwas länger zum Jubeln
+    const HIST_LEN     = 210;   // Frames im Speicher für die Wiederholung (3,5 s)
+    const REPLAY_SPEED = 0.34;  // Zeitlupe
+    const GOAL_WAIT    = 12;    // so lange bleibt die Toranzeige stehen, wenn niemand drückt
     // Die beiden eigenen Regler aus dem Einstellungsmenü. Fehlt `api.setting`
     // (Prüfstand, Einbettung), gelten die Vorgabewerte.
     const HALF_TIME  = api.setting?.('duration') ?? 180;   // Sekunden je Halbzeit
@@ -168,7 +172,7 @@ window.RetroGames.soccer = {
     // ── Zustand ──────────────────────────────────────────
     const state = {
       route: 0,             // Angriffsweg: -1 links, 0 Mitte, 1 rechts
-      phase: 'mode',        // mode|count|side|team|foe|intro|play|half|result|champion|out
+      phase: 'mode',        // mode|count|side|team|foe|intro|play|goal|half|result|champion|out
       twoPlayers: false,    // zu zweit gewählt? Die Seiten-Frage hat sonst keinen Sinn
       teamMode: 'coop',     // coop = beide Menschen in einer Mannschaft, versus = gegeneinander
       menuSel: 0,
@@ -180,6 +184,8 @@ window.RetroGames.soccer = {
       half: 1, clock: HALF_TIME,
       golden: false, goldenT: 0,
       msg: '', msgTimer: 0,
+      hist: [], replay: null,        // Mitschnitt und laufende Wiederholung
+      goalWait: 0, goalTeam: 0,      // Toranzeige: Restzeit und wer getroffen hat
       kickoffFor: 0, kickoffLock: 0, restart: 0,
       kickoffTo: null, kickoffToT: 0,   // Anstoßpass ist für diesen Spieler reserviert
       lastAct: new Map(),   // letzte echte Eingabe je Spieler-Slot
@@ -868,6 +874,16 @@ window.RetroGames.soccer = {
       moveToward(p, tx, ty, SPEED * (0.9 + 0.1 * skill(p.team)) * tackleBoost(p), dt);
     }
 
+    function updateGoal(dt) {
+      if (state.replay) {
+        state.replay.i += REPLAY_SPEED;
+        if (state.replay.i >= state.hist.length - 1) state.replay = null;
+        return;
+      }
+      state.goalWait -= dt;
+      if (state.goalWait <= 0) weiterNachTor();
+    }
+
     // ── Match-Update ─────────────────────────────────────
     function updateMatch(dt) {
       const b = state.ball;
@@ -888,6 +904,14 @@ window.RetroGames.soccer = {
         if (state.restart <= 0) kickoffPass();
         return;
       }
+
+      // Mitschnitt für die Wiederholung. Nur Positionen — mehr braucht es
+      // nicht, um die Szene noch einmal zu zeichnen.
+      state.hist.push({
+        bx: b.x, by: b.y,
+        p: state.players.map(p => [p.x, p.y, p.fx, p.fy])
+      });
+      if (state.hist.length > HIST_LEN) state.hist.shift();
 
       // Zwei Durchgänge: erst entscheiden alle aus demselben Weltzustand,
       // dann bewegen sich alle. Würde beides in einer Schleife passieren,
@@ -1122,13 +1146,32 @@ window.RetroGames.soccer = {
 
     function scoreGoal(team) {
       state.score[team]++;
-      state.msg = 'TOR!';
-      state.msgTimer = RESTART_GOAL;
       state.shake = 0.7;
       sndGoal();
       if (state.golden) { finishMatch(); return; }
       state.kickoffFor = 1 - team;
-      kickoff(1 - team, RESTART_GOAL);
+      // Die Anzeige bleibt stehen, bis jemand weiterdrückt — vorher war das Tor
+      // nach 2,4 s vorbei, und man bekam es kaum mit. Ohne Eingabe geht es
+      // nach GOAL_WAIT von selbst weiter, damit ein Spiel nie hängen bleibt.
+      state.phase = 'goal';
+      state.goalTeam = team;
+      state.goalWait = GOAL_WAIT;
+      state.replay = null;
+      state.msg = ''; state.msgTimer = 0;
+    }
+
+    // Wiederholung in Zeitlupe aus dem Mitschnitt
+    function startReplay() {
+      if (state.hist.length < 30) return;
+      state.replay = { i: 0 };
+      sndMenu();
+    }
+
+    function weiterNachTor() {
+      state.replay = null;
+      state.phase = 'play';
+      state.hist.length = 0;
+      kickoff(state.kickoffFor, RESTART_KICK);
     }
 
     function finishMatch() {
@@ -1319,6 +1362,15 @@ window.RetroGames.soccer = {
             if (m.a || m.start) activate();
             return;
 
+          case 'goal':
+            if (state.replay) {                    // laufende Wiederholung abbrechen
+              if (m.a || m.b || m.start) state.replay = null;
+              return;
+            }
+            if (m.a || m.start) { weiterNachTor(); return; }
+            if (m.b) { startReplay(); return; }
+            return;
+
           case 'play': {
             const mv = moveVector(gp);
             inputs.set(player, mv);
@@ -1367,6 +1419,7 @@ window.RetroGames.soccer = {
         state.t += dt;
         state.shake = Math.max(0, state.shake - dt * 1.8);
         if (state.phase === 'play') updateMatch(dt);
+        else if (state.phase === 'goal') updateGoal(dt);
       },
 
       draw() {
@@ -1383,6 +1436,7 @@ window.RetroGames.soccer = {
           case 'foe':      drawTeamMenu(); break;
           case 'intro':    drawIntro(); break;
           case 'play':     drawMatch(); break;
+          case 'goal':     drawGoal(); break;
           case 'half':     drawMatch(); drawHalf(); break;
           case 'result':   drawMatch(); drawResult(); break;
           case 'champion': drawChampion(); break;
@@ -1573,6 +1627,50 @@ window.RetroGames.soccer = {
       ctx.shadowColor = '#fff'; ctx.shadowBlur = r.s * 0.02;
       ctx.beginPath(); ctx.arc(bq.X, bq.Y, BALL_R * r.s, 0, Math.PI * 2); ctx.fill();
       ctx.shadowBlur = 0;
+    }
+
+    // Torpause: entweder das Standbild mit Anzeige oder die Wiederholung.
+    // Gezeichnet wird beides mit dem normalen Spielfeld — für die Wiederholung
+    // werden die Positionen kurz aus dem Mitschnitt gesetzt und danach wieder
+    // zurückgeschrieben.
+    function drawGoal() {
+      const r = pitchRect();
+      if (state.replay) {
+        const i = Math.min(state.hist.length - 1, Math.floor(state.replay.i));
+        const f = state.hist[i];
+        const sicherung = state.players.map(p => [p.x, p.y, p.fx, p.fy]);
+        const ball = [state.ball.x, state.ball.y];
+        state.players.forEach((p, k) => { const q = f.p[k]; p.x = q[0]; p.y = q[1]; p.fx = q[2]; p.fy = q[3]; });
+        state.ball.x = f.bx; state.ball.y = f.by;
+        drawPitch(r); drawPlayers(r);
+        state.players.forEach((p, k) => { const q = sicherung[k]; p.x = q[0]; p.y = q[1]; p.fx = q[2]; p.fy = q[3]; });
+        state.ball.x = ball[0]; state.ball.y = ball[1];
+        drawHud();
+        ctx.fillStyle = '#4fc3f7';
+        ctx.font = font(uni() * 0.03);
+        ctx.fillText('WIEDERHOLUNG', w / 2, h * 0.94);
+        return;
+      }
+
+      drawPitch(r); drawPlayers(r); drawHud();
+      // Panel, damit die Anzeige auf dem Rasen lesbar bleibt
+      const pw = uni() * 0.62, ph = uni() * 0.3;
+      ctx.fillStyle = 'rgba(4,6,10,0.92)';
+      ctx.fillRect(w / 2 - pw / 2, h / 2 - ph / 2, pw, ph);
+      ctx.strokeStyle = '#4fc3f7';
+      ctx.lineWidth = Math.max(1, uni() * 0.004);
+      ctx.strokeRect(w / 2 - pw / 2, h / 2 - ph / 2, pw, ph);
+
+      ctx.fillStyle = '#fff';
+      ctx.font = font(uni() * 0.075);
+      ctx.fillText('TOR!', w / 2, h / 2 - ph * 0.16);
+      ctx.font = font(uni() * 0.04);
+      const treffer = state.goalTeam === 0 ? TEAMS[state.myTeam] : TEAMS[state.foeTeam];
+      ctx.fillStyle = '#8a9bb0';
+      ctx.fillText(`${treffer.n}   ${state.score[0]} : ${state.score[1]}`, w / 2, h / 2 + ph * 0.1);
+      ctx.font = font(uni() * 0.024);
+      ctx.fillStyle = '#4fc3f7';
+      ctx.fillText('B · WIEDERHOLUNG', w / 2, h / 2 + ph * 0.36);
     }
 
     function drawHud() {

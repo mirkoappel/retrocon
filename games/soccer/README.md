@@ -78,6 +78,20 @@ Die Menüs sind zusätzlich **mit der Maus bedienbar**: Ein Klick auf einen Eint
 
 Bei zwei Menschen bekommt jeder seinen eigenen Spieler — dieselbe Figur kann nie doppelt belegt werden. Die Markierungsringe zeigen wer wen steuert: Cyan = Spieler 1, Pink = Spieler 2.
 
+## Nach dem Tor
+
+Ein Tor war nach 2,4 Sekunden vorbei — man bekam es kaum mit. Jetzt hält das Spiel an und zeigt eine Anzeige mit Torschütze und Spielstand:
+
+| Eingabe | Wirkung |
+|---|---|
+| **A** | weiter, Anstoß für die andere Mannschaft |
+| **B** | Wiederholung der Szene in Zeitlupe (0,34-fach) |
+| nichts | nach `GOAL_WAIT` (12 s) geht es von selbst weiter |
+
+Die Wiederholung läuft aus einem **Mitschnitt der letzten 3,5 Sekunden** (`HIST_LEN` = 210 Frames). Aufgezeichnet werden nur Positionen und Blickrichtungen — mehr braucht es nicht, um die Szene noch einmal zu zeichnen, und gezeichnet wird sie mit demselben Code wie das laufende Spiel: Die Positionen werden kurz aus dem Mitschnitt gesetzt und danach zurückgeschrieben.
+
+Angesagt wird nur die **Wiederholung**, nicht das Weiterdrücken — A führt überall weiter, das muss nicht auf dem Bildschirm stehen. Die Zeitlupe dagegen kann man nicht erraten.
+
 ## Regeln
 
 Bewusst weggelassen: **Abseits, Fouls, Einwurf, Ecken**. Der Ball prallt stattdessen von den Seitenlinien ab. Das hält das Spiel durchgehend in Bewegung und passt zum Arcade-Charakter der anderen RETROCON-Spiele.
