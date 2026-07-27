@@ -23,20 +23,22 @@ Im **Freundschaftsspiel** wählt dabei jeder seine eigene Mannschaft: erst Spiel
 
 Im **World Cup** geht gegeneinander ebenfalls, nur wählt Spieler 2 dort nichts: die Gegner werden ausgelost, und er übernimmt jede Runde das gezogene Team. Es bleibt der Turnierlauf von Spieler 1 — der andere versucht, ihn zu stoppen.
 
-## Zuschauen
+## Zusehen
 
-Der KI zusehen wie im Fernsehen — **ohne einen einzigen Tastendruck**. Im Startmenü unter ZUSCHAUEN: zufällige Paarung, niemand steuert mit, und nach dem Abpfiff läuft gleich das nächste Spiel mit neuen Mannschaften.
+Zusehen ist **kein Modus, den man wählt** — es ist das, was übrig bleibt, wenn man die Finger stillhält. Nach der Mannschaftswahl läuft alles von selbst weiter, und wer aufhört zu spielen, gibt seinen Spieler nach `IDLE_TAKEOVER` an die KI ab.
 
-Damit das aufgeht, geht **jede Tafel von selbst weiter**; wer drückt, überspringt nur die Wartezeit:
+Jede Tafel geht dafür von allein weiter; wer drückt, überspringt nur die Wartezeit:
 
 | Tafel | Wartezeit |
 |---|---|
+| Anpfiff | `AUTO_INTRO` (6 s) |
 | Toranzeige | 5 s, dann Wiederholung, danach direkt Anstoß |
 | Halbzeit | `AUTO_HALF` (7 s) |
 | Ergebnis, Meister, Aus | `AUTO_RESULT` (9 s) |
-| Anpfiff im Zuschauen-Modus | 3,5 s |
 
-Das gilt auch im normalen Spiel: Ein Match läuft von Anfang bis Ende durch, wenn niemand etwas drückt — nachgemessen 460 Sekunden vom Anpfiff bis zur Ergebnistafel.
+**Und es hört nicht auf:** Läuft die Ergebnistafel von selbst ab, beginnt das nächste Spiel mit einem neuen Gegner — im Turnier die nächste Runde oder ein neues Turnier. Drückt man dagegen selbst, kommt man wie gewohnt ins Menü. Genau dieser Unterschied macht das Zusehen möglich, ohne einen Modus dafür zu brauchen.
+
+Nachgemessen über 27 Minuten ohne eine einzige Eingabe: drei Anschlussspiele, keine hängende Tafel, kein Spieler mehr unter menschlicher Kontrolle.
 
 ## Modi
 

@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.2]
+
+### Geändert
+- **STREET SOCCER: ZUSCHAUEN ist kein Menüpunkt mehr.** Zusehen ist nichts, was man auswählt, sondern das, was übrig bleibt, wenn man die Finger stillhält: Nach der Mannschaftswahl läuft alles von selbst weiter, und wer aufhört zu spielen, gibt seinen Spieler an die KI ab
+- **Und es hört nicht auf:** Läuft die Ergebnistafel von selbst ab, beginnt das nächste Spiel mit neuem Gegner — im Turnier die nächste Runde oder ein neues Turnier. Drückt man selbst, kommt man wie gewohnt ins Menü. Dieser Unterschied ersetzt den Modus
+- Auch die Anpfiff-Tafel geht jetzt von selbst weiter (`AUTO_INTRO`, 6 s)
+
 ## [0.18.1]
 
 ### Neu

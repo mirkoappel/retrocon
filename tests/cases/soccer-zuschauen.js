@@ -1,41 +1,45 @@
-// Zusehen wie im Fernsehen: Nach dem Menüpunkt ZUSCHAUEN darf kein einziger
-// Tastendruck mehr nötig sein — Anpfiff, Tore, Halbzeit, Abpfiff und das
-// nächste Spiel laufen von selbst.
+// Zusehen ist kein Modus, sondern das, was übrig bleibt, wenn man die Finger
+// stillhält: Nach der Mannschaftswahl läuft alles von selbst weiter — Anpfiff,
+// Tore, Halbzeit, Abpfiff und das nächste Spiel.
 const { session, pad } = require('../harness');
 
 module.exports = {
-  name: 'Fussball · Zuschauen laeuft ohne Tastendruck',
+  name: 'Fussball · laeuft ohne Tastendruck weiter',
   slow: true,
   run() {
-    const s = session('soccer', { conns: new Map([[1, 'keyboard']]) });
-    const S = s.state;
-    // Einmal auswählen — danach nichts mehr
-    s.send(pad({ dpad: { down: true } })); s.send(pad());
-    s.send(pad({ dpad: { down: true } })); s.send(pad());
-    s.send(pad({ a: true })); s.send(pad());
-    if (!S.watch) return { ok: false, info: 'ZUSCHAUEN startet nicht' };
-
-    const phasen = new Set();
-    let anschluss = 0, gesteuert = 0, letzte = S.phase, haenger = 0, vorPhase = S.phase, gleich = 0;
-    for (let f = 0; f < 60 * 1500; f++) {
-      s.step();
-      phasen.add(S.phase);
-      if (S.players.some(p => p.ctrl)) gesteuert++;
-      if (S.phase === 'intro' && letzte === 'result') anschluss++;
-      letzte = S.phase;
-      // Hängt eine Tafel? play und goal dürfen lange dauern, Tafeln nicht
-      if (S.phase === vorPhase) gleich++; else { gleich = 0; vorPhase = S.phase; }
-      if (gleich > 60 * 40 && !['play', 'goal'].includes(S.phase)) haenger++;
-    }
     const fehler = [];
-    if (gesteuert > 0) fehler.push(`${gesteuert} Frames mit menschlicher Steuerung`);
-    if (anschluss < 1) fehler.push('kein Anschlussspiel');
-    if (haenger > 0) fehler.push('eine Tafel bleibt haengen');
-    for (const p of ['play', 'half', 'result']) if (!phasen.has(p)) fehler.push(`Phase ${p} nie erreicht`);
+    for (const [was, waehlen] of [
+      ['World Cup', s => { for (let i = 0; i < 4; i++) s.tap(); }],
+      ['Freundschaftsspiel', s => {
+        s.send(pad({ dpad: { down: true } })); s.send(pad());
+        for (let i = 0; i < 4; i++) s.tap();
+      }],
+    ]) {
+      const s = session('soccer', { conns: new Map([[1, 'keyboard']]) });
+      const S = s.state;
+      waehlen(s);
+
+      const phasen = new Set();
+      let anschluss = 0, letzte = S.phase, gleich = 0, vor = S.phase, haenger = 0;
+      for (let f = 0; f < 60 * 1600; f++) {
+        s.step();
+        phasen.add(S.phase);
+        if (S.phase === 'intro' && letzte === 'result') anschluss++;
+        letzte = S.phase;
+        if (S.phase === vor) gleich++; else { gleich = 0; vor = S.phase; }
+        // Tafeln duerfen nicht haengen; play und goal duerfen dauern
+        if (gleich > 60 * 40 && !['play', 'goal'].includes(S.phase)) haenger++;
+      }
+      if (anschluss < 1) fehler.push(`${was}: kein Anschlussspiel ohne Eingabe`);
+      if (haenger > 0) fehler.push(`${was}: eine Tafel bleibt haengen (${vor})`);
+      for (const p of ['play', 'half', 'result']) if (!phasen.has(p)) fehler.push(`${was}: Phase ${p} nie erreicht`);
+      // Wer nichts drueckt, gibt seinen Spieler an die KI ab
+      if (S.players.some(p => p.ctrl)) fehler.push(`${was}: ein Spieler wird noch gesteuert`);
+    }
     return {
       ok: fehler.length === 0,
       info: fehler.length ? fehler.join(' · ')
-        : `${anschluss} Anschlussspiele in 25 Minuten, kein Tastendruck noetig, keine haengende Tafel`
+        : 'World Cup und Freundschaftsspiel laufen beide ueber Stunden ohne einen Tastendruck weiter'
     };
   }
 };
