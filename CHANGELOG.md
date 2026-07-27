@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.2]
+
+### Geändert
+- **STREET SOCCER: Die Spielfeldlinien sind einheitlich.** Gleiche Farbe, gleiche Stärke, deckend statt halbdurchsichtig — und Kanten, die auf einer anderen Linie liegen, werden nicht mehr doppelt gezeichnet
+- **Der Strafraum sieht aus wie einer:** Torraum, Elfmeterpunkt, Teilkreis (nur außerhalb des Strafraums), Anstoßpunkt und Eckviertel. Alle Maße sind aus dem Strafraum abgeleitet, gezeichnet wird in Feldkoordinaten, damit es im Hoch- wie im Querformat stimmt
+- **Menüpunkte haben alle dieselbe Schriftgröße** und brechen um, statt zu schrumpfen. Die Box wächst mit
+
 ## [0.21.1]
 
 ### Geändert

@@ -174,7 +174,17 @@ window.RetroGames.soccer = {
     const HALVES    = 2;
 
     const P_COL = ['#4fc3f7', '#f48fb1'];   // Markierung P1 / P2
-    const LINE  = 'rgba(255,255,255,0.28)';
+    // Eine Farbe für alle Markierungen, deckend. Halbdurchsichtige Linien
+    // sahen dort doppelt so kräftig aus, wo zwei aufeinanderlagen.
+    const LINE  = '#5c7a6a';
+    // Maße der Markierungen, abgeleitet aus dem Strafraum: Der entspricht
+    // 16,5 m Tiefe und 40,3 m Breite, daraus ergibt sich der Rest.
+    const GOAL_AREA_W  = BOX_W * 0.454;   // Torraum, 18,3 m breit
+    const GOAL_AREA_D  = BOX_D / 3;       // …und 5,5 m tief
+    const ELFMETER     = BOX_D * 0.667;   // 11 m vor der Linie
+    const TEILKREIS_R  = BOX_D * 0.555;   // 9,15 m Radius
+    const MITTE_R      = BOX_D * 0.555;   // derselbe Radius für den Anstoßkreis
+    const ECK_R        = BOX_D * 0.061;   // 1 m Eckviertel
     const TURF  = '#10231a', TURF_ALT = '#0d1d15';
 
     // Aufstellung für die nach +y angreifende Mannschaft.
@@ -1593,6 +1603,7 @@ window.RetroGames.soccer = {
     // Maße führt resize() nach.
     const R = window.RetroSoccer.render(ctx, {
       state, clamp, kit, hotspot, goalItems, drawFlagIcon, GOAL_DEPTH,
+      MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R,
       AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
       FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
       TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS,

@@ -116,11 +116,32 @@ Nachgemessen: Gleichschritt 88,5 % → **5,4 %**, vor der Grundstellung 0,4 % �
 
 **Was nicht ging:** Die seitliche Deckung auch nur jenseits jeder Schussdistanz träge zu machen, ließ die Torquote auf **34,8 Tore pro Spiel** springen. Ein Rest an Gleichlauf bleibt deshalb bewusst bestehen — es gibt einen Ball, und beide Torhüter reagieren richtig darauf.
 
+## Spielfeldlinien
+
+Alle Markierungen haben **dieselbe Farbe und dieselbe Stärke**. Vorher waren sie halbdurchsichtig — und wo zwei aufeinanderlagen, etwa die Strafraumkante auf der Torlinie, sah es doppelt so kräftig aus. Kanten, die auf einer anderen Linie liegen, werden deshalb gar nicht erst gezeichnet.
+
+Der Strafraum ist kein Kasten mehr, sondern das, was auf einem Platz steht:
+
+| Markierung | Maß |
+|---|---|
+| Strafraum | 16,5 m tief, 40,3 m breit (`BOX_D`, `BOX_W`) |
+| Torraum | 5,5 m tief, 18,3 m breit |
+| Elfmeterpunkt | 11 m vor der Linie |
+| Teilkreis | 9,15 m Radius, gezeichnet **nur außerhalb** des Strafraums |
+| Anstoßkreis und -punkt | derselbe Radius |
+| Eckviertel | 1 m |
+
+Alles ist aus dem Strafraum abgeleitet, damit die Verhältnisse stimmen. Gezeichnet wird über `feldzug` und `feldbogen` in **Feldkoordinaten** — dadurch sehen die Markierungen im Hoch- und im Querformat gleich aus, und die Bögen stimmen auch gedreht.
+
 ## Tore
 
 Die Tore sind Kästen hinter der Torlinie (`GOAL_DEPTH`) mit einem gezeichneten Netz. Vorher war es ein weißer Balken — der Ball schien dadurch durch das Tor hindurchzufliegen, weil dahinter nichts war, in dem er liegenbleiben konnte. Beim Treffer wird er jetzt bewusst **ins Netz gelegt** (`NETZ_TIEFE`), nicht nur begrenzt.
 
 Gezeichnet werden nur die **drei hinteren Kanten**. Die vordere liegt genau auf der Torlinie, die das Spielfeld ohnehin zieht; strichelt man sie mit, liegen zwei Striche übereinander und der vordere Balken sieht dicker aus als die anderen.
+
+## Menüpunkte
+
+Alle Punkte einer Tafel haben **dieselbe Schriftgröße**. Zu lange Beschriftungen wie „WEITER ZUM VIERTELFINALE" **brechen um**, statt zu schrumpfen — sonst standen in einer Liste Punkte in zwei verschiedenen Größen untereinander. Die Klammern `> <` stehen dabei neben dem ganzen Block, nicht in jeder Zeile, und die Box wächst mit der Zahl der Zeilen.
 
 ## Tafeln
 

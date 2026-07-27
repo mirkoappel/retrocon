@@ -16,6 +16,7 @@ window.RetroSoccer.render = function (ctx, K) {
   let { w, h } = K;
   const {
     state, clamp, kit, hotspot, goalItems, drawFlagIcon, GOAL_DEPTH,
+    MITTE_R, GOAL_AREA_W, GOAL_AREA_D, ELFMETER, TEILKREIS_R, ECK_R,
     AUTO_REPLAY, AUTO_HALF, AUTO_RESULT, AUTO_INTRO,
     FIELD_W, GOAL_W, BOX_W, BOX_D, PLAYER_R, BALL_R,
     TURF, TURF_ALT, LINE, P_COL, ROUNDS, TEAMS,
@@ -67,6 +68,32 @@ window.RetroSoccer.render = function (ctx, K) {
     return r.rot ? Math.atan2(fx, fy) : Math.atan2(-fy, fx);
   }
 
+  // Ein Linienzug in Feldkoordinaten. Damit sehen alle Markierungen in beiden
+  // Ausrichtungen gleich aus, und die Kreisbögen stimmen auch im Querformat.
+  function feldzug(r, punkte, schliessen) {
+    ctx.beginPath();
+    punkte.forEach(([fx, fy], i) => {
+      const p = px(r, fx, fy);
+      if (i === 0) ctx.moveTo(p.X, p.Y); else ctx.lineTo(p.X, p.Y);
+    });
+    if (schliessen) ctx.closePath();
+    ctx.stroke();
+  }
+
+  function feldbogen(r, cx, cy, rad, von, bis) {
+    const n = 28, pts = [];
+    for (let i = 0; i <= n; i++) {
+      const a = von + (bis - von) * i / n;
+      pts.push([cx + Math.cos(a) * rad, cy + Math.sin(a) * rad]);
+    }
+    feldzug(r, pts, false);
+  }
+
+  function feldpunkt(r, fx, fy) {
+    const p = px(r, fx, fy);
+    ctx.beginPath(); ctx.arc(p.X, p.Y, Math.max(1.5, r.s * 0.005), 0, Math.PI * 2); ctx.fill();
+  }
+
   function drawPitch(r) {
     ctx.fillStyle = TURF;
     ctx.fillRect(r.x, r.y, r.w, r.h);
@@ -78,19 +105,51 @@ window.RetroSoccer.render = function (ctx, K) {
       ctx.fillRect(bd.x, bd.y, bd.w, bd.h);
     }
 
+    // Alle Markierungen in derselben Farbe und Stärke. Vorher waren sie
+    // halbdurchsichtig, und wo zwei Linien aufeinanderlagen — Strafraum auf
+    // Torlinie — sah es doppelt so kräftig aus.
     ctx.strokeStyle = LINE;
-    ctx.lineWidth = Math.max(1.5, r.s * 0.004);
-    ctx.strokeRect(r.x, r.y, r.w, r.h);
+    ctx.fillStyle = LINE;
+    ctx.lineWidth = Math.max(1.5, r.s * 0.0042);
+    ctx.lineCap = 'butt';
 
-    // Mittellinie + Anstoßkreis
-    const m1 = px(r, 0, 0.5), m2 = px(r, FIELD_W, 0.5), mc = px(r, FIELD_W / 2, 0.5);
-    ctx.beginPath(); ctx.moveTo(m1.X, m1.Y); ctx.lineTo(m2.X, m2.Y); ctx.stroke();
-    ctx.beginPath(); ctx.arc(mc.X, mc.Y, r.s * 0.10, 0, Math.PI * 2); ctx.stroke();
+    // Aussenlinien
+    feldzug(r, [[0, 0], [FIELD_W, 0], [FIELD_W, 1], [0, 1]], true);
 
-    // Strafräume, jeweils an der Torlinie
-    for (const [ya, yb] of [[0, BOX_D], [1, 1 - BOX_D]]) {
-      const bx = fieldRect(r, FIELD_W / 2 - BOX_W / 2, ya, FIELD_W / 2 + BOX_W / 2, yb);
-      ctx.strokeRect(bx.x, bx.y, bx.w, bx.h);
+    // Mittellinie, Anstosskreis und Anstosspunkt
+    feldzug(r, [[0, 0.5], [FIELD_W, 0.5]], false);
+    feldbogen(r, FIELD_W / 2, 0.5, MITTE_R, 0, Math.PI * 2);
+    feldpunkt(r, FIELD_W / 2, 0.5);
+
+    const mitte = FIELD_W / 2;
+    for (const gy of [0, 1]) {
+      const ein = gy === 0 ? 1 : -1;              // ins Feld hinein
+      // Strafraum — nur die drei Seiten im Feld. Die vierte liegt auf der
+      // Torlinie und wird von den Aussenlinien schon gezogen.
+      const bx = BOX_W / 2, bd = gy === 0 ? BOX_D : 1 - BOX_D;
+      feldzug(r, [[mitte - bx, gy], [mitte - bx, bd], [mitte + bx, bd], [mitte + bx, gy]], false);
+
+      // Torraum, der kleine Kasten davor
+      const tx = GOAL_AREA_W / 2, td = gy === 0 ? GOAL_AREA_D : 1 - GOAL_AREA_D;
+      feldzug(r, [[mitte - tx, gy], [mitte - tx, td], [mitte + tx, td], [mitte + tx, gy]], false);
+
+      // Elfmeterpunkt und Teilkreis. Gezeichnet wird nur der Bogen ausserhalb
+      // des Strafraums — genau so sieht ein echter Strafraum aus.
+      const py = gy === 0 ? ELFMETER : 1 - ELFMETER;
+      feldpunkt(r, mitte, py);
+      const dy = Math.abs(bd - py);               // Abstand Punkt zur Strafraumkante
+      if (TEILKREIS_R > dy) {
+        const halb = Math.acos(dy / TEILKREIS_R);
+        const grund = gy === 0 ? Math.PI / 2 : -Math.PI / 2;
+        feldbogen(r, mitte, py, TEILKREIS_R, grund - halb, grund + halb);
+      }
+
+      // Eckviertel
+      for (const ex of [0, FIELD_W]) {
+        const sx = ex === 0 ? 1 : -1;
+        const a0 = ex === 0 ? (gy === 0 ? 0 : -Math.PI / 2) : (gy === 0 ? Math.PI / 2 : Math.PI);
+        feldbogen(r, ex, gy, ECK_R, a0, a0 + Math.PI / 2 * (sx * ein > 0 ? 1 : 1));
+      }
     }
 
     // Tore mit Netz. Vorher war es nur ein weisser Balken hinter der Linie —
@@ -110,7 +169,7 @@ window.RetroSoccer.render = function (ctx, K) {
       // Netz: feines Raster, quer und laengs
       ctx.save();
       ctx.beginPath(); ctx.rect(kx, ky, kw, kh); ctx.clip();
-      ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+      ctx.strokeStyle = LINE;
       ctx.lineWidth = Math.max(1, r.s * 0.0014);
       const masche = r.s * 0.0105;
       ctx.beginPath();
@@ -267,6 +326,24 @@ window.RetroSoccer.render = function (ctx, K) {
   // weitergespielt.
   // Text auf eine Höchstbreite einpassen, statt ihn aus dem Panel laufen zu
   // lassen. „DEUTSCHLAND 3 : 2 NIEDERLANDE" war deutlich breiter als die Box.
+  // Menüpunkte behalten ihre Schriftgröße und brechen stattdessen um.
+  // Vorher schrumpfte „WEITER ZUM VIERTELFINALE", und dann standen in einer
+  // Liste Punkte in zwei verschiedenen Größen untereinander.
+  function umbruch(text, maxW, size) {
+    ctx.font = font(size);
+    if (ctx.measureText(text).width <= maxW) return [text];
+    const worte = text.split(' ');
+    const zeilen = [];
+    let z = '';
+    for (const wort of worte) {
+      const probe = z ? z + ' ' + wort : wort;
+      if (z && ctx.measureText(probe).width > maxW) { zeilen.push(z); z = wort; }
+      else z = probe;
+    }
+    if (z) zeilen.push(z);
+    return zeilen;
+  }
+
   function fitText(text, x, y, maxW, size) {
     let s2 = size;
     for (let i = 0; i < 10 && s2 > size * 0.45; i++) {
@@ -295,7 +372,12 @@ window.RetroSoccer.render = function (ctx, K) {
   // versehentlich wegklicken.
   function zeichneBox(titel, punkte, o = {}) {
     const pw = Math.min(w * (o.breit || 0.78), uni() * (o.breit || 0.7));
-    const zeilen = punkte.length;
+    const innenBreite = pw * 0.86;
+    // Erst umbrechen, dann die Höhe bestimmen: Ein Punkt, der auf zwei Zeilen
+    // geht, braucht auch zwei Zeilen Platz — sonst stösst er unten heraus.
+    const groesse = uni() * 0.03;
+    const bloecke = punkte.map(it => umbruch(it, innenBreite * 0.82, groesse));
+    const zeilen = bloecke.reduce((n, b) => n + b.length, 0) || 1;
     const ph = uni() * (0.28 + 0.1 * zeilen + (o.extra || 0));
     const x0 = w / 2 - pw / 2, y0 = h / 2 - ph / 2;
 
@@ -322,14 +404,32 @@ window.RetroSoccer.render = function (ctx, K) {
 
     if (o.zwischen) o.zwischen(x0, y0, pw, ph, innen);
 
+    // Alle Punkte in derselben Größe; zu lange brechen um.
+    const zeilenAbstand = ph * 0.085;
     const erste = o.punkteY || (zeilen > 1 ? 0.58 : 0.66);
-    punkte.forEach((it, i) => {
-      const y = y0 + ph * (erste + i * 0.18);
+
+    let yLauf = y0 + ph * erste;
+    bloecke.forEach((zeilenText, i) => {
       const sel = i === state.menuSel;
-      if (!o.gesperrt) hotspot(x0 + pw * 0.08, y - ph * 0.075, pw * 0.84, ph * 0.15, i);
+      const hoehe = zeilenText.length * zeilenAbstand;
+      const mitte = yLauf + (zeilenText.length - 1) * zeilenAbstand / 2;
+
+      if (!o.gesperrt) hotspot(x0 + pw * 0.08, yLauf - ph * 0.075, pw * 0.84, hoehe + ph * 0.04, i);
       ctx.globalAlpha = o.punkteAlpha === undefined ? 1 : o.punkteAlpha;
       ctx.fillStyle = sel ? '#ffd54f' : '#666';
-      fitText(sel ? `> ${it} <` : it, w / 2, y, innen, uni() * 0.03);
+      ctx.font = font(groesse);
+      let breit = 0;
+      zeilenText.forEach((zt, k) => {
+        breit = Math.max(breit, ctx.measureText(zt).width);
+        ctx.fillText(zt, w / 2, yLauf + k * zeilenAbstand);
+      });
+
+      // Die Klammern stehen neben dem ganzen Block, nicht in jeder Zeile
+      if (sel) {
+        const rand = breit / 2 + groesse * 1.1;
+        ctx.fillText('>', w / 2 - rand, mitte);
+        ctx.fillText('<', w / 2 + rand, mitte);
+      }
 
       // Läuft eine Uhr, erscheint unter dem Punkt, den sie auslösen wird, ein
       // schrumpfender Balken. Ohne ihn passiert nach ein paar Sekunden
@@ -337,7 +437,7 @@ window.RetroSoccer.render = function (ctx, K) {
       if (o.timer && o.timer.idx === i && o.timer.rest > 0) {
         const voll = innen * 0.45;
         const bw = voll * Math.max(0, Math.min(1, o.timer.rest));
-        const by = y + ph * 0.055;
+        const by = yLauf + (zeilenText.length - 1) * zeilenAbstand + ph * 0.05;
         const dick = Math.max(2, uni() * 0.005);
         ctx.fillStyle = 'rgba(255,255,255,0.12)';
         ctx.fillRect(w / 2 - voll / 2, by, voll, dick);
@@ -345,7 +445,9 @@ window.RetroSoccer.render = function (ctx, K) {
         ctx.fillRect(w / 2 - bw / 2, by, bw, dick);
       }
       ctx.globalAlpha = 1;
+      yLauf += hoehe + ph * 0.085;
     });
+
     return { x0, y0, pw, ph, innen };
   }
 
