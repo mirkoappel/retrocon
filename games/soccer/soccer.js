@@ -1869,6 +1869,18 @@ window.RetroGames.soccer = {
     // Einen Frame aus einem Mitschnitt zeichnen. Der echte Spielzustand wird
     // dafür kurz überschrieben und danach zurückgeschrieben — danach wird ja
     // weitergespielt.
+    // Text auf eine Höchstbreite einpassen, statt ihn aus dem Panel laufen zu
+    // lassen. „DEUTSCHLAND 3 : 2 NIEDERLANDE" war deutlich breiter als die Box.
+    function fitText(text, x, y, maxW, size) {
+      let s2 = size;
+      for (let i = 0; i < 10 && s2 > size * 0.45; i++) {
+        ctx.font = font(s2);
+        if (ctx.measureText(text).width <= maxW) break;
+        s2 *= 0.92;
+      }
+      ctx.fillText(text, x, y);
+    }
+
     function zeichneMitschnitt(r, frames, pos) {
       const f = frames[Math.max(0, Math.min(frames.length - 1, Math.floor(pos)))];
       const sicherung = state.players.map(p => MITSCHNITT_FELDER.map(k => p[k]));
@@ -1948,8 +1960,8 @@ window.RetroGames.soccer = {
           hotspot(x0 + pw * 0.08, y - ph * 0.065, pw * 0.84, ph * 0.13, i);
           ctx.globalAlpha = menuAuf;
           ctx.fillStyle = sel ? '#ffd54f' : '#666';
-          ctx.font = font(uni() * 0.03);
-          ctx.fillText(sel ? `> ${it} <` : it, w / 2, y + (1 - menuAuf) * ph * 0.06);
+          fitText(sel ? `> ${it} <` : it, w / 2, y + (1 - menuAuf) * ph * 0.06,
+                  pw * 0.86, uni() * 0.03);
           ctx.globalAlpha = 1;
         });
       }
@@ -2252,15 +2264,16 @@ window.RetroGames.soccer = {
     // Wie heißt der Ausgang, und wie heißt der Weg hinaus? „WEITER" stand
     // vorher als Ergebnis da und las sich wie eine Taste — gemeint war, dass
     // man eine Runde weiterkommt.
+    // Im Turnier ist der Ausgang ein Paar: gewonnen oder ausgeschieden.
+    // „EINE RUNDE WEITER" beschrieb die Folge statt des Ergebnisses.
     function resultTitel() {
       if (state.mode === 'friendly') return state.lastResult;
-      if (state.lastResult !== 'WEITER') return 'AUSGESCHIEDEN';
-      return state.round + 1 < ROUNDS.length ? 'EINE RUNDE WEITER' : 'IM FINALE';
+      return state.lastResult === 'WEITER' ? 'GEWONNEN' : 'AUSGESCHIEDEN';
     }
     function resultWeiter() {
       if (state.mode === 'friendly') return 'NÄCHSTES SPIEL';
       if (state.lastResult !== 'WEITER') return 'ZURÜCK ZUM MENÜ';
-      return ROUNDS[state.round + 1] || 'FINALE';
+      return `WEITER ZUM ${ROUNDS[state.round + 1] || 'FINALE'}`;
     }
     // Bewusst eine Funktionsdeklaration: Sie wird auch von der Eingabe und vom
     // Update gerufen, die weit vor dieser Stelle stehen. Ein `const` hier wäre
@@ -2296,20 +2309,19 @@ window.RetroGames.soccer = {
       ctx.lineWidth = Math.max(1, uni() * 0.002);
       ctx.stroke();
 
+      const innen = pw * 0.86;
       ctx.fillStyle = '#fff';
-      ctx.font = font(uni() * 0.045);
-      ctx.fillText(resultTitel(), w / 2, y0 + ph * 0.24);
+      fitText(resultTitel(), w / 2, y0 + ph * 0.24, innen, uni() * 0.045);
       ctx.fillStyle = '#8a9bb0';
-      ctx.font = font(uni() * 0.028);
-      ctx.fillText(`${TEAMS[state.myTeam].n}  ${a} : ${b}  ${TEAMS[state.foeTeam].n}`, w / 2, y0 + ph * 0.42);
+      fitText(`${TEAMS[state.myTeam].n}  ${a} : ${b}  ${TEAMS[state.foeTeam].n}`,
+              w / 2, y0 + ph * 0.42, innen, uni() * 0.028);
 
       resultItems().forEach((it, i) => {
         const y = y0 + ph * (0.66 + i * 0.16);
         const sel = i === state.menuSel;
         hotspot(x0 + pw * 0.08, y - ph * 0.065, pw * 0.84, ph * 0.13, i);
         ctx.fillStyle = sel ? '#4fc3f7' : '#666';
-        ctx.font = font(uni() * 0.03);
-        ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
+        fitText(sel ? `> ${it} <` : it, w / 2, y, innen, uni() * 0.03);
       });
     }
 

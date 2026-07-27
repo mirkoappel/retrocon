@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.19.2]
+
+### Geändert
+- **STREET SOCCER: Der Ausgang im Turnier heißt GEWONNEN oder AUSGESCHIEDEN** — ein klares Paar. „EINE RUNDE WEITER" beschrieb die Folge statt des Ergebnisses
+- Der Menüpunkt heißt **WEITER ZUM HALBFINALE** statt nur „HALBFINALE"
+
+### Behoben
+- **Text lief aus dem Panel heraus.** „DEUTSCHLAND 3 : 2 NIEDERLANDE" war breiter als die Box. Alle Texte in der Ergebnistafel und der Toranzeige werden jetzt auf die Panelbreite eingepasst
+
 ## [0.19.1]
 
 ### Behoben

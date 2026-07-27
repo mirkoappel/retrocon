@@ -129,12 +129,13 @@ Jede Torszene wird beim Tor aus dem Mitschnitt zur Seite gelegt (`HL_MAX`, höch
 
 **Der Ausgang heißt jetzt, was er ist.** Vorher stand im Turnier „WEITER" als Ergebnis da und las sich wie eine Taste; gemeint war, dass man eine Runde weiterkommt:
 
-| Lage | Text |
-|---|---|
-| Turnier, weiter | EINE RUNDE WEITER |
-| Turnier, letzte Runde erreicht | IM FINALE |
-| Turnier, verloren | AUSGESCHIEDEN |
-| Freundschaftsspiel | SIEG · NIEDERLAGE · UNENTSCHIEDEN |
+| Lage | Text | Menüpunkt |
+|---|---|---|
+| Turnier, gewonnen | GEWONNEN | WEITER ZUM HALBFINALE |
+| Turnier, verloren | AUSGESCHIEDEN | ZURÜCK ZUM MENÜ |
+| Freundschaftsspiel | SIEG · NIEDERLAGE · UNENTSCHIEDEN | NÄCHSTES SPIEL |
+
+Alle Texte im Panel werden über `fitText` auf die Panelbreite eingepasst — „DEUTSCHLAND 3 : 2 NIEDERLANDE" lief vorher links und rechts aus der Box heraus.
 
 In der Kopfzeile steht nach dem Abpfiff die Runde (bzw. ABPFIFF im Freundschaftsspiel) statt der stehengebliebenen Uhr — dort las man vorher weiter „1. HALBZEIT 2:56", obwohl das Spiel vorbei war.
 
