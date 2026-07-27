@@ -108,7 +108,11 @@ Unterschieden wird über die **Tiefe**, und die kostet nichts, solange der Ball 
 | Gegner im Strafraum | geht `GK_OUT` (0,05) heraus und verkürzt den Winkel |
 | freier Ball ganz nah | holt ihn selbst |
 
+**Der Torwart hechtet.** Reicht die Zeit nicht, den Kreuzungspunkt zu Fuß zu erreichen (`GK_DIVE_GAP`, und die Strecke ist in der verbleibenden Flugzeit nicht zu schaffen), wirft er sich — flacher und weiter als ein Feldspieler (`GK_DIVE_TIME` 0,55 s, Reichweite ×1,25) — und **fängt** den Ball, statt ihn abzufälschen. Gemessen: 19,3 Sprünge pro Spiel, davon rund 16 mit Fang.
+
 Nachgemessen: Gleichschritt 88,5 % → **5,4 %**, vor der Grundstellung 0,4 % → **58 %**.
+
+**Was nicht ging:** Die seitliche Deckung auch nur jenseits jeder Schussdistanz träge zu machen, ließ die Torquote auf **34,8 Tore pro Spiel** springen. Ein Rest an Gleichlauf bleibt deshalb bewusst bestehen — es gibt einen Ball, und beide Torhüter reagieren richtig darauf.
 
 ## Nach dem Tor
 

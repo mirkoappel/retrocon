@@ -2,6 +2,14 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.18.1]
+
+### Neu
+- **STREET SOCCER: Der Torwart hechtet.** Reicht die Zeit nicht, den Kreuzungspunkt des Schusses zu Fuß zu erreichen, wirft er sich — flacher und weiter als ein Feldspieler — und **fängt** den Ball, statt ihn abzufälschen. Gemessen: 19,3 Sprünge pro Spiel, davon rund 16 mit Fang. Vorher stand er nur da und sah dem Ball nach
+
+### Bekannt
+- Ein Rest an Gleichlauf der beiden Torhüter bleibt. Die seitliche Deckung auch nur **jenseits jeder Schussdistanz** träge zu machen, ließ die Torquote auf 34,8 Tore pro Spiel springen — sie bleibt deshalb für beide identisch. Unterschieden sind sie über Tiefe und Hechtsprünge
+
 ## [0.18.0]
 
 ### Neu

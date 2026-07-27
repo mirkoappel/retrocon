@@ -110,6 +110,8 @@ window.RetroGames.soccer = {
     const DIVE_REACH   = PLAYER_R * 2.2 + BALL_R;   // gestreckte Reichweite zum Ball
     const DIVE_DOWN    = 0.7;   // so lange liegt man danach
     const DIVE_ZONE    = 0.26;  // nur so nah am gegnerischen Tor
+    const GK_DIVE_GAP  = 0.028; // ab dieser Lücke zum Schuss hechtet der Torwart
+    const GK_DIVE_TIME = 0.55;  // seine Flugzeit — länger als beim Feldspieler
     const DIVE_MIN_V   = 0.30;  // und nur auf eine scharf gespielte Hereingabe
     const HEADER_SPEED = 0.62;  // Wucht des abgefälschten Balls
     const SHOT_RANGE   = 0.36;  // ab hier denkt die KI überhaupt ans Abschließen
@@ -577,8 +579,17 @@ window.RetroGames.soccer = {
     }
 
     // Berührung im Sprung: der Ball wird abgefälscht, nicht angenommen.
+    // Der Torwart dagegen fängt ihn — dafür hechtet er ja.
     function headerHit(p) {
       const b = state.ball;
+      if (p.role === 'GK') {
+        p.dive = 0; p.down = 0;
+        p.gkHold = 0.9;
+        giveBall(p);
+        state.shake = 0.2;
+        sndSave();
+        return;
+      }
       const gy = goalY(p.team);
       const tx = FIELD_W / 2 + (Math.random() - 0.5) * GOAL_W * 2.4;   // im Sprung zielt niemand genau
       const dx = tx - b.x, dy = gy - b.y;
@@ -741,7 +752,22 @@ window.RetroGames.soccer = {
         p.react = (p.react || 0) + dt;
         if (p.react >= GK_REACT) {
           const tt = (line - b.y) / b.vy;
-          if (tt > 0 && tt < 1.5) tx = b.x + b.vx * tt;
+          if (tt > 0 && tt < 1.5) {
+            tx = b.x + b.vx * tt;
+            // Zu Fuß nicht mehr zu schaffen? Dann hechten. Ohne das stand der
+            // Torwart nur da und sah dem Ball nach, wenn er nicht rechtzeitig
+            // hinkam — ein Torwart wirft sich in so einem Fall.
+            const luecke = Math.abs(tx - p.x);
+            if (p.dive <= 0 && p.down <= 0 && luecke > GK_DIVE_GAP
+                && luecke > SPEED_GK * tt * 0.9 && tt < 0.9) {
+              p.dive = GK_DIVE_TIME;
+              const dx = tx - p.x, dy = (gy === 0 ? line : line) - p.y;
+              const len = Math.hypot(dx, dy) || 1;
+              p.dx = dx / len; p.dy = dy / len;
+              p.fx = p.dx; p.fy = p.dy;
+              sndSave();
+            }
+          }
         }
       } else {
         p.react = 0;
@@ -1028,9 +1054,15 @@ window.RetroGames.soccer = {
         // Im Sprung und am Boden ist nichts zu steuern
         if (p.dive > 0) {
           p.dive -= dt;
-          p.vx = p.dx * DIVE_SPEED; p.vy = p.dy * DIVE_SPEED;
-          if (dist(p, state.ball) < DIVE_REACH && !state.ball.owner) headerHit(p);
-          else if (p.dive <= 0) { p.down = DIVE_DOWN; p.downMax = DIVE_DOWN; }
+          // Der Torwart hechtet flacher, aber weiter — er wirft sich in die Ecke
+          const tempo = p.role === 'GK' ? DIVE_SPEED * 0.85 : DIVE_SPEED;
+          const reich = p.role === 'GK' ? DIVE_REACH * 1.25 : DIVE_REACH;
+          p.vx = p.dx * tempo; p.vy = p.dy * tempo;
+          if (dist(p, state.ball) < reich && !state.ball.owner) headerHit(p);
+          else if (p.dive <= 0) {
+            p.down = p.role === 'GK' ? DIVE_DOWN * 0.6 : DIVE_DOWN;
+            p.downMax = p.down;
+          }
           continue;
         }
         if (p.down > 0) { p.vx = 0; p.vy = 0; continue; }
@@ -1680,10 +1712,11 @@ window.RetroGames.soccer = {
         // Bildschirm-y ist gespiegelt, deshalb der Winkel über screenAngle.
         let k = 1, ang = 0, alpha = 1, hoehe = 0, gross = 1, vor = 0;
         if (p.dive > 0) {
+          const dauer = p.role === 'GK' ? GK_DIVE_TIME : DIVE_TIME;
           // Ein Sprung, keine Gummiwurst: schnell strecken und gestreckt
           // bleiben, solange man fliegt. Die federnde Schwingung gehört zum
           // Aufprall, nicht in die Luft.
-          const t = 1 - p.dive / DIVE_TIME;
+          const t = 1 - p.dive / dauer;
           k = 1 + 0.85 * Math.min(1, t / 0.18);
           // In der Draufsicht liest sich „abheben" nur über Höhe: der Körper
           // löst sich vom Schatten, wird kurz größer und kommt wieder herunter.
