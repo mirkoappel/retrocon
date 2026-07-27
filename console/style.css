@@ -522,7 +522,9 @@ body.no-scanlines::after { display: none; }
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.82);
+  /* Fast deckend. Bei 0,82 schien das Spielfeld durch und machte gerade die
+     Screens mit Werten unruhig und schlecht lesbar. */
+  background: rgba(3, 5, 8, 0.985);
   flex-direction: column;
   z-index: 150;
 }
@@ -608,14 +610,38 @@ body.no-scanlines::after { display: none; }
 #ig-slide-settings {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-#ig-slide-settings .slide-title,
-#ig-slide-settings .slide-hint {
-  background: rgba(4, 6, 10, 0.95);
-  border-radius: 8px;
-  padding: 0.6rem 1.2rem;
-}
 #ig-settings-carousel { margin: 1.2rem 0 0.6rem; }
-#ig-settings-carousel .setting { background: rgba(4, 6, 10, 0.97); }
+
+/* Hilfe: eine Tabelle statt loser Textblöcke. Was welche Taste tut, gehört
+   nebeneinander — sonst muss man drei Spalten im Kopf zusammenführen. */
+#ig-help {
+  width: min(46rem, 92vw);
+  margin: 0.6rem 0 1rem;
+  overflow-y: auto;
+  max-height: 62vh;
+}
+.ig-help-abschnitt {
+  font-size: 0.55rem; letter-spacing: 0.35rem; color: #4fc3f7;
+  margin: 1.2rem 0 0.5rem; padding-bottom: 0.35rem;
+  border-bottom: 1px solid #1c2530;
+}
+.ig-help-abschnitt:first-child { margin-top: 0; }
+.ig-help-zeile {
+  display: grid;
+  grid-template-columns: 9rem 8rem 1fr;
+  gap: 0.6rem 1.2rem;
+  padding: 0.3rem 0.2rem;
+  font-size: 0.62rem; letter-spacing: 0.12rem;
+  align-items: baseline;
+}
+.ig-help-zeile.kopf { color: #445; font-size: 0.5rem; letter-spacing: 0.3rem; }
+.ig-help-zeile .taste  { color: #fff; }
+.ig-help-zeile .taste2 { color: #7ecfea; }
+.ig-help-zeile .was    { color: #8a9bb0; }
+@media (max-width: 640px) {
+  .ig-help-zeile { grid-template-columns: 1fr 1fr; }
+  .ig-help-zeile .was { grid-column: 1 / -1; color: #778; }
+}
 
 .ig-help-blocks {
   display: flex;

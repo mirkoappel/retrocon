@@ -17,9 +17,20 @@ const KEY_GLOBAL = 'retrocon.settings';
 const KEY_GAME = id => `retrocon.game.${id}`;
 
 export const GLOBAL_OPTIONS = {
+  // Vollbild zuerst, weil es das ist, was man beim Hinsetzen einstellt.
+  // `live` heißt: der Wert kommt nicht aus dem Speicher, sondern aus dem
+  // tatsächlichen Zustand des Fensters — sonst zeigte das Menü AN, während der
+  // Browser längst wieder im Fenster läuft (ESC verlässt Vollbild jederzeit).
+  fullscreen: { label: 'VOLLBILD',   werte: [false, true],                                vorgabe: false, live: true,
+                zeige: v => v ? 'AN' : 'AUS' },
   volume:     { label: 'LAUTSTÄRKE', werte: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], vorgabe: 70,    zeige: v => v + ' %' },
   scanlines:  { label: 'BILDRÖHRE',  werte: [true, false],                                vorgabe: true,  zeige: v => v ? 'AN' : 'AUS' },
-  fullscreen: { label: 'VOLLBILD',   werte: [false, true],                                vorgabe: false, zeige: v => v ? 'AN' : 'AUS' },
+};
+
+// Zustände, die das Fenster selbst kennt. Sie werden weder geladen noch
+// gespeichert — abgefragt wird immer die Wirklichkeit.
+const LIVE = {
+  fullscreen: () => !!document.fullscreenElement,
 };
 
 let global = {};
@@ -36,6 +47,7 @@ function schreib(key, wert) {
 export function loadSettings() {
   const roh = lies(KEY_GLOBAL);
   for (const [k, o] of Object.entries(GLOBAL_OPTIONS)) {
+    if (o.live) { global[k] = LIVE[k](); continue; }
     // Nur übernehmen, was auch als Option existiert — sonst schleppt ein alter
     // Stand Werte mit, die es nicht mehr gibt
     global[k] = o.werte.includes(roh[k]) ? roh[k] : o.vorgabe;
@@ -43,18 +55,24 @@ export function loadSettings() {
   return global;
 }
 
-export const getGlobal = k => global[k];
+export const getGlobal = k => (GLOBAL_OPTIONS[k].live ? LIVE[k]() : global[k]);
 
 export function setGlobal(k, v) {
   global[k] = v;
-  schreib(KEY_GLOBAL, global);
+  if (!GLOBAL_OPTIONS[k].live) {
+    // Live-Werte gehören dem Fenster, nicht dem Speicher
+    const ablage = {};
+    for (const key of Object.keys(GLOBAL_OPTIONS)) if (!GLOBAL_OPTIONS[key].live) ablage[key] = global[key];
+    schreib(KEY_GLOBAL, ablage);
+  }
   hoerer.forEach(fn => fn(k, v));
 }
 
 export function cycleGlobal(k) {
   const o = GLOBAL_OPTIONS[k];
-  setGlobal(k, o.werte[(o.werte.indexOf(global[k]) + 1) % o.werte.length]);
-  return global[k];
+  const jetzt = getGlobal(k);
+  setGlobal(k, o.werte[(o.werte.indexOf(jetzt) + 1) % o.werte.length]);
+  return getGlobal(k);
 }
 
 export function onGlobalChange(fn) { hoerer.push(fn); }

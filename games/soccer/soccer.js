@@ -9,6 +9,17 @@ window.RetroGames.soccer = {
   minPlayers: 1,
   maxPlayers: 2,
 
+  // Was A und B hier bedeuten, weiß nur dieses Spiel — die Konsole hängt es
+  // an ihre allgemeine Hilfe an.
+  help: [
+    { t1: 'A', t2: 'MIT BALL',  was: 'Schießen' },
+    { t1: 'A', t2: 'OHNE BALL', was: 'Spieler wechseln — der Wechsel passiert nie von selbst' },
+    { t1: 'B', t2: 'MIT BALL',  was: 'Abspielen' },
+    { t1: 'B', t2: 'OHNE BALL', was: 'Grätschen — erwischt den Ball und aus kurzer Distanz auch den Mann' },
+    { t1: 'DRIBBELN', t2: '',   was: 'Mit Ball läuft man langsamer; der Ball folgt der Laufrichtung' },
+    { t1: 'ANSTOSS', t2: '',    was: 'Der Anstoß wird zum Mitspieler gepasst' },
+  ],
+
   // Eigene Regler. Die Konsole zeigt und speichert sie, kennt aber weder
   // Halbzeitlänge noch Turnierstärke — das bleibt Sache des Spiels.
   settings: [
@@ -76,6 +87,7 @@ window.RetroGames.soccer = {
     const TURN_PULL    = 7.0;   // wie schnell der vorgelegte Ball der Laufrichtung folgt
     const BALL_DRAG    = 0.92;  // Ballführender ist langsamer als ein freier Spieler
     const TACKLE_MAN   = PLAYER_R * 2.6;  // Grätsche erwischt auch den Mann, nicht nur den Ball
+    const TACKLE_TIME  = 0.55;  // Dauer der Grätsche — für Mensch und KI dieselbe
     const SHOT_RANGE   = 0.36;  // ab hier denkt die KI überhaupt ans Abschließen
     const LANE_MIN     = 0.012; // so viel Luft braucht die Schussbahn am Gegner vorbei
     // Angriffswege, die sich die KI je Ballbesitz aussucht. Flügel doppelt
@@ -728,7 +740,7 @@ window.RetroGames.soccer = {
           // Aktion nur beim Menschen und Zweikämpfe wirken zahnlos
           if (p.tackle <= 0 && dist(p, owner) < PLAYER_R * 4.5
               && Math.random() < dt * 1.0 * skill(p.team)) {
-            p.tackle = 0.55;
+            p.tackle = TACKLE_TIME;
             sndKick();
           }
         }
@@ -744,7 +756,7 @@ window.RetroGames.soccer = {
             // Auch der zweite Verteidiger darf grätschen, wenn er dran ist
             if (p.tackle <= 0 && dist(p, owner) < PLAYER_R * 4.5
                 && Math.random() < dt * 0.6 * skill(p.team)) {
-              p.tackle = 0.55;
+              p.tackle = TACKLE_TIME;
               sndKick();
             }
           } else {
@@ -1203,7 +1215,7 @@ window.RetroGames.soccer = {
             // B: mit Ball abspielen, ohne Ball grätschen — beides „an den Ball"
             if (edge(gp, prev, 'b')) {
               if (state.ball.owner === me) pass(me);
-              else { me.tackle = 0.4; sndKick(); }
+              else { me.tackle = TACKLE_TIME; sndKick(); }
             }
             return;
           }
@@ -1470,20 +1482,16 @@ window.RetroGames.soccer = {
       ctx.font = font(uni() * 0.075);
       ctx.fillText('STREET SOCCER', w / 2, h * 0.24);
 
+      // Ohne Unterzeilen: Die Punkte erklären sich selbst, jede weitere Zeile
+      // überlädt nur den ersten Bildschirm.
       const items = ['WORLD CUP', 'FREUNDSCHAFTSSPIEL', 'EINSTELLUNGEN'];
-      const subs  = [`${ROUNDS.length} SIEGE ZUM TITEL · EINE NIEDERLAGE UND AUS`,
-                     'EIN SPIEL, FREIE GEGNERWAHL',
-                     'HALBZEITLÄNGE UND SCHWIERIGKEIT'];
       items.forEach((it, i) => {
         const sel = i === state.menuSel;
-        const y = h * (0.45 + i * 0.14);
-        hotspot(w * 0.15, y - h * 0.04, w * 0.7, h * 0.095, i);
+        const y = h * (0.46 + i * 0.12);
+        hotspot(w * 0.15, y - h * 0.04, w * 0.7, h * 0.085, i);
         ctx.fillStyle = sel ? '#4fc3f7' : '#555';
         ctx.font = font(uni() * 0.045);
         ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
-        ctx.fillStyle = sel ? '#8a9bb0' : '#333';
-        ctx.font = font(uni() * 0.021);
-        ctx.fillText(subs[i], w / 2, y + h * 0.045);
       });
       hint('A · AUSWÄHLEN');
     }
@@ -1494,17 +1502,13 @@ window.RetroGames.soccer = {
       ctx.fillText('WIE VIELE SPIELER?', w / 2, h * 0.16);
 
       const items = ['1 SPIELER', '2 SPIELER'];
-      const subs  = ['GEGEN DIE KI', 'ZU ZWEIT AN TASTATUR ODER CONTROLLER'];
       items.forEach((it, i) => {
         const sel = i === state.menuSel;
-        const y = h * (0.4 + i * 0.14);
-        hotspot(w * 0.15, y - h * 0.04, w * 0.7, h * 0.095, i);
+        const y = h * (0.42 + i * 0.12);
+        hotspot(w * 0.15, y - h * 0.04, w * 0.7, h * 0.085, i);
         ctx.fillStyle = sel ? '#4fc3f7' : '#555';
         ctx.font = font(uni() * 0.042);
         ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
-        ctx.fillStyle = sel ? '#8a9bb0' : '#333';
-        ctx.font = font(uni() * 0.019);
-        ctx.fillText(subs[i], w / 2, y + h * 0.042);
       });
       hint('A · WEITER   B · ZURÜCK');
     }

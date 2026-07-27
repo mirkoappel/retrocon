@@ -192,6 +192,9 @@ function refresh() {
   refreshSettings();
 }
 
+// Von außen anstoßbar, wenn sich ein Zustand ohne Zutun des Menüs geändert hat
+export function refreshMenu() { refresh(); }
+
 export function resetMenu() {
   carouselIdx = 0;
   rowIdx = 0;

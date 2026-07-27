@@ -2,6 +2,18 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.12.4]
+
+### Geändert
+- **Popup-Menüs sind nicht mehr durchsichtig.** Das Spielfeld schien mit 18 % durch und machte gerade die Screens mit Werten unruhig; das Overlay ist jetzt fast deckend, die Behelfs-Panel darunter konnten weg
+- **VOLLBILD steht an erster Stelle** und zeigt den **tatsächlichen** Zustand des Fensters statt eines gespeicherten Werts — Vollbild lässt sich jederzeit mit ESC verlassen, ohne dass die Konsole etwas davon mitbekäme. Der Wert wird deshalb bewusst nicht gespeichert
+- **Hilfeseite neu.** Statt dreier loser Textblöcke eine Tabelle: Taste, zweite Taste, Bedeutung — dazu drei Abschnitte (Bewegen, Tasten, Wer spielt mit). Bisher fehlten die B-Tasten, ESC und die ganze Frage, wie ein zweiter Spieler einsteigt
+- Spiele liefern ihre eigenen Hilfezeilen (`help` am Modul), die die Konsole anhängt. STREET SOCCER erklärt damit A und B mit und ohne Ball, CATAPULT das Spannen und den Wind
+- Die Unterzeilen im Modus- und im Spielerzahl-Menü sind weg — sie überluden den ersten Bildschirm
+
+### Behoben
+- **STREET SOCCER: Die Grätsche des Menschen dauerte 0,4 s, die der KI 0,55 s.** Beim Vereinheitlichen in v0.11.26 hatte ich nur `p.tackle` erwischt, nicht `me.tackle` — der Mensch war im Zweikampf schlechter gestellt als die KI. Beide nutzen jetzt `TACKLE_TIME`
+
 ## [0.12.3]
 
 ### Neu

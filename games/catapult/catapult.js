@@ -7,6 +7,14 @@ window.RetroGames.catapult = {
   minPlayers: 1,
   maxPlayers: 2,
 
+  help: [
+    { t1: 'LINKS RECHTS', t2: '', was: 'Abschusswinkel — je länger gehalten, desto schneller' },
+    { t1: 'A ODER RUNTER', t2: 'HALTEN', was: 'Katapult spannen' },
+    { t1: 'A ODER RUNTER', t2: 'LOSLASSEN', was: 'Schuss' },
+    { t1: 'FAHNE', t2: '', was: 'Zeigt Richtung und Stärke des Windes' },
+    { t1: 'SIEG', t2: '', was: 'Erst wenn alle gegnerischen Steine abgeräumt sind' },
+  ],
+
   // Eigener Regler, von der Konsole nur angezeigt und gespeichert
   settings: [
     { key: 'duration', label: 'SPIELZEIT', werte: [120, 180, 300, 600], vorgabe: 300,

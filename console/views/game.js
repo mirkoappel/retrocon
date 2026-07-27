@@ -15,7 +15,7 @@ let currentGameId = null;
 let rafId = null;
 let paused = false;
 let canvas, ctx, gameView, toast, igOverlay, igSlidesEl, igTrack, igSlides, igNavTop, igNavArrow, igNavLabel, igItems;
-let igSetCarousel, igSetTrack, igSetTitle;
+let igSetCarousel, igSetTrack, igSetTitle, igHelp;
 let toastTimer = null;
 let igSlideIdx = 0;   // 0 = Pause-Menü, 1 = Einstellungen, 2 = Hilfe
 let igSetIdx = 0;     // ausgewählter Regler auf der Einstellungs-Seite
@@ -85,6 +85,7 @@ export function initGame() {
   igSetCarousel = document.getElementById('ig-settings-carousel');
   igSetTrack    = document.getElementById('ig-settings-track');
   igSetTitle    = document.getElementById('ig-settings-title');
+  igHelp        = document.getElementById('ig-help');
 
   igSetCarousel.querySelector('.carousel-arrow.left') .addEventListener('click', () => igSettingsStep(-1));
   igSetCarousel.querySelector('.carousel-arrow.right').addEventListener('click', () => igSettingsStep(1));
@@ -160,7 +161,7 @@ function selectIgMenuItem() {
   if (igMenuIdx === 0) { resumeGame(); }
   else if (igMenuIdx === 1) { closeIgOverlay(); exitGame(); }
   else if (igMenuIdx === 2) { igSlideIdx = 1; buildIgSettings(); refreshIg(); }
-  else if (igMenuIdx === 3) { igSlideIdx = 2; refreshIg(); }
+  else if (igMenuIdx === 3) { igSlideIdx = 2; buildIgHelp(); refreshIg(); }
 }
 
 // Die Regler des laufenden Spiels — als dasselbe Karussell wie im
@@ -215,6 +216,36 @@ function igSettingsStep(step) {
   if (neu < 0 || neu >= n) return;
   igSetIdx = neu;
   refreshIgSettings();
+}
+
+// Hilfe. Die festen Zeilen gelten für jedes Spiel; was A und B im laufenden
+// Spiel bedeuten, weiß nur das Spiel selbst und liefert es über `help`.
+const HILFE_ALLGEMEIN = [
+  { abschnitt: 'BEWEGEN' },
+  { t1: 'PFEILTASTEN', t2: 'W A S D',   was: 'Spieler 1 · Spieler 2' },
+  { t1: 'JOYSTICK',    t2: '',          was: 'Am Controller regelt die Auslenkung das Tempo' },
+  { abschnitt: 'TASTEN' },
+  { t1: 'ENTER',       t2: 'LEERTASTE', was: 'A — Spieler 1 · Spieler 2' },
+  { t1: 'UMSCHALT',    t2: 'Q',         was: 'B — Spieler 1 · Spieler 2' },
+  { t1: 'ESC',         t2: 'SELECT',    was: 'Dieses Menü öffnen und schließen' },
+  { abschnitt: 'WER SPIELT MIT' },
+  { t1: 'PFEILTASTEN', t2: '',          was: 'Spieler 1 ist immer ein Mensch' },
+  { t1: 'W A S D',     t2: '',          was: 'Sobald jemand drückt, übernimmt er Spieler 2 von der KI' },
+  { t1: 'SMARTPHONE',  t2: '',          was: 'Im Menü unter CONTROLLER verbinden — hat dann Vorrang' },
+  { t1: 'NICHTS TUN',  t2: '',          was: 'Nach einigen Sekunden ohne Eingabe spielt die KI weiter' },
+];
+
+function buildIgHelp() {
+  const eigene = window.RetroGames?.[currentGameId]?.help || [];
+  const name = window.RetroGames?.[currentGameId]?.name;
+  const zeilen = eigene.length
+    ? [...HILFE_ALLGEMEIN, { abschnitt: name || 'DIESES SPIEL' }, ...eigene]
+    : HILFE_ALLGEMEIN;
+  igHelp.innerHTML = zeilen.map(z => z.abschnitt
+    ? `<div class="ig-help-abschnitt">${z.abschnitt}</div>`
+    : `<div class="ig-help-zeile"><span class="taste">${z.t1 || ''}</span>` +
+      `<span class="taste2">${z.t2 || ''}</span><span class="was">${z.was || ''}</span></div>`
+  ).join('');
 }
 
 function igSettingsBack() {

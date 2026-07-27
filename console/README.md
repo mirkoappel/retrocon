@@ -134,7 +134,7 @@ Das Menü nutzt denselben Slide-Mechanismus wie das Hauptmenü:
 
 **Slide 2 — Steuerung**
 
-Übersicht aller Eingabemethoden. Zurück per Pfeil-Hoch, W, Backspace, ESC, B oder Klick auf „← ZURÜCK".
+Eine Tabelle aus Taste, zweiter Taste und Bedeutung, in drei Abschnitten: Bewegen, Tasten, Wer spielt mit. Die allgemeinen Zeilen stehen in `game.js`; was **A und B im laufenden Spiel** bedeuten, weiß nur das Spiel und liefert es über `help` am Modul — dieselbe Idee wie bei `settings`. Zurück per Pfeil-Hoch, W, Backspace, ESC, B oder Klick auf „← ZURÜCK".
 
 ## Dateistruktur
 

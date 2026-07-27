@@ -2,7 +2,7 @@
 import { setupPeer, onReady, onConnect, onDisconnect, onData } from './services/connection.js';
 import { initBoot } from './views/boot.js';
 import { renderQRs, setPlayerConnected } from './views/setup.js';
-import { initMenu, handleMenuInput, resetMenu, goToRow } from './views/menu.js';
+import { initMenu, handleMenuInput, resetMenu, goToRow, refreshMenu } from './views/menu.js';
 import { initGame, startGame, exitGame, getCurrentGame, isIngameMenuOpen, handleIngameMenuInput, openIgMenu } from './views/game.js';
 import { loadSettings, getGlobal, onGlobalChange } from './services/settings.js';
 import { setMasterVolume } from './services/audio.js';
@@ -61,5 +61,8 @@ function applyGlobal(key, wert) {
     else if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
   }
 }
+
+// Vollbild kann jederzeit ohne unser Zutun enden (ESC). Das Menü muss das mitbekommen.
+document.addEventListener('fullscreenchange', () => refreshMenu());
 
 setupPeer();
