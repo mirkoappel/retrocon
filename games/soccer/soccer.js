@@ -127,7 +127,7 @@ window.RetroGames.soccer = {
 
     const RESTART_KICK = 1.6;   // Standbild vor dem Anstoß
     const RESTART_GOAL = 2.4;   // …und nach einem Tor, etwas länger zum Jubeln
-    const HIST_LEN     = 150;   // Frames im Speicher für die Wiederholung (2,5 s)
+    const HIST_LEN     = 130;   // Frames im Speicher für die Wiederholung (2,2 s)
     const REPLAY_SPEED = 0.45;  // Zeitlupe — 2,5 s Szene werden so zu 5,6 s
     const GOAL_WAIT    = 12;    // so lange bleibt die Toranzeige stehen, wenn niemand drückt
     const AUTO_REPLAY  = 5;     // drückt bis dahin niemand, läuft die Wiederholung von selbst
@@ -136,6 +136,9 @@ window.RetroGames.soccer = {
     // bevor er sie überhaupt gelesen hat.
     const GOAL_LOCK    = 1.2;
     const HL_MAX       = 8;     // so viele Tore werden für die Höhepunkte aufbewahrt
+    const GOAL_TAIL    = 26;    // Frames, die nach dem Torschuss angehängt werden
+    const NETZ_TIEFE   = 0.05;  // so weit rollt der Ball dabei ins Tor hinein
+    const REPLAY_HALT  = 0.7;   // so lange steht das Bild am Ende der Wiederholung
     // Was ein Mitschnitt je Spieler festhält
     const MITSCHNITT_FELDER = ['x', 'y', 'fx', 'fy', 'dive', 'down', 'downMax',
                                'tackle', 'poke', 'dx', 'dy', 'ctrl'];
@@ -983,12 +986,17 @@ window.RetroGames.soccer = {
 
     function updateResult(dt) {
       if (state.hl) {
-        state.hl.i += REPLAY_SPEED;
         const szene = state.highlights[state.hl.clip];
-        if (state.hl.i >= szene.frames.length - 1) {
-          if (state.hl.clip + 1 < state.highlights.length) { state.hl.clip++; state.hl.i = 0; }
-          else { state.hl = null; state.menuSel = resultItems().length - 1; }
+        if (state.hl.halt > 0) {                  // Standbild am Ende jeder Szene
+          state.hl.halt -= dt;
+          if (state.hl.halt > 0) return;
+          if (state.hl.clip + 1 < state.highlights.length) {
+            state.hl.clip++; state.hl.i = 0; state.hl.halt = 0;
+          } else { state.hl = null; state.menuSel = resultItems().length - 1; }
+          return;
         }
+        state.hl.i += REPLAY_SPEED;
+        if (state.hl.i >= szene.frames.length - 1) state.hl.halt = REPLAY_HALT;
         return;
       }
       if (state.tafel > 0) {
@@ -999,8 +1007,15 @@ window.RetroGames.soccer = {
 
     function updateGoal(dt) {
       if (state.replay) {
-        state.replay.i += REPLAY_SPEED;
-        if (state.replay.i >= state.hist.length - 1) {
+        if (state.replay.halt > 0) {              // Standbild am Ende
+          state.replay.halt -= dt;
+          if (state.replay.halt > 0) return;
+        } else if (state.replay.i < state.hist.length - 1) {
+          state.replay.i += REPLAY_SPEED;
+          if (state.replay.i >= state.hist.length - 1) { state.replay.halt = REPLAY_HALT; return; }
+          return;
+        }
+        {
           const war = state.replay;
           state.replay = null;
           // Nach der automatischen Wiederholung geht es direkt weiter. Nach der
@@ -1314,11 +1329,30 @@ window.RetroGames.soccer = {
       // Die Szene für die Höhepunkte aufbewahren, bevor der Mitschnitt beim
       // Anstoß gelöscht wird
       if (state.hist.length > 30) {
+        verlaengereMitschnitt();
         state.highlights.push({ frames: state.hist.slice(), team, stand: [...state.score] });
         if (state.highlights.length > HL_MAX) state.highlights.shift();
       }
       state.autoReplay = REPLAY_ON ? AUTO_REPLAY : -1;
       state.msg = ''; state.msgTimer = 0;
+    }
+
+    // Der Mitschnitt endet genau auf der Torlinie — im Spiel wird in diesem
+    // Moment abgepfiffen. Für die Wiederholung wird der Ball noch ein Stück
+    // weiter ins Netz geschrieben, damit man ihn wirklich drin liegen sieht.
+    function verlaengereMitschnitt() {
+      const letzte = state.hist[state.hist.length - 1];
+      if (!letzte) return;
+      const b = state.ball;
+      let bx = letzte.bx, by = letzte.by;
+      const ziel = by < 0.5 ? -NETZ_TIEFE : 1 + NETZ_TIEFE;
+      for (let i = 0; i < GOAL_TAIL; i++) {
+        bx += b.vx / 60;
+        by += b.vy / 60;
+        by = by < 0.5 ? Math.max(ziel, by) : Math.min(ziel, by);
+        bx = clamp(bx, FIELD_W / 2 - GOAL_W / 2 + BALL_R, FIELD_W / 2 + GOAL_W / 2 - BALL_R);
+        state.hist.push({ bx, by, p: letzte.p });
+      }
     }
 
     // Wiederholung in Zeitlupe aus dem Mitschnitt
@@ -1330,7 +1364,7 @@ window.RetroGames.soccer = {
       // Wer sie selbst aufruft, hat entschieden — danach kommt keine
       // automatische mehr hinterher.
       if (!auto) state.autoReplay = -1;
-      state.replay = { i: 0, auto };
+      state.replay = { i: 0, auto, halt: 0 };
       sndMenu();
     }
 
@@ -1464,7 +1498,7 @@ window.RetroGames.soccer = {
 
         case 'result':
           if (!vonSelbst && resultItems()[state.menuSel] === 'HÖHEPUNKTE') {
-            state.hl = { clip: 0, i: 0 };
+            state.hl = { clip: 0, i: 0, halt: 0 };
             state.tafel = 0;
             sndMenu();
             return;

@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.19.5]
+
+### Geändert
+- **STREET SOCCER: Die Wiederholung läuft jetzt bis der Ball im Netz liegt** und hält dort 0,7 Sekunden als Standbild. Der Mitschnitt endete genau auf der Torlinie — dort wird im Spiel abgepfiffen —, der Ball verschwand also im Moment des Treffers. Jetzt werden beim Tor Frames angehängt, in denen er ins Tor rollt
+- Das gilt auch für die Höhepunkte: Jede Szene hält am Ende kurz an, bevor die nächste beginnt
+- Der Mitschnitt ist dafür von 2,5 auf 2,2 Sekunden verkürzt, damit die Wiederholung nicht länger wird als vorher
+
 ## [0.19.4]
 
 ### Geändert
