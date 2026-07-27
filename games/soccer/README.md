@@ -195,6 +195,21 @@ Die Differenz ist das belastbare Signal; die reinen Siegzahlen rauschen bei rund
 
 Zum Vergleich der Steilheit: Mit `SKILL_STEP` = 0,11 endete das Finale bei 0,1 : 2,6 und 0 von 12 Siegen — zu hart. Mit 0,05 war zwischen den Runden kaum ein Unterschied messbar.
 
+## Verformung: Spieler sind Flummi-Scheiben
+
+Grätsche und Hechtsprung waren als **konstantes Oval** gezeichnet — über die ganze Aktion dieselbe Streckung (1,75 × 0,62 bzw. 2,15 × 0,52). Das sah nach einem lang gezogenen Körper aus, nicht nach einer Bewegung.
+
+Zwei Dinge machen daraus eine Animation:
+
+1. **Flächentreu.** Längs `k`, quer `1/k` — die Scheibe wird gedehnt, nicht größer. Genau wie ein Flummi, der beim Aufprall breit wird und dabei flach.
+2. **Über die Dauer.** `flummi(t, amp) = 1 + amp · sin(π · t^0,6)` — schnell auseinander, langsamer zurück in die Kugel. Der Exponent 0,6 zieht die Spitze nach vorn, damit der Absprung zackig wirkt und das Zurückfedern weich.
+
+| | Spitze | Dauer |
+|---|---|---|
+| Grätsche | 1,55 × 0,65 | 0,55 s |
+| Hechtsprung | 1,85 × 0,54 | 0,45 s |
+| am Boden liegend | federt von 1,45 zurück auf 1,00 | 0,7 s |
+
 ## Hechtsprung
 
 Das offensive Gegenstück zur Grätsche, auf derselben Taste (**B ohne Ball**) und nach derselben Bauweise: Der Spieler macht sich lang, hat währenddessen eine gestreckte Reichweite (`DIVE_REACH`) und liegt danach `DIVE_DOWN` Sekunden am Boden.

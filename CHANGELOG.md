@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.13.2]
+
+### Geändert
+- **STREET SOCCER: Grätsche und Hechtsprung sind jetzt eine Bewegung, kein lang gezogenes Oval.** Beide waren über die ganze Aktion konstant gestreckt gezeichnet (1,75 × 0,62 bzw. 2,15 × 0,52). Jetzt verformt sich die Spielerscheibe wie ein Flummi: **flächentreu** (längs `k`, quer `1/k`) und **über die Dauer** — schnell auseinander, langsamer zurück in die Kugel. Spitze 1,55 bei der Grätsche, 1,85 beim Sprung; wer liegt, federt beim Aufstehen von 1,45 auf 1,00 zurück
+
 ## [0.13.1]
 
 ### Geändert

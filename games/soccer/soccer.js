@@ -1413,6 +1413,16 @@ window.RetroGames.soccer = {
       }
     }
 
+    // Spieler sind Scheiben, die sich dehnen — wie ein Flummi. Zwei Dinge
+    // machen daraus eine Bewegung statt eines langen Ovals:
+    // die Dehnung ist flächentreu (längs k, quer 1/k, die Fläche bleibt also
+    // gleich), und sie läuft über die Dauer der Aktion ab — schnell auseinander,
+    // langsamer zurück in die Kugel. Vorher stand ein konstantes Oval im Bild.
+    function flummi(t, amp) {
+      const x = Math.min(1, Math.max(0, t));
+      return 1 + amp * Math.sin(Math.PI * Math.pow(x, 0.6));
+    }
+
     function drawPlayers(r) {
       const b = state.ball;
       for (const p of state.players) {
@@ -1428,32 +1438,33 @@ window.RetroGames.soccer = {
         ctx.strokeStyle = 'rgba(0,0,0,0.55)';
         ctx.lineWidth = Math.max(1, r.s * 0.002);
 
-        if (p.dive > 0 || p.down > 0) {
-          // Hechtsprung: noch länger gestreckt als die Grätsche, am Boden
-          // liegend flach und ohne Richtung
-          const ang = p.dive > 0 ? screenAngle(r, p.dx, p.dy) : screenAngle(r, p.fx, p.fy);
-          ctx.save();
-          ctx.translate(q.X, q.Y);
-          ctx.rotate(ang);
-          ctx.scale(p.dive > 0 ? 2.15 : 1.9, p.dive > 0 ? 0.52 : 0.45);
-          ctx.globalAlpha = p.down > 0 ? 0.75 : 1;
-          ctx.beginPath(); ctx.arc(0, 0, rad, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.globalAlpha = 1;
-          ctx.restore();
+        // Hechtsprung, Liegen und Grätsche: dieselbe Scheibe, nur gedehnt.
+        // Bildschirm-y ist gespiegelt, deshalb der Winkel über screenAngle.
+        let k = 1, ang = 0, alpha = 1;
+        if (p.dive > 0) {
+          k = flummi(1 - p.dive / DIVE_TIME, 0.85);
+          ang = screenAngle(r, p.dx, p.dy);
+        } else if (p.down > 0) {
+          // Beim Aufstehen federt die Scheibe in die Kugel zurück
+          k = 1 + 0.45 * (p.down / DIVE_DOWN);
+          ang = screenAngle(r, p.fx, p.fy);
+          alpha = 0.8;
         } else if (p.tackle > 0) {
-          // Grätsche: der Körper wird in Laufrichtung gestreckt.
-          // Bildschirm-y ist gespiegelt, deshalb -p.fy im Winkel.
-          const ang = screenAngle(r, p.fx, p.fy);
+          k = flummi(1 - p.tackle / TACKLE_TIME, 0.55);
+          ang = screenAngle(r, p.fx, p.fy);
+        }
+
+        if (k > 1.001) {
           ctx.save();
           ctx.translate(q.X, q.Y);
           ctx.rotate(ang);
-          ctx.scale(1.75, 0.62);
+          ctx.scale(k, 1 / k);
+          ctx.globalAlpha = alpha;
           ctx.beginPath(); ctx.arc(0, 0, rad, 0, Math.PI * 2);
           ctx.fill();
-          ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-          ctx.lineWidth = Math.max(1, r.s * 0.002) / 0.62;
+          ctx.lineWidth = Math.max(1, r.s * 0.002) * k;
           ctx.stroke();
+          ctx.globalAlpha = 1;
           ctx.restore();
         } else {
           ctx.beginPath(); ctx.arc(q.X, q.Y, rad, 0, Math.PI * 2); ctx.fill();
