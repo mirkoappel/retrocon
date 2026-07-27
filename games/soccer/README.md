@@ -136,6 +136,8 @@ Jede Torszene wird beim Tor aus dem Mitschnitt zur Seite gelegt (`HL_MAX`, höch
 | Turnier, verloren | AUSGESCHIEDEN |
 | Freundschaftsspiel | SIEG · NIEDERLAGE · UNENTSCHIEDEN |
 
+In der Kopfzeile steht nach dem Abpfiff die Runde (bzw. ABPFIFF im Freundschaftsspiel) statt der stehengebliebenen Uhr — dort las man vorher weiter „1. HALBZEIT 2:56", obwohl das Spiel vorbei war.
+
 ## Nach dem Tor
 
 Ein Tor war nach 2,4 Sekunden vorbei — man bekam es kaum mit. Jetzt hält das Spiel an und zeigt eine Anzeige mit Torschütze und Spielstand:

@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.19.1]
+
+### Behoben
+- **STREET SOCCER: Nach dem Abpfiff lief die Kopfzeile weiter.** Auf der Ergebnistafel stand „1. HALBZEIT 2:56", obwohl das Spiel vorbei war. Jetzt steht dort die Runde, im Freundschaftsspiel ABPFIFF
+
 ## [0.19.0]
 
 ### Neu

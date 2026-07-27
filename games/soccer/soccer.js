@@ -1995,7 +1995,12 @@ window.RetroGames.soccer = {
       const t = Math.max(0, Math.ceil(state.clock));
       ctx.font = font(uni() * 0.026);
       ctx.fillStyle = state.golden ? '#ffb300' : '#8a9bb0';
-      ctx.fillText(state.golden ? 'GOLDEN GOAL'
+      // Nach dem Abpfiff hat die laufende Uhr nichts mehr zu sagen — dort stand
+      // sonst weiter „1. HALBZEIT 2:56", obwohl das Spiel vorbei war.
+      const vorbei = ['result', 'champion', 'out'].includes(state.phase);
+      ctx.fillText(
+        vorbei ? (state.mode === 'cup' ? ROUNDS[state.round] : 'ABPFIFF')
+        : state.golden ? 'GOLDEN GOAL'
         : `${state.half}. HALBZEIT  ${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`,
         w / 2, h * 0.092);
     }
