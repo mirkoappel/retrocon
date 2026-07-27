@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.12.3]
+
+### Neu
+- **STREET SOCCER: EINSTELLUNGEN als dritter Punkt** neben WORLD CUP und FREUNDSCHAFTSSPIEL. So kommt man an Halbzeitlänge und Schwierigkeit, ohne erst anpfeifen und pausieren zu müssen
+- Dafür neu in der Spiel-Schnittstelle: `api.openSettings()`. Zurück führt dann ins Startmenü des Spiels und nicht ins Pausenmenü, das man nie aufgerufen hat
+- Der Screen heißt jetzt **INGAME EINSTELLUNGEN** statt den Spielnamen zu tragen
+
 ## [0.12.2]
 
 ### Geändert

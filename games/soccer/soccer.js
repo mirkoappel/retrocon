@@ -1037,6 +1037,9 @@ window.RetroGames.soccer = {
     function activate() {
       switch (state.phase) {
         case 'mode':
+          // Dritter Punkt: der Einstellungs-Screen der Konsole. So kommt man
+          // an Halbzeitlänge und Schwierigkeit, ohne erst anpfeifen zu müssen.
+          if (state.menuSel === 2) { api.openSettings?.(); sndMenu(); return; }
           state.mode = state.menuSel === 0 ? 'cup' : 'friendly';
           state.round = 0;
           state.menuSel = state.twoPlayers ? 1 : 0;
@@ -1140,7 +1143,14 @@ window.RetroGames.soccer = {
         const m = menuMove(gp, prev);
 
         switch (state.phase) {
-          case 'mode':
+          case 'mode': {
+            const n = 3;                        // WORLD CUP · FREUNDSCHAFTSSPIEL · EINSTELLUNGEN
+            if (m.dy) { state.menuSel = (state.menuSel + m.dy + n) % n; sndMenu(); }
+            if (m.b) { goBack(); return; }
+            if (m.a || m.start) activate();
+            return;
+          }
+
           case 'count':
           case 'side':
             if (m.dy) { state.menuSel = (state.menuSel + m.dy + 2) % 2; sndMenu(); }
@@ -1460,8 +1470,10 @@ window.RetroGames.soccer = {
       ctx.font = font(uni() * 0.075);
       ctx.fillText('STREET SOCCER', w / 2, h * 0.24);
 
-      const items = ['WORLD CUP', 'FREUNDSCHAFTSSPIEL'];
-      const subs  = [`${ROUNDS.length} SIEGE ZUM TITEL · EINE NIEDERLAGE UND AUS`, 'EIN SPIEL, FREIE GEGNERWAHL'];
+      const items = ['WORLD CUP', 'FREUNDSCHAFTSSPIEL', 'EINSTELLUNGEN'];
+      const subs  = [`${ROUNDS.length} SIEGE ZUM TITEL · EINE NIEDERLAGE UND AUS`,
+                     'EIN SPIEL, FREIE GEGNERWAHL',
+                     'HALBZEITLÄNGE UND SCHWIERIGKEIT'];
       items.forEach((it, i) => {
         const sel = i === state.menuSel;
         const y = h * (0.45 + i * 0.14);

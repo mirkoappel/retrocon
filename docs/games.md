@@ -19,6 +19,8 @@ window.RetroGames.pong = {
     //                     am Modul und bedient im Ingame-Menü. Kann fehlen
     //                     (Prüfstand, Einbettung) — immer mit Vorgabewert lesen:
     //                     const HALF_TIME = api.setting?.('duration') ?? 180;
+    // api.openSettings() → eigenen Einstellungs-Screen öffnen, etwa aus dem
+    //                     Startmenü des Spiels heraus
     // api.code          → Raum-Code
     return {
       input(player, gamepad, prevGamepad) {},   // Eingabe verarbeiten

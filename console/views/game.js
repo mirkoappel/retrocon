@@ -19,6 +19,10 @@ let igSetCarousel, igSetTrack, igSetTitle;
 let toastTimer = null;
 let igSlideIdx = 0;   // 0 = Pause-Menü, 1 = Einstellungen, 2 = Hilfe
 let igSetIdx = 0;     // ausgewählter Regler auf der Einstellungs-Seite
+// Wurde der Screen aus dem Startmenü des Spiels heraus geöffnet, führt Zurück
+// dorthin und nicht ins Pausenmenü — sonst landet man in einem Menü, das man
+// nie aufgerufen hat.
+let igSetDirekt = false;
 let igMenuIdx  = 0;   // ausgewählter Eintrag im Pause-Menü
 
 // P1: Pfeiltasten + Enter, P2: WASD + Leertaste
@@ -129,7 +133,7 @@ function handleIgKey(e) {
     // Hoch/Runter verlässt den Screen — dieselbe Achse wie im Konsolenmenü
     if (e.code === 'Escape' || e.code === 'KeyB' || e.code === 'Backspace' ||
         e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'ArrowDown' || e.code === 'KeyS') {
-      igSlideIdx = 0; refreshIg(); e.preventDefault();
+      igSettingsBack(); e.preventDefault();
     }
     return;
   }
@@ -165,7 +169,7 @@ function selectIgMenuItem() {
 // unter dem Spielnamen.
 function buildIgSettings() {
   const opts = gameOptions(currentGameId);
-  igSetTitle.textContent = window.RetroGames?.[currentGameId]?.name || 'SPIEL';
+  igSetTitle.textContent = 'INGAME EINSTELLUNGEN';
   igSetTrack.innerHTML = '';
   igSetIdx = Math.min(igSetIdx, Math.max(0, opts.length - 1));
   opts.forEach((o, i) => {
@@ -213,6 +217,11 @@ function igSettingsStep(step) {
   refreshIgSettings();
 }
 
+function igSettingsBack() {
+  if (igSetDirekt) { igSetDirekt = false; resumeGame(); return; }
+  igSlideIdx = 0; refreshIg();
+}
+
 function igCycleCurrent() {
   const opts = gameOptions(currentGameId);
   if (!opts[igSetIdx]) return;
@@ -239,6 +248,7 @@ export function openIgMenu() { openIgOverlay(); }
 
 function openIgOverlay() {
   paused = true;
+  igSetDirekt = false;
   igSlideIdx = 0;
   igMenuIdx  = 0;
   keys.clear();
@@ -265,7 +275,7 @@ export function handleIngameMenuInput(gp, prev) {
     if (gp.dpad?.right && !prev?.dpad?.right) igSettingsStep(1);
     if (gp.a && !prev?.a) igCycleCurrent();
     if ((gp.b && !prev?.b) || (gp.select && !prev?.select) ||
-        (gp.dpad?.up && !prev?.dpad?.up)) { igSlideIdx = 0; refreshIg(); }
+        (gp.dpad?.up && !prev?.dpad?.up)) igSettingsBack();
     return;
   }
   if (igSlideIdx === 2) {
@@ -309,6 +319,9 @@ export function startGame(name) {
     // Spielspezifische Regler: das Spiel fragt seine eigenen ab, unter seinem
     // eigenen Namen. Globale Einstellungen wirken ohne Zutun der Spiele.
     setting: key => getGameSetting(name, key),
+    // Spiele dürfen ihren Einstellungs-Screen selbst aufrufen — etwa aus dem
+    // eigenen Startmenü, damit man nicht erst ein Spiel beginnen muss
+    openSettings: () => { openIgOverlay(); igMenuIdx = 2; selectIgMenuItem(); igSetDirekt = true; },
     code
   });
   for (const [p, gp] of lastInput) currentGame.input?.(p, gp, null);

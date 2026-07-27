@@ -112,7 +112,10 @@ Waagerecht deshalb, weil ↑ ↓ im Hauptmenü für den Zeilenwechsel belegt sin
 
 ### Spiel-Einstellungen
 
-ESC → EINSTELLUNGEN. Der Screen trägt den Namen des laufenden Spiels und zeigt nur dessen Regler. Dauer und Stärke liest ein Spiel beim Start — die Änderung gilt deshalb ab dem nächsten Spiel, und der Hinweis unter dem Karussell sagt das auch.
+Zwei Wege dorthin, beide führen auf denselben Screen mit dem Titel **INGAME EINSTELLUNGEN**:
+
+- **ESC → EINSTELLUNGEN** im Pausenmenü
+- **aus dem Startmenü des Spiels selbst**, über `api.openSettings()`. STREET SOCCER bietet das als dritten Punkt neben WORLD CUP und FREUNDSCHAFTSSPIEL an — so kommt man an Halbzeitlänge und Schwierigkeit, ohne erst anpfeifen zu müssen. Zurück führt dann auch dorthin zurück und nicht ins Pausenmenü, das man nie aufgerufen hat. Dauer und Stärke liest ein Spiel beim Start — die Änderung gilt deshalb ab dem nächsten Spiel, und der Hinweis unter dem Karussell sagt das auch.
 
 ## Ingame-Menü
 
