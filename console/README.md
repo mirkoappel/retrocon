@@ -108,6 +108,18 @@ Waagerecht deshalb, weil ↑ ↓ im Hauptmenü für den Zeilenwechsel belegt sin
 | BILDRÖHRE | AN / AUS | Scanline-Overlay (`body.no-scanlines`) |
 | VOLLBILD | AN / AUS | `requestFullscreen()` |
 
+### Der Vollbild-Knopf
+
+Im Spiel sitzt unten rechts über der Versionszeile ein kleiner Knopf mit den vier Ecken. Er **stört nicht**, und das ist die Eigenschaft, die zählt:
+
+- Im Ruhezustand ist er nicht nur unsichtbar (`opacity: 0`), sondern auch **klickdicht** (`pointer-events: none`) — sonst finge er Klicks ab, die dem Spiel gelten.
+- Er erscheint nur bei `mousemove`, nicht bei `pointermove`: Ein Fingertipp soll ihn nicht hervorholen, dort deckt die Einstellung im Menü den Fall ab.
+- Nach `AUSBLENDEN` (2 s) ohne Bewegung geht er von selbst wieder weg.
+- Er erscheint **nur im laufenden Spiel**. Im Menü gibt es dafür die Einstellung.
+- Geschaltet wird über `setGlobal('fullscreen', …)` — denselben Weg wie das Menü, damit beide dasselbe anzeigen. Im Vollbild zeigen die Ecken nach innen.
+
+`konsole-vollbild` prüft das am Quelltext und ist gegen zwei gebaute Fehler geprüft.
+
 **Lautstärke ohne Eingriff in die Spiele:** Alle Spiele verbinden ihre Klänge auf `audioCtx.destination`. Sie bekommen deshalb nicht den AudioContext selbst, sondern eine Hülle (`Proxy`), deren `destination` ein Master-Gain ist. Der Regler wirkt damit überall, ohne dass ein einziges Spiel angefasst werden musste.
 
 ### Spiel-Einstellungen

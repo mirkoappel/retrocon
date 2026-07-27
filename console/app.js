@@ -4,7 +4,7 @@ import { initBoot } from './views/boot.js';
 import { renderQRs, setPlayerConnected } from './views/setup.js';
 import { initMenu, handleMenuInput, resetMenu, goToRow, refreshMenu } from './views/menu.js';
 import { initGame, startGame, exitGame, getCurrentGame, isIngameMenuOpen, handleIngameMenuInput, openIgMenu } from './views/game.js';
-import { loadSettings, getGlobal, onGlobalChange } from './services/settings.js';
+import { loadSettings, getGlobal, setGlobal, onGlobalChange } from './services/settings.js';
 import { setMasterVolume } from './services/audio.js';
 
 let activeScreen = 'boot';
@@ -62,7 +62,39 @@ function applyGlobal(key, wert) {
   }
 }
 
-// Vollbild kann jederzeit ohne unser Zutun enden (ESC). Das Menü muss das mitbekommen.
-document.addEventListener('fullscreenchange', () => refreshMenu());
+// Vollbild kann jederzeit ohne unser Zutun enden (ESC). Das Menü muss das
+// mitbekommen — und der Knopf sein Zeichen wechseln.
+document.addEventListener('fullscreenchange', () => { refreshMenu(); zeichenSetzen(); });
+
+// ── Vollbild-Knopf ───────────────────────────────────────────────────
+// Er stört nicht: Im Menü gibt es dafür die Einstellung, also erscheint er nur
+// im Spiel — und auch dort nur, solange die Maus bewegt wird. Ohne Zeigegerät
+// (Touch, Gamepad) taucht er nie auf.
+const knopf = document.getElementById('vollbild-knopf');
+const AUSBLENDEN = 2000;                    // Millisekunden ohne Mausbewegung
+let ausblendUhr = 0;
+
+function zeichenSetzen() {
+  knopf?.classList.toggle('im-vollbild', !!document.fullscreenElement);
+}
+
+function knopfZeigen() {
+  if (!knopf) return;
+  if (!getCurrentGame()) { knopf.classList.remove('sichtbar'); return; }
+  knopf.classList.add('sichtbar');
+  clearTimeout(ausblendUhr);
+  ausblendUhr = setTimeout(() => knopf.classList.remove('sichtbar'), AUSBLENDEN);
+}
+
+// `mousemove` und nicht `pointermove`: Ein Fingertipp soll ihn nicht
+// hervorholen, dort deckt die Einstellung im Menü den Fall ab.
+window.addEventListener('mousemove', knopfZeigen, { passive: true });
+knopf?.addEventListener('click', e => {
+  e.preventDefault();
+  // Über setGlobal, damit die Einstellung im Menü denselben Weg nimmt
+  setGlobal('fullscreen', !document.fullscreenElement);
+  knopfZeigen();
+});
+zeichenSetzen();
 
 setupPeer();

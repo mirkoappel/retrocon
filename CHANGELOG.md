@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.11]
+
+### Hinzugefügt
+- **Vollbild-Knopf im Spiel**, unten rechts. Er erscheint nur, wenn die Maus bewegt wird, und blendet sich nach zwei Sekunden von selbst wieder aus. Im Ruhezustand ist er unsichtbar **und** klickdicht, damit er dem Spiel keine Klicks wegnimmt; bei Berührungseingabe taucht er gar nicht erst auf, und im Menü gibt es dafür weiterhin die Einstellung
+
 ## [0.21.10]
 
 ### Hinzugefügt
