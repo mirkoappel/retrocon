@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.15.3]
+
+### Geändert
+- **STREET SOCCER: Die Toranzeige zeigt nur noch TOR!** — groß, gelb und mit Einschlag: Der Schriftzug federt beim Tor einmal auf und atmet danach leise weiter. Torschütze und Spielstand sind raus; beides steht ohnehin in der Kopfzeile und machte das Panel nur voll. Damit entfällt auch das Einpassen langer Namen — kein toter Code
+- **Der gelbe Rahmen ist weg.** Er stand in Konkurrenz zum Schriftzug und klebte am Inhalt. Stattdessen eine weiche, abgerundete Fläche mit Schlagschatten und Haarlinie, und deutlich mehr Luft zum Rand
+
 ## [0.15.2]
 
 ### Geändert

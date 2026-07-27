@@ -90,7 +90,11 @@ Zwei echte Menüpunkte, keine Tastenansage:
 | **WIEDERHOLUNG** | die Szene in Zeitlupe (0,34-fach) |
 | — | ohne Eingabe geht es nach `GOAL_WAIT` (12 s) von selbst weiter |
 
-Der Mannschaftsname steht in einer eigenen Zeile und wird über `fitText` auf die Panelbreite eingepasst; „DEUTSCHLAND 2 : 1" in einer Zeile lief vorher aus dem Panel heraus. Nach einer Wiederholung springt die Auswahl zurück auf WEITER, sonst startet der nächste Druck versehentlich die nächste.
+Auf dem Panel steht nur **TOR!** — groß, gelb und mit Einschlag: Beim Tor federt der Schriftzug einmal auf (gedämpfte Schwingung über 0,6 s), danach atmet er leise weiter. Torschütze und Spielstand stehen ohnehin in der Kopfzeile; im Panel wiederholt machten sie es nur voll.
+
+Das Panel selbst ist eine weiche, abgerundete Fläche mit Schlagschatten und Haarlinie. Ein harter gelber Rahmen stand in Konkurrenz zum Schriftzug und klebte am Inhalt.
+
+Nach einer Wiederholung springt die Auswahl zurück auf WEITER, sonst startet der nächste Druck versehentlich die nächste.
 
 Die Wiederholung läuft aus einem **Mitschnitt der letzten 3,5 Sekunden** (`HIST_LEN` = 210 Frames). Aufgezeichnet werden nur Positionen und Blickrichtungen — mehr braucht es nicht, um die Szene noch einmal zu zeichnen, und gezeichnet wird sie mit demselben Code wie das laufende Spiel: Die Positionen werden kurz aus dem Mitschnitt gesetzt und danach zurückgeschrieben.
 

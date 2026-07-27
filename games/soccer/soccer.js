@@ -1676,22 +1676,32 @@ window.RetroGames.soccer = {
 
       // Nur noch TOR! — wer getroffen hat und wie es steht, sagt die Kopfzeile
       // ohnehin schon. Dafür groß, gelb und mit Einschlag.
-      const pw = Math.min(w * 0.7, uni() * 0.58);
-      const ph = uni() * 0.40;
+      const pw = Math.min(w * 0.76, uni() * 0.66);
+      const ph = uni() * 0.48;
       const x0 = w / 2 - pw / 2, y0 = h / 2 - ph / 2;
 
-      ctx.fillStyle = 'rgba(4,6,10,0.94)';
-      ctx.fillRect(x0, y0, pw, ph);
-      ctx.strokeStyle = '#ffc400';
-      ctx.lineWidth = Math.max(1, uni() * 0.004);
-      ctx.strokeRect(x0, y0, pw, ph);
+      // Kein harter gelber Rahmen: Er stand in Konkurrenz zum Schriftzug und
+      // klebte am Inhalt. Stattdessen eine weiche, abgerundete Fläche, die
+      // sich über einen Schlagschatten vom Rasen löst, plus eine Haarlinie.
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.85)';
+      ctx.shadowBlur = uni() * 0.05;
+      ctx.fillStyle = 'rgba(6,9,14,0.96)';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x0, y0, pw, ph, uni() * 0.022);
+      else ctx.rect(x0, y0, pw, ph);
+      ctx.fill();
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+      ctx.lineWidth = Math.max(1, uni() * 0.002);
+      ctx.stroke();
 
       // Einschlag beim Tor, danach ein leises Atmen
       const seit = Math.max(0, GOAL_WAIT - state.goalWait);
       const pop = 1 + 0.5 * Math.exp(-5 * seit) * Math.cos(seit * 20);
       const puls = 1 + 0.025 * Math.sin(state.t * 4);
       ctx.save();
-      ctx.translate(w / 2, y0 + ph * 0.36);
+      ctx.translate(w / 2, y0 + ph * 0.38);
       ctx.scale(pop * puls, pop * puls);
       ctx.shadowColor = '#ffb300';
       ctx.shadowBlur = uni() * 0.06;
@@ -1702,9 +1712,9 @@ window.RetroGames.soccer = {
       ctx.restore();
 
       GOAL_ITEMS.forEach((it, i) => {
-        const y = y0 + ph * (0.66 + i * 0.17);
+        const y = y0 + ph * (0.67 + i * 0.16);
         const sel = i === state.menuSel;
-        hotspot(x0 + pw * 0.06, y - ph * 0.07, pw * 0.88, ph * 0.14, i);
+        hotspot(x0 + pw * 0.08, y - ph * 0.065, pw * 0.84, ph * 0.13, i);
         ctx.fillStyle = sel ? '#ffd54f' : '#666';
         ctx.font = font(uni() * 0.03);
         ctx.fillText(sel ? `> ${it} <` : it, w / 2, y);
