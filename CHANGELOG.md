@@ -2,6 +2,15 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.16.0]
+
+### Neu
+- **STREET SOCCER: Die Wiederholung startet von selbst** — 1,1 Sekunden nach dem Tor, gerade so lange, dass TOR! erst einmal steht. Deutlich gekennzeichnet mit pulsendem rotem Punkt und WIEDERHOLUNG · ZEITLUPE oben links; ohne das hält man die Zeitlupe für das laufende Spiel. Jede Taste bricht sie ab
+- **Abschaltbar** über die neue Einstellung WIEDERHOLUNG; dann bleibt in der Torpause nur WEITER stehen
+
+### Geändert
+- Die Wiederholung dauerte 10,3 Sekunden (3,5 s Szene bei 0,34-fach) und zog sich. Jetzt 2,5 s Szene bei 0,45-fach, also 5,6 Sekunden
+
 ## [0.15.3]
 
 ### Geändert

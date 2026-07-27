@@ -82,13 +82,17 @@ Bei zwei Menschen bekommt jeder seinen eigenen Spieler — dieselbe Figur kann n
 
 Ein Tor war nach 2,4 Sekunden vorbei — man bekam es kaum mit. Jetzt hält das Spiel an und zeigt eine Anzeige mit Torschütze und Spielstand:
 
-Zwei echte Menüpunkte, keine Tastenansage:
+**Die Wiederholung startet von selbst**, nach `AUTO_REPLAY` (1,1 s) — gerade so lange, dass TOR! erst einmal steht. Sie ist deutlich als solche gekennzeichnet: ein pulsender roter Punkt oben links mit WIEDERHOLUNG · ZEITLUPE. Ohne die Kennzeichnung hält man die Zeitlupe für das laufende Spiel und wundert sich, warum nichts reagiert.
+
+Jede Taste bricht sie ab und führt zurück auf die Anzeige. Dort gibt es zwei Menüpunkte, keine Tastenansage:
 
 | Punkt | Wirkung |
 |---|---|
 | **WEITER** | Anstoß für die andere Mannschaft |
-| **WIEDERHOLUNG** | die Szene in Zeitlupe (0,34-fach) |
+| **WIEDERHOLUNG** | die Szene noch einmal |
 | — | ohne Eingabe geht es nach `GOAL_WAIT` (12 s) von selbst weiter |
+
+Abschaltbar über die Einstellung **WIEDERHOLUNG**; dann bleibt in der Torpause nur WEITER stehen.
 
 Auf dem Panel steht nur **TOR!** — groß, gelb und mit Einschlag: Beim Tor federt der Schriftzug einmal auf (gedämpfte Schwingung über 0,6 s), danach atmet er leise weiter. Torschütze und Spielstand stehen ohnehin in der Kopfzeile; im Panel wiederholt machten sie es nur voll.
 
@@ -96,7 +100,7 @@ Das Panel selbst ist eine weiche, abgerundete Fläche mit Schlagschatten und Haa
 
 Nach einer Wiederholung springt die Auswahl zurück auf WEITER, sonst startet der nächste Druck versehentlich die nächste.
 
-Die Wiederholung läuft aus einem **Mitschnitt der letzten 3,5 Sekunden** (`HIST_LEN` = 210 Frames). Aufgezeichnet werden nur Positionen und Blickrichtungen — mehr braucht es nicht, um die Szene noch einmal zu zeichnen, und gezeichnet wird sie mit demselben Code wie das laufende Spiel: Die Positionen werden kurz aus dem Mitschnitt gesetzt und danach zurückgeschrieben.
+Die Wiederholung läuft aus einem **Mitschnitt der letzten 2,5 Sekunden** (`HIST_LEN` = 150 Frames) und dauert bei 0,45-facher Geschwindigkeit 5,6 Sekunden. Der erste Entwurf zeigte 3,5 Sekunden bei 0,34-fach — 10,3 Sekunden Zeitlupe, das zog sich. Aufgezeichnet werden nur Positionen und Blickrichtungen — mehr braucht es nicht, um die Szene noch einmal zu zeichnen, und gezeichnet wird sie mit demselben Code wie das laufende Spiel: Die Positionen werden kurz aus dem Mitschnitt gesetzt und danach zurückgeschrieben.
 
 
 

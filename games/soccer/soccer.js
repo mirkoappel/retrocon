@@ -20,7 +20,7 @@ window.RetroGames.soccer = {
     { t1: 'B', t2: 'VOR DEM TOR', was: 'Hechtsprung auf eine scharfe Hereingabe — danach liegt man kurz' },
     { t1: 'DRIBBELN', t2: '',   was: 'Mit Ball läuft man langsamer; der Ball folgt der Laufrichtung' },
     { t1: 'ANSTOSS', t2: '',    was: 'Der Anstoß wird zum Mitspieler gepasst' },
-    { t1: 'B', t2: 'NACH DEM TOR', was: 'Wiederholung der Szene in Zeitlupe' },
+    { t1: 'NACH DEM TOR', t2: '', was: 'Die Wiederholung läuft von selbst — jede Taste bricht sie ab' },
   ],
 
   // Eigene Regler. Die Konsole zeigt und speichert sie, kennt aber weder
@@ -30,6 +30,8 @@ window.RetroGames.soccer = {
       zeige: v => (v / 60).toFixed(0).replace('.', ',') + ' MIN' },
     { key: 'difficulty', label: 'SCHWIERIGKEIT', werte: ['leicht', 'normal', 'schwer'], vorgabe: 'normal',
       zeige: v => v.toUpperCase() },
+    { key: 'replay', label: 'WIEDERHOLUNG', werte: ['an', 'aus'], vorgabe: 'an',
+      zeige: v => v === 'an' ? 'AN' : 'AUS' },
     { key: 'switch', label: 'SPIELERWECHSEL', werte: ['manuell', 'ballgewinn', 'amball'], vorgabe: 'ballgewinn',
       zeige: v => v === 'manuell' ? 'NUR SELBST' : v === 'ballgewinn' ? 'BEI BALLGEWINN' : 'AM BALL' },
   ],
@@ -121,10 +123,10 @@ window.RetroGames.soccer = {
 
     const RESTART_KICK = 1.6;   // Standbild vor dem Anstoß
     const RESTART_GOAL = 2.4;   // …und nach einem Tor, etwas länger zum Jubeln
-    const HIST_LEN     = 210;   // Frames im Speicher für die Wiederholung (3,5 s)
-    const REPLAY_SPEED = 0.34;  // Zeitlupe
+    const HIST_LEN     = 150;   // Frames im Speicher für die Wiederholung (2,5 s)
+    const REPLAY_SPEED = 0.45;  // Zeitlupe — 2,5 s Szene werden so zu 5,6 s
     const GOAL_WAIT    = 12;    // so lange bleibt die Toranzeige stehen, wenn niemand drückt
-    const GOAL_ITEMS   = ['WEITER', 'WIEDERHOLUNG'];   // Menü der Torpause
+    const AUTO_REPLAY  = 1.1;   // so lange steht TOR!, dann läuft die Wiederholung von selbst
     // Die beiden eigenen Regler aus dem Einstellungsmenü. Fehlt `api.setting`
     // (Prüfstand, Einbettung), gelten die Vorgabewerte.
     const HALF_TIME  = api.setting?.('duration') ?? 180;   // Sekunden je Halbzeit
@@ -134,6 +136,9 @@ window.RetroGames.soccer = {
     //   ballgewinn  — sobald ein eigener Spieler den Ball hat
     //   amball      — zusätzlich immer zum Spieler, der dem Ball am nächsten ist
     const SWITCH_MODE = api.setting?.('switch') ?? 'ballgewinn';
+    const REPLAY_ON   = (api.setting?.('replay') ?? 'an') === 'an';
+    // Ohne Wiederholung hat die Torpause nur einen Punkt
+    const goalItems = () => REPLAY_ON ? ['WEITER', 'WIEDERHOLUNG'] : ['WEITER'];
     // Grundstärke der KI-Gegner; der Turnieraufschlag je Runde kommt dazu
     const SKILL_BASE = SCHWIERIG === 'leicht' ? 0.90 : SCHWIERIG === 'schwer' ? 1.12 : 1;
     const HALVES    = 2;
@@ -193,7 +198,7 @@ window.RetroGames.soccer = {
       golden: false, goldenT: 0,
       msg: '', msgTimer: 0,
       hist: [], replay: null,        // Mitschnitt und laufende Wiederholung
-      goalWait: 0, goalTeam: 0,      // Toranzeige: Restzeit und wer getroffen hat
+      goalWait: 0, goalTeam: 0, autoReplay: -1,   // Toranzeige: Restzeit, Torschütze, Countdown zur Wiederholung
       kickoffFor: 0, kickoffLock: 0, restart: 0,
       kickoffTo: null, kickoffToT: 0,   // Anstoßpass ist für diesen Spieler reserviert
       lastAct: new Map(),   // letzte echte Eingabe je Spieler-Slot
@@ -893,8 +898,11 @@ window.RetroGames.soccer = {
         if (state.replay.i >= state.hist.length - 1) { state.replay = null; state.menuSel = 0; }
         return;
       }
+      if (state.autoReplay > 0) {
+        state.autoReplay -= dt;
+        if (state.autoReplay <= 0) { state.autoReplay = -1; startReplay(); return; }
+      }
       state.goalWait -= dt;
-      // Solange jemand im Menü blättert, läuft die Uhr nicht weiter
       if (state.goalWait <= 0) weiterNachTor();
     }
 
@@ -1172,6 +1180,8 @@ window.RetroGames.soccer = {
       state.goalWait = GOAL_WAIT;
       state.replay = null;
       state.menuSel = 0;
+      // Die Wiederholung startet von selbst — man soll sie nicht suchen müssen
+      state.autoReplay = REPLAY_ON ? AUTO_REPLAY : -1;
       state.msg = ''; state.msgTimer = 0;
     }
 
@@ -1387,7 +1397,7 @@ window.RetroGames.soccer = {
               if (m.a || m.b || m.start) state.replay = null;
               return;
             }
-            if (m.dy) { state.menuSel = (state.menuSel + m.dy + GOAL_ITEMS.length) % GOAL_ITEMS.length; sndMenu(); }
+            if (m.dy) { state.menuSel = (state.menuSel + m.dy + goalItems().length) % goalItems().length; sndMenu(); }
             if (m.a || m.start) activate();
             return;
 
@@ -1653,6 +1663,27 @@ window.RetroGames.soccer = {
     // Gezeichnet wird beides mit dem normalen Spielfeld — für die Wiederholung
     // werden die Positionen kurz aus dem Mitschnitt gesetzt und danach wieder
     // zurückgeschrieben.
+    // Deutlich als Wiederholung gekennzeichnet — sonst hält man die Zeitlupe
+    // für das laufende Spiel und wundert sich, warum nichts reagiert.
+    function drawReplayBadge() {
+      const x = w * 0.055, y = h * 0.16;
+      const r0 = uni() * 0.013;
+      ctx.save();
+      ctx.globalAlpha = 0.55 + 0.45 * Math.abs(Math.sin(state.t * 5));
+      ctx.fillStyle = '#e53935';
+      ctx.beginPath(); ctx.arc(x, y, r0, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#fff';
+      ctx.font = font(uni() * 0.03);
+      ctx.fillText('WIEDERHOLUNG', x + r0 * 2.2, y + uni() * 0.011);
+      ctx.font = font(uni() * 0.02);
+      ctx.fillStyle = '#8a9bb0';
+      ctx.fillText('ZEITLUPE', x + r0 * 2.2, y + uni() * 0.045);
+      ctx.textAlign = 'center';
+      ctx.restore();
+    }
+
     function drawGoal() {
       const r = pitchRect();
       if (state.replay) {
@@ -1666,9 +1697,7 @@ window.RetroGames.soccer = {
         state.players.forEach((p, k) => { const q = sicherung[k]; p.x = q[0]; p.y = q[1]; p.fx = q[2]; p.fy = q[3]; });
         state.ball.x = ball[0]; state.ball.y = ball[1];
         drawHud();
-        ctx.fillStyle = '#4fc3f7';
-        ctx.font = font(uni() * 0.03);
-        ctx.fillText('WIEDERHOLUNG', w / 2, h * 0.94);
+        drawReplayBadge();
         return;
       }
 
@@ -1711,7 +1740,7 @@ window.RetroGames.soccer = {
       ctx.shadowBlur = 0;
       ctx.restore();
 
-      GOAL_ITEMS.forEach((it, i) => {
+      goalItems().forEach((it, i) => {
         const y = y0 + ph * (0.67 + i * 0.16);
         const sel = i === state.menuSel;
         hotspot(x0 + pw * 0.08, y - ph * 0.065, pw * 0.84, ph * 0.13, i);
