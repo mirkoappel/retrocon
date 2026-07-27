@@ -104,6 +104,13 @@ function session(game, { conns = new Map(), inject, setting, w = 1600, h = 900 }
       let c = pad({ a: true }); g.input(slot, c, prev); prev = c;
       c = pad();               g.input(slot, c, prev); prev = c;
     },
+    // Vorgabe ist die KI. Erst eine echte Eingabe holt den Slot ans Steuer.
+    // Ein Tastatur-Gamepad wertet nur das Dpad aus, nicht den Stick — und
+    // ohne `step` dazwischen bewegt sich dabei niemand.
+    uebernehmen(slot = 1) {
+      const c = pad({ dpad: { down: true } }); g.input(slot, c, prev); prev = c;
+      const leer = pad();                      g.input(slot, leer, prev); prev = leer;
+    },
     step(dt = 1 / 60) { g.update(dt); }
   };
 }

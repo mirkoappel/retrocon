@@ -2,6 +2,12 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.7]
+
+### Geändert
+- **STREET SOCCER: Vorgabe ist die KI.** Nach dem Anpfiff steuert niemand einen Spieler, bis wirklich eine Taste kommt — vorher steuerte man ab Anpfiff und gab erst nach acht Sekunden Untätigkeit ab, obwohl man nie etwas angerührt hatte. Die erste Eingabe übernimmt sofort, und wer im letzten Spiel gespielt hat, steht beim nächsten Anpfiff wieder am Ball
+- **Im Tor hängt nur noch das Netz**, der Belag läuft durch. Die dunkle Füllung sah aus wie ein Loch im Platz — auf blauem und rotem Kunststoff erst recht
+
 ## [0.21.6]
 
 ### Hinzugefügt

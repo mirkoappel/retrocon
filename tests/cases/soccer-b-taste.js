@@ -15,6 +15,7 @@ function lauf(muster) {
   const s = session('soccer', { conns: new Map([[1, 'keyboard']]) });
   for (let i = 0; i < 4; i++) s.tap();
   const S = s.state;
+  s.uebernehmen();
   const me = S.players.find(p => p.ctrl);
   if (!me) throw new Error('kein gesteuerter Spieler');
   const gegner = S.players.find(p => p.team !== me.team && p.role !== 'GK');

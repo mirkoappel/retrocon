@@ -25,7 +25,9 @@ Im **World Cup** geht gegeneinander ebenfalls, nur wählt Spieler 2 dort nichts:
 
 ## Zusehen
 
-Zusehen ist **kein Modus, den man wählt** — es ist das, was übrig bleibt, wenn man die Finger stillhält. Nach der Mannschaftswahl läuft alles von selbst weiter, und wer aufhört zu spielen, gibt seinen Spieler nach `IDLE_TAKEOVER` an die KI ab.
+Zusehen ist **kein Modus, den man wählt** — es ist das, was übrig bleibt, wenn man die Finger stillhält. **Der Normalfall ist die KI:** Nach dem Anpfiff steuert niemand einen Spieler, bis wirklich eine Taste kommt. Wer aufhört zu spielen, gibt seinen Spieler nach `IDLE_TAKEOVER` wieder ab.
+
+Vorher trug `startMatch` beide Plätze als aktiv ein — man steuerte ab Anpfiff und gab erst nach acht Sekunden ab, obwohl man nie eine Taste angerührt hatte. `lastAct` wird deshalb beim Anpfiff **nicht** zurückgesetzt: Wer im letzten Spiel gerade noch gespielt hat, steht auch beim nächsten Anpfiff am Ball.
 
 Jede Tafel geht dafür von allein weiter; wer drückt, überspringt nur die Wartezeit:
 
@@ -53,7 +55,7 @@ Damit die Verlängerung nicht endlos läuft, lassen beide Torhüter dort gleichm
 
 ## Steuerung
 
-Drückt an einem Platz **8 Sekunden lang niemand etwas** (`IDLE_TAKEOVER`), übernimmt dort die KI — sonst stünde die Figur nutzlos herum. Die erste Eingabe holt sie sofort zurück. Als Eingabe zählt nur echte Aktivität: ein ruhender Controller sendet trotzdem 30 Pakete pro Sekunde, die dürfen nicht als Spielen durchgehen. Dass die KI übernommen hat, erkennt man am fehlenden Markierungsring.
+**Vorgabe ist die KI.** Erst eine echte Eingabe holt einen Platz ans Steuer, und zwar sofort im selben Bild. Drückt danach **8 Sekunden lang niemand etwas** (`IDLE_TAKEOVER`), übernimmt die KI wieder — sonst stünde die Figur nutzlos herum. Als Eingabe zählt nur echte Aktivität: ein ruhender Controller sendet trotzdem 30 Pakete pro Sekunde, die dürfen nicht als Spielen durchgehen. Dass die KI übernommen hat, erkennt man am fehlenden Markierungsring.
 
 Solange du spielst, behältst du deinen Spieler und **wechselst selbst mit B**. Es gibt nur eine Automatik: sobald deine Mannschaft den Ball erobert, übernimmst du den Ballführenden — sonst würdest du einen Spieler ohne Ball steuern, während die KI dribbelt. Der Torwart bleibt immer KI.
 
@@ -167,7 +169,7 @@ Beim Zuschnitt zählt `1 + 2 × GOAL_DEPTH`, nicht die Feldlänge. Rechnet man n
 
 ## Tore
 
-Die Tore sind Kästen hinter der Torlinie (`GOAL_DEPTH`) mit einem gezeichneten Netz. Vorher war es ein weißer Balken — der Ball schien dadurch durch das Tor hindurchzufliegen, weil dahinter nichts war, in dem er liegenbleiben konnte. Beim Treffer wird er jetzt bewusst **ins Netz gelegt** (`NETZ_TIEFE`), nicht nur begrenzt.
+Die Tore stehen hinter der Torlinie (`GOAL_DEPTH`). **Der Belag läuft durch, im Tor hängt nur das Netz** — eine dunkle Füllung sah aus wie ein Loch im Platz, und auf einem blauen oder roten Kunststoffplatz erst recht. Vorher war es ein weißer Balken — der Ball schien dadurch durch das Tor hindurchzufliegen, weil dahinter nichts war, in dem er liegenbleiben konnte. Beim Treffer wird er jetzt bewusst **ins Netz gelegt** (`NETZ_TIEFE`), nicht nur begrenzt.
 
 Das Tor liegt **hinter** der Torlinie. Im Hochformat zeigt die Feldlänge nach oben (`y = 0` unten), das eigene Tor liegt unten und geht nach unten weg — andersherum als im Querformat. Die Rechnung aus dem Querformat unbesehen übernommen, standen beide Tore im Feld. `soccer-tor-lage` prüft das am Gezeichneten: Der Test liest die Außenlinie und die Torkästen aus der Canvas-Attrappe und ist gegen zwei gebaute Fehler geprüft.
 

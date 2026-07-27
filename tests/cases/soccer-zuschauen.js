@@ -3,11 +3,31 @@
 // Tore, Halbzeit, Abpfiff und das nächste Spiel.
 const { session, pad } = require('../harness');
 
+// Vorgabe ist die KI: Nach dem Anpfiff steuert niemand einen Spieler, bis
+// wirklich eine Taste kommt. Vorher trug `startMatch` beide Slots als aktiv
+// ein — man steuerte ab Anpfiff und gab erst nach IDLE_TAKEOVER ab, obwohl
+// man nie etwas angeruehrt hatte.
+function uebernahme(fehler) {
+  const s = session('soccer', { conns: new Map([[1, 'keyboard']]) });
+  for (let i = 0; i < 4; i++) s.tap();
+  const S = s.state;
+  for (let f = 0; f < 60 * 3; f++) s.step();
+  if (S.players.some(p => p.ctrl)) fehler.push('beim Anpfiff steuert schon jemand');
+
+  s.uebernehmen();
+  if (!S.players.some(p => p.ctrl === 1)) fehler.push('ein Tastendruck holt den Slot nicht ans Steuer');
+
+  // Und wieder abgeben, wenn nichts mehr kommt
+  for (let f = 0; f < 60 * 12; f++) s.step();
+  if (S.players.some(p => p.ctrl)) fehler.push('die KI uebernimmt nach Untaetigkeit nicht zurueck');
+}
+
 module.exports = {
   name: 'Fussball · laeuft ohne Tastendruck weiter',
   slow: true,
   run() {
     const fehler = [];
+    uebernahme(fehler);
     for (const [was, waehlen] of [
       ['World Cup', s => { for (let i = 0; i < 4; i++) s.tap(); }],
       ['Freundschaftsspiel', s => {
@@ -41,7 +61,8 @@ module.exports = {
     return {
       ok: fehler.length === 0,
       info: fehler.length ? fehler.join(' · ')
-        : 'World Cup und Freundschaftsspiel laufen beide ueber Stunden ohne einen Tastendruck weiter'
+        : 'die KI faengt an, ein Tastendruck uebernimmt, Untaetigkeit gibt zurueck; '
+          + 'World Cup und Freundschaftsspiel laufen ueber Stunden ohne einen Tastendruck weiter'
     };
   }
 };

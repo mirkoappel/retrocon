@@ -218,8 +218,8 @@ window.RetroSoccer.render = function (ctx, K) {
       const kw = r.rot ? tiefe : g.w;
       const kh = r.rot ? g.h : tiefe;
 
-      ctx.fillStyle = 'rgba(10,14,20,0.85)';
-      ctx.fillRect(kx, ky, kw, kh);
+      // Kein Kasten hinter der Linie: Der Rasen laeuft durch, im Tor haengt
+      // nur das Netz. Eine dunkle Fuellung sah aus wie ein Loch im Platz.
 
       // Netz: feines Raster, quer und laengs
       ctx.save();

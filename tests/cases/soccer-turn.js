@@ -5,6 +5,7 @@ const { session, stick, pad } = require('../harness');
 function trial(turnDeg, push) {
   const s = session('soccer', { conns: new Map([[1, 'keyboard']]) });
   for (let i = 0; i < 4; i++) s.tap();
+  s.uebernehmen();
   const S = s.state;
   const me = S.players.find(p => p.ctrl);
   if (!me) throw new Error('kein gesteuerter Spieler');

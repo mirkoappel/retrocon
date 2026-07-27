@@ -4,7 +4,7 @@
 // Tore in beiden Fassungen noch da?
 const { session } = require('../harness');
 
-const TOR_FARBE = 'rgba(10,14,20,0.85)';
+const WEISS = 'rgba(255,255,255,0.9)';
 
 function bild(art) {
   const s = session('soccer', {
@@ -13,12 +13,12 @@ function bild(art) {
   });
   for (let i = 0; i < 4; i++) s.tap();
   s.step();
-  const { kaesten, pfade } = s.bild();
+  const { pfade } = s.bild();
   return {
     // Ein Kasten aus vier Ecken in Linienfarbe: Aussenlinie, Strafraum,
     // Torraum. Die Torpfosten sind auch vier Punkte, aber weiss.
     kaesten4: pfade.filter(z => z.punkte.length === 4 && z.farbe === '#7da58c').length,
-    tore: kaesten.filter(k => k.farbe === TOR_FARBE).length,
+    tore: pfade.filter(z => z.punkte.length === 4 && z.farbe === WEISS).length,
     zuege: pfade.length
   };
 }

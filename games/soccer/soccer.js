@@ -423,7 +423,8 @@ window.RetroGames.soccer = {
       state.golden = false; state.goldenT = 0;
       state.msg = ''; state.msgTimer = 0;
       buildTeams();
-      state.lastAct = new Map([[1, state.t], [2, state.t]]);
+      // `lastAct` wird bewusst NICHT zurueckgesetzt: Wer im letzten Spiel
+      // gerade noch gespielt hat, steht auch beim Anpfiff wieder am Ball.
       state.kickoffFor = 0;
       kickoff(0);
       state.msg = 'ANSTOSS'; state.msgTimer = RESTART_KICK;
@@ -446,7 +447,12 @@ window.RetroGames.soccer = {
     }
     function slotIdle(p) {
       const last = state.lastAct.get(p);
-      return last !== undefined && state.t - last >= IDLE_TAKEOVER;
+      // Vorgabe ist die KI. Wer noch nichts gedrueckt hat, sieht zu — erst
+      // eine echte Eingabe holt den Slot ans Steuer. Vorher war es
+      // andersherum: Man steuerte ab Anpfiff und gab erst nach
+      // IDLE_TAKEOVER ab, obwohl man nie eine Taste angeruehrt hatte.
+      if (last === undefined) return true;
+      return state.t - last >= IDLE_TAKEOVER;
     }
     // Welche Mannschaft steuert ein Spieler-Slot? Im Modus „gegeneinander"
     // übernimmt Spieler 2 die gegnerische Mannschaft, sonst spielen beide zusammen.

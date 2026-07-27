@@ -14,15 +14,17 @@ function bild(belag, muster, w = 1600, h = 900) {
     setting: k => (k === 'turf' ? belag : k === 'mow' ? muster : undefined), w, h
   });
   for (let i = 0; i < 4; i++) s.tap();
+  // Der Gegner wird ausgelost, und seine Flagge in der Anzeigezeile besteht
+  // aus Rechtecken. Ohne festen Gegner schwankt die Zahl der Rechtecke von
+  // Lauf zu Lauf, und der Vergleich mit und ohne Bahnen geht nicht auf.
+  s.state.myTeam = 0; s.state.foeTeam = 1;
   s.step();
   const k = s.kaesten();
   // Das erste bildschirmfuellende Rechteck ist das Loeschen der Leinwand, das
-  // zweite der Belag. Danach kommen die Bahnen — bis zum ersten Torkasten.
+  // zweite der Belag. Die Bahnen kommen direkt danach.
   const voll = k.filter(q => q.w >= w && q.h >= h);
   const flaeche = voll[voll.length - 1];
-  const ab = k.indexOf(flaeche) + 1;
-  const bis = k.findIndex((q, i) => i >= ab && q.farbe === 'rgba(10,14,20,0.85)');
-  return { flaeche, bahnen: k.slice(ab, bis < 0 ? k.length : bis) };
+  return { flaeche, ab: k.indexOf(flaeche) + 1, k };
 }
 
 module.exports = {
@@ -33,11 +35,15 @@ module.exports = {
 
     // Vorgabe: hellgruen, keine Bahnen. Ohne `setting` faellt das Spiel
     // darauf zurueck, ebenso bei einem alten gespeicherten Wert.
+    // Wie viele Rechtecke ein Bild ohne Bahnen hat, sagt der Vergleichslauf.
+    // Alles darueber sind die Bahnen — das kommt ohne Annahme ueber ihre
+    // Farbe aus, die ja gerade geprueft werden soll.
+    const ohneBahnen = bild('hellgruen', 'keins').k.length;
     for (const [was, b] of [['ohne Einstellung', bild(undefined, undefined)],
                             ['alter Wert', bild('dunkelgruen', 'laengs')]]) {
       if (!b.flaeche) { fehler.push(`${was}: der Belag deckt den Schirm nicht`); continue; }
       if (b.flaeche.farbe !== BELAEGE.hellgruen[0]) fehler.push(`${was}: Farbe ${b.flaeche.farbe}`);
-      if (b.bahnen.length) fehler.push(`${was}: ${b.bahnen.length} Bahnen statt keiner`);
+      if (b.k.length !== ohneBahnen) fehler.push(`${was}: ${b.k.length - ohneBahnen} Bahnen statt keiner`);
     }
 
     // Jeder Belag faerbt die ganze Flaeche, und zwar verschieden
@@ -53,12 +59,13 @@ module.exports = {
 
     // STREIFEN: Bahnen in der Bahnenfarbe des Belags, ueber den ganzen Schirm
     for (const [name, [, bahn]] of Object.entries(BELAEGE)) {
-      const b = bild(name, 'streifen');
-      if (!b.bahnen.length) { fehler.push(`${name}: STREIFEN zeichnet keine Bahnen`); continue; }
-      if (b.bahnen.some(q => q.farbe !== bahn)) fehler.push(`${name}: Bahnen in der falschen Farbe`);
-      const x0 = Math.min(...b.bahnen.map(q => q.x)), x1 = Math.max(...b.bahnen.map(q => q.x + q.w));
+      const ohne = bild(name, 'keins'), mit = bild(name, 'streifen');
+      const bahnen = mit.k.slice(mit.ab, mit.ab + (mit.k.length - ohne.k.length));
+      if (!bahnen.length) { fehler.push(`${name}: STREIFEN zeichnet keine Bahnen`); continue; }
+      if (bahnen.some(q => q.farbe !== bahn)) fehler.push(`${name}: Bahnen in der falschen Farbe`);
+      const x0 = Math.min(...bahnen.map(q => q.x)), x1 = Math.max(...bahnen.map(q => q.x + q.w));
       if (x0 > 0 || x1 < W) fehler.push(`${name}: Bahnen decken nur ${x0.toFixed(0)}–${x1.toFixed(0)} ab`);
-      if (b.bahnen.some(q => q.h < H - 1)) fehler.push(`${name}: Bahnen laufen nicht ueber die volle Hoehe`);
+      if (bahnen.some(q => q.h < H - 1)) fehler.push(`${name}: Bahnen laufen nicht ueber die volle Hoehe`);
     }
 
     // Die Linien tragen die Farbe des Belags, nicht immer die gruene

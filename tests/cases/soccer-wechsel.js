@@ -8,6 +8,7 @@ function aufbau(modus) {
     setting: k => (k === 'switch' ? modus : k === 'duration' ? 180 : 'normal')
   });
   for (let i = 0; i < 4; i++) s.tap();
+  s.uebernehmen();
   const S = s.state;
   S.restart = 0; S.kickoffTo = null; S.kickoffToT = 0; S.kickoffLock = 0;
   return { s, S };
