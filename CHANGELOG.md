@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.21.0]
+
+### Geändert
+- **STREET SOCCER ist in drei Dateien aufgeteilt.** `soccer.js` schrumpft von 2386 auf 1745 Zeilen; dazu kommen `soccer.render.js` (593, alles Gezeichnete) und `soccer.data.js` (131, Mannschaften, Runden, Flaggen). Geladen wird in der Reihenfolge data → render → soccer, über `window.RetroSoccer` — die Spiele sind klassische Scripts, es gibt keinen Build-Schritt
+- Das Rendering bekommt seinen Kontext einmal hereingereicht (28 Namen). `w` und `h` bleiben dort lokal und werden über `resize()` nachgeführt, dadurch konnte der Rumpf unverändert umziehen
+- Der Prüfstand lädt Beistelldateien eines Spiels jetzt selbst, so wie die Konsole es über eigene `<script>`-Tags tut
+
+### Behoben
+- Der Prüfstandsfall gegen Deklarationen unterhalb der Schnittstelle **kannte keine Destrukturierung** und hat den Fehler, den ich beim Auslagern des Renderings gebaut habe, durchgelassen. Er kennt jetzt beide Formen und prüft sich zusätzlich an einem gebauten Fehler selbst — sonst hätte er blind bestanden
+
 ## [0.20.0]
 
 ### Geändert

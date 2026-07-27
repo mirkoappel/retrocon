@@ -239,6 +239,20 @@ Das Feld liegt mit **0,58** zwischen Futsal (0,50) und Großfeld (0,648) — fla
 
 Das Tor ist bewusst rund dreimal so breit wie am Großfeld. Mit realistischer Torbreite deckt der Torwart mit seinem Fangradius praktisch das ganze Tor ab, und es fällt kein einziger Treffer mehr — das war messbar so. Aus demselben Grund sind auch die Spieler proportional viel größer als echte Fußballer.
 
+## Dateien
+
+| Datei | Zeilen | Inhalt |
+|---|---|---|
+| `soccer.js` | 1745 | Zustand, Regeln, KI, Spielablauf, Eingabe, Schnittstelle |
+| `soccer.render.js` | 593 | alles Gezeichnete: Feld, Spieler, Kopfzeile, Tafeln, Menübildschirme |
+| `soccer.data.js` | 131 | Mannschaften, Turnierrunden, Aufstellung, Flaggen |
+
+Die Spiele werden als **klassische Scripts** geladen — kein Build-Schritt, keine Module. Die Teile hängen deshalb an `window.RetroSoccer` und werden in der Reihenfolge `data → render → soccer` eingebunden.
+
+Das Rendering bekommt seinen Kontext einmal hereingereicht (28 Namen: Konstanten, Spielzustand, eine Handvoll Hilfen) und gibt die Zeichenfunktionen zurück. `w` und `h` bleiben dort lokal und werden über `resize()` nachgeführt — dadurch konnte der Rumpf unverändert umziehen.
+
+Vor der Aufteilung war `soccer.js` 2386 Zeilen lang, fast das Dreifache des nächstgrößten Spiels.
+
 ## Feld und Koordinaten
 
 Positionen liegen in **Feldeinheiten**: Feldlänge = 1,0, Breite = `FIELD_W` (0,58), beide Achsen im selben Maßstab. Dadurch ist Bewegung richtungsunabhängig und `resize()` muss nichts umrechnen — es merkt sich nur die neue Canvas-Größe.

@@ -19,7 +19,14 @@ const ROOT = path.join(__dirname, '..');
 // letzte solche Stelle ist die Schnittstelle. Findet sie sich nicht, bricht der
 // Prüfstand ab, statt stumm ohne Zustandszugriff weiterzulaufen.
 function load(game, inject) {
-  const file = path.join(ROOT, 'games', game, game + '.js');
+  const dir = path.join(ROOT, 'games', game);
+  // Beistelldateien zuerst laden (z. B. soccer.data.js) — die Konsole tut
+  // dasselbe über eigene <script>-Tags.
+  const beistell = fs.readdirSync(dir)
+    .filter(f => f.endsWith('.js') && f !== game + '.js')
+    .sort()
+    .map(f => fs.readFileSync(path.join(dir, f), 'utf8'));
+  const file = path.join(dir, game + '.js');
   let src = fs.readFileSync(file, 'utf8');
   const ANCHOR = '\n    return {\n';
   const at = src.lastIndexOf(ANCHOR);
@@ -30,6 +37,7 @@ function load(game, inject) {
   if (inject) src = inject(src);
   const sandbox = { window: {} };
   // eslint-disable-next-line no-new-func
+  for (const bei of beistell) new Function('window', 'global', bei)(sandbox.window, global);
   new Function('window', 'global', src)(sandbox.window, global);
   const mod = sandbox.window.RetroGames && sandbox.window.RetroGames[game];
   if (!mod) throw new Error(`${game} hat sich nicht an window.RetroGames angemeldet`);
