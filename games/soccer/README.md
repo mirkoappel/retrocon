@@ -195,6 +195,25 @@ Die Differenz ist das belastbare Signal; die reinen Siegzahlen rauschen bei rund
 
 Zum Vergleich der Steilheit: Mit `SKILL_STEP` = 0,11 endete das Finale bei 0,1 : 2,6 und 0 von 12 Siegen — zu hart. Mit 0,05 war zwischen den Runden kaum ein Unterschied messbar.
 
+## Hechtsprung
+
+Das offensive Gegenstück zur Grätsche, auf derselben Taste (**B ohne Ball**) und nach derselben Bauweise: Der Spieler macht sich lang, hat währenddessen eine gestreckte Reichweite (`DIVE_REACH`) und liegt danach `DIVE_DOWN` Sekunden am Boden.
+
+Er nimmt den Ball dabei **nicht an**, sondern fälscht ihn Richtung Tor ab — und zielt im Sprung deutlich ungenauer als beim normalen Schuss (Streuung 2,4 statt 0,7 Torbreiten).
+
+Damit er die Ausnahme bleibt und nicht die bessere Grätsche wird, muss alles davon zutreffen:
+
+| Bedingung | Warum |
+|---|---|
+| höchstens `DIVE_ZONE` (0,26) vom gegnerischen Tor | es ist ein Abschluss, kein Zweikampfmittel |
+| Ball ist frei und schneller als `DIVE_MIN_V` (0,30) | nur eine scharfe Hereingabe, kein trudelnder Ball |
+| Ball weiter weg als `CONTACT + 0,035` | zu Fuß erreichbare Bälle spielt man zu Fuß |
+| Ball näher als 0,13 | darüber hinaus ist er ohnehin nicht zu erreichen |
+
+Die KI nutzt denselben Sprung, sonst sähe man ihn nur beim eigenen Spieler.
+
+Nachgemessen über vier Spiele: **13 Sprünge pro Spiel, 37 % davon am Ball.** Der erste Entwurf war deutlich zu großzügig — 99 Sprünge pro Spiel und 10,1 Tore statt 2,4; ausschlaggebend waren die Mindestgeschwindigkeit des Balls und die Bedingung, dass er zu Fuß gerade nicht mehr erreichbar sein darf.
+
 ## Zweikampf
 
 **Mit Ball am Fuß läuft man langsamer** (`BALL_DRAG` = 0,92). Ohne das ist ein Ballführender schlicht nicht einzuholen und jeder Zweikampf entschieden, bevor er beginnt.

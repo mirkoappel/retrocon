@@ -373,7 +373,7 @@ body.no-scanlines::after { display: none; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  opacity: 0.35;
+  opacity: 0.5;
   transform: scale(0.82);
   transition: all 0.3s ease;
   cursor: pointer;
@@ -412,8 +412,10 @@ body.no-scanlines::after { display: none; }
   color: #4fc3f7;
   text-shadow: 0 0 16px rgba(79,195,247,0.5);
 }
+/* Der Zusatz war mit #666 bei 3,4:1 grenzwertig und auf den nicht gewählten
+   Karten (Deckkraft 0,35) mit 1,4:1 schlicht unlesbar. Jetzt 8,9:1 bzw. 3,0:1. */
 .game-card .tagline {
-  color: #666;
+  color: #9fb0c0;
   font-size: 0.65rem;
   letter-spacing: 0.2rem;
 }

@@ -16,6 +16,7 @@ window.RetroGames.soccer = {
     { t1: 'A', t2: 'OHNE BALL', was: 'Spieler wechseln — der Wechsel passiert nie von selbst' },
     { t1: 'B', t2: 'MIT BALL',  was: 'Abspielen' },
     { t1: 'B', t2: 'OHNE BALL', was: 'Grätschen — erwischt den Ball und aus kurzer Distanz auch den Mann' },
+    { t1: 'B', t2: 'VOR DEM TOR', was: 'Hechtsprung auf eine scharfe Hereingabe — danach liegt man kurz' },
     { t1: 'DRIBBELN', t2: '',   was: 'Mit Ball läuft man langsamer; der Ball folgt der Laufrichtung' },
     { t1: 'ANSTOSS', t2: '',    was: 'Der Anstoß wird zum Mitspieler gepasst' },
   ],
@@ -88,6 +89,15 @@ window.RetroGames.soccer = {
     const BALL_DRAG    = 0.92;  // Ballführender ist langsamer als ein freier Spieler
     const TACKLE_MAN   = PLAYER_R * 2.6;  // Grätsche erwischt auch den Mann, nicht nur den Ball
     const TACKLE_TIME  = 0.55;  // Dauer der Grätsche — für Mensch und KI dieselbe
+    // Hechtsprung: das offensive Gegenstück zur Grätsche. Man macht sich lang,
+    // um eine Hereingabe doch noch zu erreichen — und liegt danach kurz.
+    const DIVE_TIME    = 0.45;  // Dauer des Sprungs
+    const DIVE_SPEED   = 0.42;  // Tempo währenddessen, nicht steuerbar
+    const DIVE_REACH   = PLAYER_R * 2.2 + BALL_R;   // gestreckte Reichweite zum Ball
+    const DIVE_DOWN    = 0.7;   // so lange liegt man danach
+    const DIVE_ZONE    = 0.26;  // nur so nah am gegnerischen Tor
+    const DIVE_MIN_V   = 0.30;  // und nur auf eine scharf gespielte Hereingabe
+    const HEADER_SPEED = 0.62;  // Wucht des abgefälschten Balls
     const SHOT_RANGE   = 0.36;  // ab hier denkt die KI überhaupt ans Abschließen
     const LANE_MIN     = 0.012; // so viel Luft braucht die Schussbahn am Gegner vorbei
     // Angriffswege, die sich die KI je Ballbesitz aussucht. Flügel doppelt
@@ -261,7 +271,7 @@ window.RetroGames.soccer = {
             team, i, role: f.role,
             x: hp.x, y: hp.y, vx: 0, vy: 0,
             fx: 0, fy: team === 0 ? 1 : -1,   // Blickrichtung
-            ctrl: 0, steal: 0, lockout: 0, tackle: 0, gkHold: 0
+            ctrl: 0, steal: 0, lockout: 0, tackle: 0, gkHold: 0, dive: 0, down: 0, dx: 0, dy: 0
           });
         });
       }
@@ -272,7 +282,7 @@ window.RetroGames.soccer = {
       for (const p of state.players) {
         const hp = homePos(p.team, p.i);
         p.x = hp.x; p.y = hp.y; p.vx = 0; p.vy = 0;
-        p.steal = 0; p.lockout = 0; p.tackle = 0; p.gkHold = 0;
+        p.steal = 0; p.lockout = 0; p.tackle = 0; p.gkHold = 0; p.dive = 0; p.down = 0;
       }
       // Anstoßende Mannschaft stellt den Stürmer an den Ball und den
       // Mitspieler schräg dahinter — er bekommt gleich den Anstoßpass
@@ -475,6 +485,51 @@ window.RetroGames.soccer = {
       }
       pending.t -= dt;
       if (pending.t <= 0) pending = null;
+    }
+
+    // Hechtsprung: nur ohne Ball, nur vor dem gegnerischen Tor, nur auf einen
+    // freien Ball in Bewegung — sonst wäre es die bessere Grätsche und man
+    // spränge überall herum.
+    function canDive(p) {
+      const b = state.ball;
+      if (p.role === 'GK' || p.dive > 0 || p.down > 0) return false;
+      if (b.owner) return false;
+      if (Math.abs(goalY(p.team) - p.y) > DIVE_ZONE) return false;
+      // Nur auf eine scharfe Hereingabe, nicht auf jeden rollenden Ball
+      if (Math.hypot(b.vx, b.vy) < DIVE_MIN_V) return false;
+      const d = dist(p, b);
+      // Und nur, wenn man ihn zu Fuß eben nicht mehr erreicht — sonst wäre der
+      // Sprung immer die bessere Grätsche und man höbe dauernd ab
+      return d > CONTACT + 0.035 && d < 0.13;
+    }
+
+    function startDive(p) {
+      p.dive = DIVE_TIME;
+      // In Richtung Ball abspringen, nicht in Laufrichtung — man hechtet ja
+      // dorthin, wo der Ball hinkommt
+      const b = state.ball;
+      const tx = b.x + b.vx * 0.12, ty = b.y + b.vy * 0.12;
+      const dx = tx - p.x, dy = ty - p.y;
+      const len = Math.hypot(dx, dy) || 1;
+      p.dx = dx / len; p.dy = dy / len;
+      p.fx = p.dx; p.fy = p.dy;
+      sndKick();
+    }
+
+    // Berührung im Sprung: der Ball wird abgefälscht, nicht angenommen.
+    function headerHit(p) {
+      const b = state.ball;
+      const gy = goalY(p.team);
+      const tx = FIELD_W / 2 + (Math.random() - 0.5) * GOAL_W * 2.4;   // im Sprung zielt niemand genau
+      const dx = tx - b.x, dy = gy - b.y;
+      const len = Math.hypot(dx, dy) || 1;
+      b.owner = null;
+      b.vx = dx / len * HEADER_SPEED;
+      b.vy = dy / len * HEADER_SPEED;
+      p.dive = 0; p.down = DIVE_DOWN;
+      p.lockout = DIVE_DOWN;
+      state.shake = 0.25;
+      sndShot();
     }
 
     function doShoot(p, aim) {
@@ -692,6 +747,10 @@ window.RetroGames.soccer = {
 
       if (owner === p) { aiWithBall(p, dt); return; }
 
+      // Vor dem Tor nach einer Hereingabe langmachen — sonst sähe man den
+      // Sprung nur beim Menschen
+      if (canDive(p) && Math.random() < dt * 1.1 * skill(p.team)) { startDive(p); return; }
+
       // Anstoßpass: der vorgesehene Abnehmer geht auf jeden Fall zum Ball
       if (state.kickoffTo === p && !owner) {
         moveToward(p, b.x, b.y, SPEED, dt);
@@ -801,6 +860,16 @@ window.RetroGames.soccer = {
       for (const p of state.players) {
         p.lockout = Math.max(0, p.lockout - dt);
         p.tackle  = Math.max(0, p.tackle - dt);
+        p.down    = Math.max(0, p.down - dt);
+
+        // Im Sprung und am Boden ist nichts zu steuern
+        if (p.dive > 0) {
+          p.dive -= dt;
+          p.vx = p.dx * DIVE_SPEED; p.vy = p.dy * DIVE_SPEED;
+          if (dist(p, state.ball) < DIVE_REACH && !state.ball.owner) headerHit(p);
+          continue;
+        }
+        if (p.down > 0) { p.vx = 0; p.vy = 0; continue; }
 
         if (p.role === 'GK') { aiGoalkeeper(p, dt); }
         else if (p.ctrl) {
@@ -933,7 +1002,7 @@ window.RetroGames.soccer = {
         if (state.kickoffLock <= 0) {
           let take = null, td = Infinity;
           for (const p of state.players) {
-            if (p.lockout > 0) continue;
+            if (p.lockout > 0 || p.dive > 0 || p.down > 0) continue;
             if (state.kickoffTo && p !== state.kickoffTo) continue;
             const reach = (p.role === 'GK' ? PLAYER_R * GK_REACH * gkFatigue() : PLAYER_R) + BALL_R + 0.006;
             const d = dist(p, b);
@@ -1212,9 +1281,11 @@ window.RetroGames.soccer = {
               if (state.ball.owner === me) shoot(me);
               else cycleControl(player);
             }
-            // B: mit Ball abspielen, ohne Ball grätschen — beides „an den Ball"
+            // B: mit Ball abspielen. Ohne Ball vor dem gegnerischen Tor der
+            // Hechtsprung auf eine Hereingabe, sonst die Grätsche.
             if (edge(gp, prev, 'b')) {
               if (state.ball.owner === me) pass(me);
+              else if (canDive(me)) startDive(me);
               else { me.tackle = TACKLE_TIME; sndKick(); }
             }
             return;
@@ -1357,7 +1428,20 @@ window.RetroGames.soccer = {
         ctx.strokeStyle = 'rgba(0,0,0,0.55)';
         ctx.lineWidth = Math.max(1, r.s * 0.002);
 
-        if (p.tackle > 0) {
+        if (p.dive > 0 || p.down > 0) {
+          // Hechtsprung: noch länger gestreckt als die Grätsche, am Boden
+          // liegend flach und ohne Richtung
+          const ang = p.dive > 0 ? screenAngle(r, p.dx, p.dy) : screenAngle(r, p.fx, p.fy);
+          ctx.save();
+          ctx.translate(q.X, q.Y);
+          ctx.rotate(ang);
+          ctx.scale(p.dive > 0 ? 2.15 : 1.9, p.dive > 0 ? 0.52 : 0.45);
+          ctx.globalAlpha = p.down > 0 ? 0.75 : 1;
+          ctx.beginPath(); ctx.arc(0, 0, rad, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.restore();
+        } else if (p.tackle > 0) {
           // Grätsche: der Körper wird in Laufrichtung gestreckt.
           // Bildschirm-y ist gespiegelt, deshalb -p.fy im Winkel.
           const ang = screenAngle(r, p.fx, p.fy);

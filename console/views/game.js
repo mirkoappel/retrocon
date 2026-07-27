@@ -204,8 +204,10 @@ function refreshIgSettings() {
 
   // Ehrlich bleiben: Dauer und Stärke liest ein Spiel beim Start
   const hint = document.getElementById('ig-settings-hint');
+  // Kein Tastenspickzettel — die ‹ › an der Karte zeigen die Achse schon.
+  // Stehen bleibt nur, was man nicht sehen kann.
   if (hint) hint.textContent = opts.length
-    ? '← → BLÄTTERN · A / ENTER ÄNDERN · GILT AB DEM NÄCHSTEN SPIEL'
+    ? 'GILT AB DEM NÄCHSTEN SPIEL'
     : 'DIESES SPIEL HAT KEINE EIGENEN EINSTELLUNGEN';
 }
 

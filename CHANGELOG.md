@@ -2,6 +2,16 @@
 
 Alle nennenswerten Änderungen an RETROCON. Format orientiert an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
+## [0.13.0]
+
+### Neu
+- **STREET SOCCER: Hechtsprung vor dem Tor.** Mit **B ohne Ball** macht man sich lang, um eine scharfe Hereingabe doch noch zu erreichen, und fälscht sie Richtung Tor ab — angenommen wird der Ball dabei nicht. Danach liegt man kurz am Boden; das ist der Preis, wenn man daneben springt. Die KI nutzt denselben Sprung
+- Er bleibt bewusst die Ausnahme: nur nahe am gegnerischen Tor, nur auf einen freien, scharf gespielten Ball, und nur wenn der zu Fuß gerade nicht mehr erreichbar ist. Im Sprung zielt niemand genau (Streuung 2,4 statt 0,7 Torbreiten). Nachgemessen: 13 Sprünge pro Spiel, 37 % davon am Ball, Torquote unverändert bei 2,4. Der erste Entwurf lag bei 99 Sprüngen und 10,1 Toren pro Spiel
+
+### Geändert
+- **Kartentexte im Karussell lesbar.** „1–2 SPIELER · CLASSIC ARCADE" stand mit 3,4:1 gegen den Kartenhintergrund, auf den nicht gewählten Karten mit 1,4:1 — jetzt 8,9:1 bzw. 3,0:1
+- Die Tastenhinweise unter den Einstellungen sind weg; die ‹ › an der Karte zeigen die Achse schon. Stehen bleibt nur „GILT AB DEM NÄCHSTEN SPIEL", was man nicht sehen kann
+
 ## [0.12.4]
 
 ### Geändert
